@@ -29,7 +29,10 @@ if (IS_LOCAL_DEV) {
   try {
     firebase.firestore().useEmulator('localhost', 8080);
     firebase.auth().useEmulator('http://localhost:9099', { disableWarnings: true });
-    console.info('[Miroma AI Hub] Local dev — connected to Firebase emulators (Firestore :8080, Auth :9099). Production data is NOT in use.');
+    if (firebase.functions) {
+      firebase.functions().useEmulator('localhost', 5001);
+    }
+    console.info('[Miroma AI Hub] Local dev — connected to Firebase emulators (Firestore :8080, Auth :9099, Functions :5001). Production data is NOT in use.');
   } catch (err) {
     console.warn('[Miroma AI Hub] Failed to connect to emulators — falling back to production. Start them with: firebase emulators:start', err);
   }
