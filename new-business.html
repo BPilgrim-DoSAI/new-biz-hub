@@ -3,17 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Agency Oversight — Miroma AI Hub</title>
-  <meta name="description" content="AI Hub admin dashboard — licence management and onboarding.">
-  <link rel="stylesheet" href="css/styles.css?v=3">
-  <link rel="stylesheet" href="css/claude-usage.css?v=9">
-  <link rel="stylesheet" href="css/group-report.css?v=1">
+  <title>New Business — Miroma AI Hub</title>
+  <meta name="description" content="New Business Hub — take opportunities from brief to pitch-ready deck.">
+  <link rel="stylesheet" href="css/styles.css">
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" integrity="sha384-sEVIly94UBRLKWdkYoPpSG7GD/e79YHMrxVyZaOk712Ga7+EAw6w1EFi+xBzBdd+" crossorigin="anonymous"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js" integrity="sha384-EkqK+ezBWJuvO3hfrSx2iVqr3YQbhmnzn8kPhOpBZ+0GMVU5oGSgptwIu8D84HjE" crossorigin="anonymous"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js" integrity="sha384-M481iNZJtbpypKgvlvZ+78Giq0BsewFLk5r2k+MOcGXlwKCc27DQRZ+WCV/zpmpC" crossorigin="anonymous"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-functions-compat.js"></script>
   <script src="js/auth.js"></script>
-  <!-- Google Analytics (config moved to js/analytics.js — S-6 Part B) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-L7H3N34BG1"></script>
   <script src="js/analytics.js"></script>
 </head>
@@ -31,8 +28,8 @@
         <li><a href="use-cases.html"><span class="nav__num">03</span> Use Cases</a></li>
         <li><a href="policy.html"><span class="nav__num">04</span> Policy &amp; Guidelines</a></li>
         <li><a href="whats-new.html"><span class="nav__num">05</span> What's New</a></li>
-        <li id="nav-admin-item" style="display:none"><a href="admin.html" class="is-active"><span class="nav__num">06</span> Agency Oversight</a></li>
-        <li id="nav-newbiz-item" style="display:none"><a href="new-business.html"><span class="nav__num">07</span> New Business</a></li>
+        <li id="nav-admin-item" style="display:none"><a href="admin.html"><span class="nav__num">06</span> Agency Oversight</a></li>
+        <li id="nav-newbiz-item" style="display:none"><a href="new-business.html" class="is-active"><span class="nav__num">07</span> New Business</a></li>
       </ul>
       <div class="nav__contact"><a href="https://miromabrandhub.com/" target="_blank" rel="noopener noreferrer" class="nav__brand-hub-btn">Brand Hub ↗</a><span class="nav__divider"></span><button class="nav__signout-btn">Sign out</button></div>
       <button class="nav__toggle" id="navToggle" aria-label="Open menu" aria-expanded="false">
@@ -40,35 +37,39 @@
       </button>
     </div>
   </nav>
-
   <div class="mobile-menu" id="mobileMenu">
     <a href="index.html">Hub</a>
     <a href="learning.html">Learning Pathway</a>
     <a href="use-cases.html">Use Cases</a>
     <a href="policy.html">Policy &amp; Guidelines</a>
     <a href="whats-new.html">What's New</a>
-    <a href="admin.html">Agency Oversight</a>
+    <a id="mob-admin-link" href="admin.html" style="display:none">Agency Oversight</a>
     <a id="mob-newbiz-link" href="new-business.html" style="display:none">New Business</a>
     <a href="https://miromabrandhub.com/" target="_blank" rel="noopener noreferrer">Brand Hub ↗</a>
+    <button class="mob-signout-btn">Sign out</button>
   </div>
 
-  <section class="section section--white" style="padding-top: calc(var(--nav-height) + 40px); min-height: calc(100vh - var(--nav-height));">
+  <header class="page-header">
+    <div class="page-header__inner">
+      <div class="page-header__left">
+        <p class="page-header__label">07 — New Business</p>
+        <h1 class="page-header__title">New Business Hub</h1>
+        <p class="page-header__body">Take an opportunity from raw client brief through to a pitch-ready deck. Each phase is guided — paste the brief, and the engine does the rest.</p>
+      </div>
+    </div>
+  </header>
+
+  <section class="section section--white">
     <div class="container">
-      <header class="admin-page-header">
-        <p class="admin-page-header__label">AI Hub · Admin</p>
-        <h1 class="admin-page-header__title">Agency Admin</h1>
-        <p class="admin-page-header__sub">Manage licences, track AI impact stories, and monitor tool adoption across Miroma Group agencies.</p>
-        <p class="admin-page-header__note"><strong>Restricted access.</strong> Agency admins see their own agency's licences and stories only. Finance admins see licences and group spend across all agencies. Super admins have full visibility across all agencies, including group spend and engagement data. Questions? Contact <a href="mailto:aiteam@miroma.com">aiteam@miroma.com</a>.</p>
-      </header>
-      <div id="adminPanelBody" class="admin-page-body"></div>
+      <div id="nbContent"></div>
     </div>
   </section>
 
   <footer class="footer">
     <div class="footer__inner">
-      <div class="footer__top">
+      <div class="footer__grid">
         <div>
-          <a href="index.html" class="footer__logo"><img src="assets/logos/logo-white.png" alt="Miroma Group"></a>
+          <p class="footer__brand">MIROMA · AI HUB</p>
           <p class="footer__tagline">The central hub for all things AI at Miroma Group.</p>
         </div>
         <div>
@@ -83,39 +84,18 @@
         <div>
           <p class="footer__col-label">AI Team</p>
           <a href="mailto:aiteam@miroma.com" class="footer__email">aiteam@miroma.com</a>
-          <p class="footer__email-note">Questions about licences or access? Get in touch.</p>
+          <p class="footer__email-note">Submit a use case or share your AI story with the team.</p>
         </div>
       </div>
       <div class="footer__bottom">
-        <p class="footer__copy">© 2025 Miroma Group. All rights reserved.</p>
+        <p class="footer__copy">&copy; 2025 Miroma Group. All rights reserved.</p>
         <p class="footer__copy">AI Hub — Internal Resource</p>
       </div>
     </div>
   </footer>
 
-  <!-- admin-data.js removed (KNOWN_ISSUES.md S-1). All data now loaded from
-       Firestore by admin-panel.js (/admins, /agencies, /agency_contacts). -->
-  <script src="js/admin-nav.js?v=3"></script>
   <script src="js/requests.js"></script>
-  <script src="js/main.js"></script>
-  <!-- Claude Usage dashboard renderer (window.renderClaudeUsage). Must load
-       before admin-panel.js, which calls it when the Claude Usage tab opens. -->
-  <script src="js/claude-usage.js?v=3"></script>
-  <!-- LTX Studio usage dashboard renderer (window.renderLtxUsage). -->
-  <script src="js/ltx-usage.js?v=12"></script>
-  <!-- Custom automation usage dashboard renderer (window.renderAutomationUsage). -->
-  <script src="js/automation-usage.js?v=1"></script>
-  <!-- Group AI Progress renderer (window.renderGroupReport). Must load after
-       claude-usage.js (uses window.levelFor) and before admin-panel.js,
-       which calls it when the Group AI Progress tab opens. -->
-  <script src="js/group-report.js?v=2"></script>
-  <script src="js/admin-panel.js?v=25"></script>
-  <!-- Site Content editors: news-data.js / use-cases-data.js provide the
-       static arrays used by the one-click imports; admin-content.js and
-       admin-use-cases.js are the editor UIs. -->
-  <script src="js/news-data.js"></script>
-  <script src="js/admin-content.js"></script>
-  <script src="js/use-cases-data.js"></script>
-  <script src="js/admin-use-cases.js"></script>
+  <script src="js/new-business.js"></script>
+  <script src="js/admin-nav.js?v=3"></script>
 </body>
 </html>

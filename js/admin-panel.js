@@ -357,6 +357,11 @@
       mlEl.style.display = section === 'meeting-log' ? '' : 'none';
       if (section === 'meeting-log') renderMeetingLogSection();
     }
+    const nbEl = document.getElementById('adminSectionNewBizUsers');
+    if (nbEl) {
+      nbEl.style.display = section === 'newbiz-users' ? '' : 'none';
+      if (section === 'newbiz-users') renderNewBizUsersSection();
+    }
   }
 
   // ── Claude Usage section ──────────────────────────────
@@ -1145,6 +1150,163 @@
       : data.agencies.filter(a => a.key === user.agency);
   }
 
+  // ── New Business Hub: nominated user management ────────
+  // Per-agency list of email addresses granted New Business Hub
+  // access. Mirrors the agency_admins edit pattern. Calls the
+  // setNewBizUsers Cloud Function to persist changes and set
+  // the newbizAccess custom claim on each nominated user.
+
+  var _nbCache = {};
+
+  async function renderNewBizUsersSection() {
+    const section = document.getElementById('adminSectionNewBizUsers');
+    if (!section) return;
+
+    const adminEmail = getAdminEmail();
+    const user = getUser(adminEmail);
+    if (!user) return;
+
+    const agencies = visibleFor(user);
+    if (!agencies.length) {
+      section.innerHTML = '<p class="admin-view__loading">No agencies available.</p>';
+      return;
+    }
+
+    const selKey = getSelectedAgency(agencies);
+    const tabsHtml = agencies.length > 1
+      ? `<div class="admin-tabs nb-agency-tabs" role="tablist">
+          ${agencies.map((a) =>
+            `<button class="admin-tab${a.key === selKey ? ' is-active' : ''}" data-nb-agency="${esc(a.key)}">${esc(a.name)}</button>`
+          ).join('')}
+         </div>`
+      : '';
+
+    section.innerHTML = `
+      <p class="admin-view__title">New Business Hub Users</p>
+      <p class="admin-view__sub">Manage which team members have access to the New Business Hub for each agency. Only nominated users can create and work on opportunities.</p>
+      ${tabsHtml}
+      <div id="nbAgencyContent"></div>`;
+
+    section.querySelectorAll('[data-nb-agency]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        section.querySelectorAll('[data-nb-agency]').forEach(b => b.classList.remove('is-active'));
+        btn.classList.add('is-active');
+        setSelectedAgency(btn.dataset.nbAgency);
+        loadNewBizUsers(btn.dataset.nbAgency);
+      });
+    });
+
+    loadNewBizUsers(selKey);
+  }
+
+  async function loadNewBizUsers(agencyKey) {
+    const content = document.getElementById('nbAgencyContent');
+    if (!content) return;
+    content.innerHTML = '<p class="admin-view__loading">Loading…</p>';
+
+    try {
+      var emails = _nbCache[agencyKey];
+      if (!emails) {
+        const fn = firebase.functions();
+        const result = await fn.httpsCallable('getNewBizUsers')({ agencyKey });
+        emails = result.data.emails || [];
+        _nbCache[agencyKey] = emails;
+      }
+
+      const listHtml = emails.length
+        ? emails.map(function(e) {
+            return `<div class="nb-user">
+              <span class="nb-user__email">${esc(e)}</span>
+              <button class="nb-user__remove btn-sm btn-sm--outline" data-email="${esc(e)}">Remove</button>
+            </div>`;
+          }).join('')
+        : '<p class="nb-empty">No users nominated yet. Add email addresses below.</p>';
+
+      content.innerHTML = `
+        <div class="nb-list">${listHtml}</div>
+        <div class="nb-add-form">
+          <input type="email" id="nbNewEmail" class="nb-add-input" placeholder="user@agency.com">
+          <button class="btn-sm nb-add-btn">Add user</button>
+        </div>
+        <div id="nbStatus" class="nb-status"></div>`;
+
+      content.querySelector('.nb-add-btn')?.addEventListener('click', function() {
+        addNewBizUser(agencyKey);
+      });
+      content.querySelector('#nbNewEmail')?.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); addNewBizUser(agencyKey); }
+      });
+      content.querySelectorAll('.nb-user__remove').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          removeNewBizUser(agencyKey, btn.dataset.email);
+        });
+      });
+    } catch (err) {
+      console.warn('loadNewBizUsers error:', err);
+      content.innerHTML = '<p class="admin-view__loading">Failed to load nominated users. Please try again.</p>';
+    }
+  }
+
+  async function addNewBizUser(agencyKey) {
+    const input = document.getElementById('nbNewEmail');
+    const status = document.getElementById('nbStatus');
+    if (!input || !status) return;
+
+    const email = input.value.trim().toLowerCase();
+    if (!email || !email.includes('@')) {
+      status.textContent = 'Please enter a valid email address.';
+      status.className = 'nb-status nb-status--error';
+      return;
+    }
+
+    const current = _nbCache[agencyKey] || [];
+    if (current.includes(email)) {
+      status.textContent = 'This user is already nominated.';
+      status.className = 'nb-status nb-status--error';
+      return;
+    }
+
+    status.textContent = 'Adding…';
+    status.className = 'nb-status';
+    try {
+      const updated = [...current, email];
+      const fn = firebase.functions();
+      await fn.httpsCallable('setNewBizUsers')({ agencyKey, emails: updated });
+      _nbCache[agencyKey] = updated;
+      input.value = '';
+      status.textContent = esc(email) + ' added.';
+      status.className = 'nb-status nb-status--ok';
+      loadNewBizUsers(agencyKey);
+    } catch (err) {
+      console.warn('addNewBizUser error:', err);
+      status.textContent = 'Failed to add user. ' + (err.message || '');
+      status.className = 'nb-status nb-status--error';
+    }
+  }
+
+  async function removeNewBizUser(agencyKey, email) {
+    const status = document.getElementById('nbStatus');
+    if (status) { status.textContent = 'Removing…'; status.className = 'nb-status'; }
+    try {
+      const current = _nbCache[agencyKey] || [];
+      const updated = current.filter(function(e) { return e !== email; });
+      const fn = firebase.functions();
+      await fn.httpsCallable('setNewBizUsers')({ agencyKey, emails: updated });
+      _nbCache[agencyKey] = updated;
+      if (status) {
+        status.textContent = esc(email) + ' removed.';
+        status.className = 'nb-status nb-status--ok';
+      }
+      loadNewBizUsers(agencyKey);
+    } catch (err) {
+      console.warn('removeNewBizUser error:', err);
+      if (status) {
+        status.textContent = 'Failed to remove user.';
+        status.className = 'nb-status nb-status--error';
+      }
+    }
+  }
+
   // ── Content rendering ─────────────────────────────────
 
   function renderContent() {
@@ -1248,6 +1410,7 @@
         ${(user.access === 'all' || user.access === 'finance') ? '<button class="admin-section-btn" data-section="group-overview">Group Spend</button>' : ''}
         ${user.access === 'all' ? '<button class="admin-section-btn" data-section="activity">AI Hub Engagement</button>' : ''}
         ${user.access !== 'finance' ? '<button class="admin-section-btn" data-section="roi-stories">AI Impact Stories</button>' : ''}
+        ${user.access !== 'finance' ? '<button class="admin-section-btn" data-section="newbiz-users">New Biz Users</button>' : ''}
         ${user.access === 'all' ? '<button class="admin-section-btn" data-section="site-content">Site Content</button>' : ''}
       </div>
       <div id="adminSectionLicenses">
@@ -1262,6 +1425,7 @@
       <div id="adminSectionGroupOverview" style="display:none"></div>
       <div id="adminSectionUsageReports" style="display:none"></div>
       <div id="adminSectionMeetingLog" style="display:none"></div>
+      <div id="adminSectionNewBizUsers" style="display:none"></div>
       <div id="adminSectionContent" style="display:none"></div>`;
   }
 

@@ -42,6 +42,34 @@
     if (mobLink) mobLink.style.display = 'none';
   }
 
+  function showNewBizLink() {
+    var item    = document.getElementById('nav-newbiz-item');
+    var mobLink = document.getElementById('mob-newbiz-link');
+    if (item)    item.style.display    = '';
+    if (mobLink) mobLink.style.display = '';
+  }
+
+  function hideNewBizLink() {
+    var item    = document.getElementById('nav-newbiz-item');
+    var mobLink = document.getElementById('mob-newbiz-link');
+    if (item)    item.style.display    = 'none';
+    if (mobLink) mobLink.style.display = 'none';
+  }
+
+  function checkNewBizClaim() {
+    try {
+      var user = firebase.auth().currentUser;
+      if (!user) { hideNewBizLink(); return; }
+      user.getIdTokenResult().then(function(tokenResult) {
+        if (tokenResult.claims.newbizAccess || tokenResult.claims.access === 'all' || tokenResult.claims.access === 'finance') {
+          showNewBizLink();
+        } else {
+          hideNewBizLink();
+        }
+      }).catch(function() { hideNewBizLink(); });
+    } catch (_) { hideNewBizLink(); }
+  }
+
   function checkAndShow() {
     const ssoEmail = getSSOEmail();
     // M-3 Part 2: STORAGE_KEY is now a boolean presence flag ('1'). Combined
@@ -72,15 +100,23 @@
     } else {
       hideAdminLink();
     }
+    checkNewBizClaim();
   });
 
-  document.addEventListener('mirAuthSignedOut', hideAdminLink);
+  document.addEventListener('mirAuthSignedOut', function() {
+    hideAdminLink();
+    hideNewBizLink();
+  });
 
   // Also check on load in case mirAuthReady already fired
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', checkAndShow);
+    document.addEventListener('DOMContentLoaded', function() {
+      checkAndShow();
+      checkNewBizClaim();
+    });
   } else {
     checkAndShow();
+    checkNewBizClaim();
   }
 
   // Sign-out button binding — replaces inline onclick attributes across

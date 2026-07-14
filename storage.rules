@@ -1,0 +1,37 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ── Agency knowledge base assets ──
+    // Persistent brand decks, templates, credentials documents.
+    // Readable by any nominated new-biz user in the owning agency.
+    // Writes are Cloud-Functions-only (Admin SDK bypasses these rules).
+    match /agency_kb/{agencyKey}/{allPaths=**} {
+      allow read: if request.auth != null
+        && request.auth.token.email != null
+        && (request.auth.token.agencyKey == agencyKey
+            || (request.auth.token.access == 'all'
+                || request.auth.token.access == 'finance'));
+      allow write: if false;
+    }
+
+    // ── Per-opportunity uploads ──
+    // Documents uploaded for a specific opportunity. The agencyKey is
+    // encoded in the path rather than looked up from Firestore (Storage
+    // rules can't read Firestore). Uploads go through Cloud Functions
+    // which validate agency ownership before writing.
+    match /opportunities/{agencyKey}/{oppId}/{allPaths=**} {
+      allow read: if request.auth != null
+        && request.auth.token.email != null
+        && (request.auth.token.agencyKey == agencyKey
+            || (request.auth.token.access == 'all'
+                || request.auth.token.access == 'finance'));
+      allow write: if false;
+    }
+
+    // Deny everything else by default.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

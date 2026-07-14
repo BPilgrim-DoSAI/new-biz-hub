@@ -470,5 +470,74 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // ── NEW BUSINESS HUB ────────────────────────────────
+
+    // ── Nominated new-biz users per agency ──
+    // Admin-managed list of email addresses granted New Business Hub
+    // access. Mirrors the /agency_admins/{agencyKey} pattern: the docId
+    // IS the agencyKey, and reads/writes are scoped by canAccessAgency.
+    // The doc holds { emails: [...], updatedBy, updatedAt }. Cloud
+    // Functions set the newbizAccess custom claim based on this list.
+    match /newbiz_users/{agencyKey} {
+      allow read: if canAccessAgency(agencyKey);
+      allow write: if false;
+    }
+
+    // ── Opportunities ──
+    // Core workspace documents for the New Business Hub. Each opportunity
+    // belongs to an agency (agencyKey field) and is readable/writable by
+    // any nominated new-biz user in that agency OR full-access admins.
+    //
+    // The newbizAccess check uses the custom claim set by Cloud Functions.
+    // Fallback: if the claim hasn't propagated yet, the front end calls
+    // Cloud Functions (which do their own server-side auth check) rather
+    // than writing directly — so the rule here can be strict.
+    //
+    // Reads: agency match OR full-access admin.
+    // Creates: via Cloud Functions only (server-side validation).
+    // Updates: agency match + newbizAccess claim, or full-access admin.
+    // Deletes: disabled (archive via status field instead).
+    match /opportunities/{oppId} {
+      allow read: if isAllowedDomain() && (
+        (request.auth.token.agencyKey == resource.data.agencyKey
+          && request.auth.token.newbizAccess == true)
+        || isFullAccessAdmin()
+      );
+      allow create: if false;
+      allow update: if isAllowedDomain() && (
+        (request.auth.token.agencyKey == resource.data.agencyKey
+          && request.auth.token.newbizAccess == true)
+        || isFullAccessAdmin()
+      );
+      allow delete: if false;
+
+      // Phase outputs and documents inherit the opportunity's agency
+      // scope. Uses recursive wildcard so both phase_outputs/{phase}
+      // and documents/{docId} are covered by one rule block.
+      match /{document=**} {
+        allow read: if isAllowedDomain() && (
+          (request.auth.token.agencyKey ==
+             get(/databases/$(database)/documents/opportunities/$(oppId)).data.agencyKey
+            && request.auth.token.newbizAccess == true)
+          || isFullAccessAdmin()
+        );
+        allow create, update: if false;
+        allow delete: if false;
+      }
+    }
+
+    // ── Agency knowledge base ──
+    // Persistent agency credentials, brand decks, and templates reused
+    // across opportunities. Scoped to the owning agency via agencyKey
+    // claim. Writes are Cloud-Functions-only (uploads go through Storage
+    // + a Function that writes the metadata doc).
+    match /agency_kb/{agencyKey}/{document=**} {
+      allow read: if isAllowedDomain() && (
+        request.auth.token.agencyKey == agencyKey
+        || isFullAccessAdmin()
+      );
+      allow write: if false;
+    }
+
   }
 }
