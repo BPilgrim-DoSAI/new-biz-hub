@@ -1,0 +1,643 @@
+/* =============================================================
+   MIROMA AI HUB — Claude Usage dashboard
+   Dark studio theme — Miroma Group design system (option 2a).
+   All classes are .cu-* prefixed to avoid collisions.
+   ============================================================= */
+
+/* ── Root dark overrides — scoped so the rest of the hub stays light ── */
+.cu {
+  --c-black:      #FFFFFF;
+  --c-white:      #141414;
+  --c-cream:      #141414;
+  --c-body:       #FFFFFF;
+  --c-stone:      rgba(255,255,255,0.4);
+  --c-grey:       rgba(255,255,255,0.14);
+  --c-grey-light: rgba(255,255,255,0.08);
+  --c-grey-mid:   rgba(255,255,255,0.12);
+  --radius-sm:    0px;
+  --radius-md:    0px;
+  --shadow-sm:    none;
+  --cu-gap: 18px;
+  /* Chart colours — referenced inline by the JS renderer so they flip to dark
+     ink in the print stylesheet (see @media print below). On screen they are the
+     white-on-dark studio palette; in print they become legible inks on white. */
+  --cu-bar:       #FFFFFF;                 /* primary bar fill */
+  --cu-bar-mut:   rgba(255,255,255,0.45);  /* muted / secondary bar fill */
+  --cu-track:     rgba(255,255,255,0.10);  /* bar track */
+  --cu-amber:     #FFE255;                 /* the single yellow accent */
+  /* Funnel / status intensity ramp. ramp4 ("Not yet active") was 0.14 — nearly
+     invisible against the dark background, on a metric the report elsewhere
+     calls the hard gate to levelling up. Raised for visibility while staying
+     the clearly-faintest tier; amber is deliberately NOT used here — it's
+     reserved for "Lapsed" only (a regression), not "never started" (routine). */
+  --cu-ramp1:     #FFFFFF;
+  --cu-ramp2:     rgba(255,255,255,0.60);
+  --cu-ramp3:     rgba(255,255,255,0.32);
+  --cu-ramp4:     rgba(255,255,255,0.22);
+  --cu-on-strong: #0b0b0b;                 /* text sitting on the strongest bar */
+  --cu-on-faint:  rgba(255,255,255,0.60);  /* text sitting on the faintest bar */
+  background: #0b0b0b;
+  color: #FFFFFF;
+  font-family: 'PPNeueMontreal', 'Lato', sans-serif;
+}
+
+/* ── Header / period ─────────────────────────────────────── */
+.cu-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:6px; }
+.cu-head__period { font-size:12px; color:rgba(255,255,255,0.4); letter-spacing:.04em; }
+.cu-badge {
+  display:inline-block; font-size:10px; font-weight:500; letter-spacing:.1em; text-transform:uppercase;
+  padding:4px 10px; border-radius:0; background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.55);
+}
+
+/* ── Narrative talking-points callout ───────────────────── */
+.cu-narrative { background:#141414; border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:20px 22px; margin:14px 0 26px; }
+.cu-narrative__label { font-size:10px; font-weight:500; letter-spacing:.16em; text-transform:uppercase; color:rgba(255,255,255,0.4); margin-bottom:8px; }
+.cu-narrative__text { font-size:15px; line-height:1.55; color:rgba(255,255,255,0.85); }
+
+/* ── KPI cards ──────────────────────────────────────────── */
+.cu-kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:var(--cu-gap); margin-bottom:28px; }
+@media (max-width:860px){ .cu-kpis{ grid-template-columns:repeat(2,1fr); } }
+.cu-kpi {
+  background:#141414; border:1px solid rgba(255,255,255,0.12);
+  border-top:3px solid rgba(255,255,255,0.35);
+  border-radius:8px; padding:20px 20px 18px; box-shadow:none;
+}
+.cu-kpi--hl { border-top-color:#FFE255; }
+.cu-kpi__label { font-size:12px; font-weight:500; letter-spacing:.13em; text-transform:uppercase; color:rgba(255,255,255,0.55); margin-bottom:14px; }
+.cu-kpi__value { font-size:clamp(28px,3.8vw,52px); font-weight:500; letter-spacing:-0.022em; line-height:1; margin-top:0; color:#fff; font-variant-numeric:tabular-nums; white-space:nowrap; }
+/* Wider values (e.g. a time-saved range like "~38–110 h") overflow the same
+   clamp that a short "187" fits comfortably — the unit was wrapping onto its
+   own line. Applied by kpiCard() when the rendered text is long, so it scales
+   down automatically for whatever range a given month/agency produces. */
+.cu-kpi__value--tight { font-size:clamp(18px,2.6vw,32px); }
+.cu-kpi__sub { font-size:12px; color:rgba(255,255,255,0.4); margin-top:6px; }
+.cu-kpi__delta { font-size:12px; font-weight:500; margin-top:8px; display:inline-flex; align-items:center; gap:4px; }
+.cu-kpi__delta--up   { color:rgba(255,255,255,0.55); }
+.cu-kpi__delta--down { color:#FFE255; }
+.cu-kpi__delta--flat { color:rgba(255,255,255,0.35); }
+
+/* ── Generic card / grid ────────────────────────────────── */
+.cu-grid { display:grid; grid-template-columns:1.3fr 1fr; gap:var(--cu-gap); margin-bottom:28px; }
+@media (max-width:860px){ .cu-grid{ grid-template-columns:1fr; } }
+.cu-card { background:#141414; border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:24px; box-shadow:none; }
+.cu-card__title { font-size:20px; font-weight:500; letter-spacing:-0.01em; color:#fff; margin-bottom:4px; }
+.cu-card__sub { font-size:13px; color:rgba(255,255,255,0.4); margin-bottom:18px; }
+
+/* ── Weekly adoption trend (SVG) ─────────────────────────── */
+.cu-trend__svg { width:100%; height:140px; display:block; overflow:visible; }
+.cu-trend__bar { fill:rgba(255,255,255,0.45); transition:fill 180ms; }
+.cu-trend__bar:hover { fill:#fff; }
+.cu-trend__xlabel { font-size:9px; fill:rgba(255,255,255,0.4); }
+.cu-trend__val { font-size:10px; font-weight:500; fill:rgba(255,255,255,0.7); }
+
+/* ── Volume by theme ────────────────────────────────────── */
+.cu-theme { margin-bottom:16px; }
+.cu-theme__top { display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
+.cu-theme__label { font-size:13px; font-weight:500; color:#fff; }
+.cu-theme__count { font-size:12px; color:rgba(255,255,255,0.4); white-space:nowrap; }
+.cu-theme__track { height:8px; background:rgba(255,255,255,0.10); border-radius:4px; margin:7px 0 6px; overflow:hidden; }
+.cu-theme__fill { height:100%; background:#fff; border-radius:0; }
+.cu-theme__ex { font-size:11.5px; color:rgba(255,255,255,0.4); line-height:1.5; }
+.cu-theme__ex b { color:rgba(255,255,255,0.4); font-weight:500; }
+
+/* ── Adoption funnel ────────────────────────────────────── */
+.cu-funnel__row { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+.cu-funnel__bar { height:34px; background:#fff; display:flex; align-items:center; padding:0 12px; color:#0b0b0b; font-size:13px; font-weight:600; min-width:54px; }
+.cu-funnel__bar--mut { background:rgba(255,255,255,0.14); color:rgba(255,255,255,0.6); }
+.cu-funnel__lab { font-size:12px; color:rgba(255,255,255,0.4); flex:1; }
+.cu-callout {
+  margin-top:14px; padding:12px 14px; border-radius:6px;
+  background:rgba(255,226,85,0.08); border:1px solid rgba(255,226,85,0.3);
+  font-size:12.5px; line-height:1.5; color:rgba(255,255,255,0.85);
+}
+.cu-callout--ok {
+  background:rgba(255,255,255,0.05); border-color:rgba(255,255,255,0.14);
+  color:rgba(255,255,255,0.85);
+}
+
+/* ── Projects table ─────────────────────────────────────── */
+.cu-table-wrap { overflow-x:auto; border:1px solid rgba(255,255,255,0.12); border-radius:8px; }
+.cu-table { width:100%; border-collapse:collapse; font-size:13px; }
+.cu-table th {
+  text-align:left; font-size:10px; font-weight:500; letter-spacing:.08em; text-transform:uppercase;
+  color:rgba(255,255,255,0.4); padding:11px 14px; border-bottom:1px solid rgba(255,255,255,0.12);
+  background:rgba(255,255,255,0.04);
+}
+.cu-table td { padding:11px 14px; border-bottom:1px solid rgba(255,255,255,0.08); vertical-align:middle; color:#fff; }
+.cu-table tbody tr:last-child td { border-bottom:none; }
+.cu-table tbody tr:hover td { background:rgba(255,255,255,0.04); }
+.cu-pill { display:inline-block; font-size:10px; font-weight:500; letter-spacing:.04em; padding:3px 8px; }
+.cu-pill--shared { background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.7); }
+.cu-pill--private { background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.4); }
+.cu-td-date { color:rgba(255,255,255,0.4); white-space:nowrap; font-size:12px; }
+
+/* ── Method / assumptions disclosure ────────────────────── */
+.cu-method { margin-top:8px; font-size:12px; color:rgba(255,255,255,0.4); }
+.cu-method summary { cursor:pointer; font-weight:500; color:rgba(255,255,255,0.7); }
+.cu-method table { width:100%; border-collapse:collapse; margin-top:10px; }
+.cu-method td { padding:5px 8px; border-bottom:1px solid rgba(255,255,255,0.08); color:rgba(255,255,255,0.7); }
+.cu-section-title { font-size:11px; font-weight:500; letter-spacing:.1em; text-transform:uppercase; color:rgba(255,255,255,0.4); margin:6px 0 14px; }
+.cu-divider { height:1px; background:rgba(255,255,255,0.08); margin:30px 0; }
+
+/* ── Scope / data coverage footnote ─────────────────────── */
+.cu-scope { margin-top:22px; padding-top:16px; border-top:1px solid rgba(255,255,255,0.08);
+  font-size:11.5px; line-height:1.6; color:rgba(255,255,255,0.4); }
+.cu-scope__excl { opacity:.85; }
+.cu-method__total td { border-top:1px solid rgba(255,255,255,0.12); border-bottom:none; padding-top:8px; }
+
+/* ── Dashboard card wrapper (admin panel) ───────────────── */
+/* Matches the LTX Usage tab: the whole dashboard sits in a dark, rounded,
+   padded container rather than running edge-to-edge. .cu is made transparent
+   so the card colour shows through uniformly (no two-tone inset). */
+.cu-usage-card { background:#0B0B13; border-radius:12px; padding:28px; margin-top:8px; }
+.cu-usage-card .cu { background:transparent; }
+
+/* ── Agency picker (super/finance admins) ───────────────── */
+/* Matches the LTX Usage tab's dropdown so the two tabs are consistent:
+   dark fill, rounded, custom chevron (native arrow hidden via appearance:none). */
+.cu-select {
+  font-family:'PPNeueMontreal','Lato',sans-serif; font-size:13px; font-weight:500;
+  padding:7px 32px 7px 12px; border-radius:8px;
+  border:1px solid rgba(255,255,255,0.12); background-color:#111120; color:#fff;
+  appearance:none; -webkit-appearance:none; cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='rgba(255,255,255,0.4)' fill='none' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 10px center;
+}
+
+/* ── Standout wins ──────────────────────────────────────── */
+.cu-wins-card { background:#141414; border-color:rgba(255,255,255,0.12); border-radius:8px; }
+.cu-wins { list-style:none; margin:4px 0 0; padding:0; }
+.cu-win { display:grid; grid-template-columns:200px 1fr; align-items:baseline; gap:18px; padding:11px 0; border-bottom:1px solid rgba(255,255,255,0.08); }
+.cu-win:last-child { border-bottom:none; }
+@media (max-width:640px) { .cu-win { grid-template-columns:1fr; align-items:start; gap:6px; } }
+.cu-win__tag {
+  /* Wraps within its column — long labels like "Market & audience research"
+     used to overflow a fixed nowrap column and overlap the win text. */
+  font-size:11px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; line-height:1.35;
+  color:#FFE255; background:transparent; border:none; padding:0; overflow-wrap:break-word;
+}
+.cu-win__text { font-size:14px; line-height:1.5; color:rgba(255,255,255,0.85); }
+
+/* =============================================================
+   LTX USAGE dashboard — colour tokens
+   The LTX renderer (js/ltx-usage.js) paints inline styles from these
+   variables, so the whole dashboard can flip to a light, ink-friendly
+   palette when printed (see @media print). Screen = dark studio theme.
+   ============================================================= */
+.ltx, .au {
+  --ltx-bg:       #0b0b0b;
+  --ltx-surface:  #141414;
+  --ltx-border:   rgba(255,255,255,0.12);
+  --ltx-divider:  rgba(255,255,255,0.08);
+  --ltx-text:     #FFFFFF;
+  --ltx-muted:    rgba(255,255,255,0.55);
+  --ltx-sub:      rgba(255,255,255,0.40);
+  --ltx-track:    rgba(255,255,255,0.10);
+  --ltx-bar:      #FFFFFF;
+  --ltx-bar-mut:  rgba(255,255,255,0.45);
+  --ltx-accent:   #FFE255;
+  --ltx-red:      #EF4444;
+  --ltx-red-lo:   rgba(239,68,68,0.15);
+  font-family: 'PPNeueMontreal', 'Lato', sans-serif;
+}
+
+/* ── Light mode override for LTX / Automation dashboards (.ltx--light / .au--light toggled by JS) ──── */
+.ltx--light, .au--light {
+  --ltx-bg:#fff; --ltx-surface:#fafafa; --ltx-border:rgba(0,0,0,.12);
+  --ltx-divider:rgba(0,0,0,.08); --ltx-text:#111; --ltx-muted:#6B6A64;
+  --ltx-sub:#6B6A64; --ltx-track:#EDECE6; --ltx-bar:#111; --ltx-bar-mut:#9C9A90;
+  --ltx-accent:#C9A21A; --ltx-red:#B42318; --ltx-red-lo:#FBE9E7;
+}
+.ltx--light .cu-hero, .au--light .cu-hero { background:#f5f5f2 !important; }
+.ltx--light .cu-hero::after, .au--light .cu-hero::after { background:radial-gradient(circle at 50% 50%, rgba(201,162,26,.18), rgba(201,162,26,0) 65%) !important; }
+.ltx--light .cu-hero__level-name, .au--light .cu-hero__level-name { color:#111 !important; }
+.ltx--light .cu-hero__level-num, .au--light .cu-hero__level-num,
+.ltx--light .cu-hero__eyebrow, .au--light .cu-hero__eyebrow { color:#6B6A64 !important; }
+.ltx--light .cu-hero__line, .au--light .cu-hero__line { color:#333 !important; }
+.ltx--light .cu-hero__chip, .au--light .cu-hero__chip { border-color:rgba(0,0,0,.3) !important; color:#111 !important; }
+.ltx--light .cu-card__sub, .au--light .cu-card__sub { color:#6B6A64 !important; }
+.ltx--light .cu-head__period, .au--light .cu-head__period { color:rgba(0,0,0,.45) !important; }
+
+/* ── Light mode override for Claude dashboard (.cu--light toggled by JS) ─── */
+.cu--light {
+  --c-black:#111; --c-white:#fff; --c-cream:#fafafa; --c-body:#111;
+  --c-stone:#6B6A64; --c-grey:#E6E3D9; --c-grey-light:#EDECE6; --c-grey-mid:rgba(0,0,0,.15);
+  --shadow-sm:0 1px 4px rgba(0,0,0,.06);
+  --cu-bar:#111; --cu-bar-mut:#9C9A90; --cu-track:#EDECE6; --cu-amber:#C9A21A;
+  /* Funnel / status bar ramp colours — in dark mode these are white/transparent;
+     in light mode they must be dark neutrals so segments are visible on white */
+  --cu-ramp1:#3A3A34; --cu-ramp2:#6B6A64; --cu-ramp3:#96938A; --cu-ramp4:#C4C0B5;
+  --cu-on-strong:#fff; --cu-on-faint:#6B6A64;
+}
+
+/* Root + wrapper */
+.cu--light { background:#fff !important; color:#111 !important; }
+.cu--light .cu-usage-card { background:#f5f5f2 !important; }
+
+/* Hero */
+.cu--light .cu-hero { background:#f5f5f2 !important; border-color:rgba(0,0,0,.12) !important; }
+.cu--light .cu-hero::after { background:radial-gradient(circle at 50% 50%, rgba(201,162,26,.18), rgba(201,162,26,0) 65%) !important; }
+.cu--light .cu-hero__level-name { color:#111 !important; }
+.cu--light .cu-hero__level-num,
+.cu--light .cu-hero__eyebrow { color:#6B6A64 !important; }
+.cu--light .cu-hero__line { color:#333 !important; }
+.cu--light .cu-hero__next { color:#6B6A64 !important; }
+.cu--light .cu-hero__chip { border-color:rgba(0,0,0,.25) !important; color:#111 !important; }
+.cu--light .cu-hero__ms-hl { color:#111 !important; border-bottom-color:#C9A21A !important; }
+
+/* Progress steps (level bar) */
+.cu--light .cu-step { background:#E6E3D9 !important; }
+.cu--light .cu-step--on { background:#111 !important; }
+.cu--light .cu-steps__labels { color:#6B6A64 !important; }
+.cu--light .cu-steps__labels .cu-step__here { color:#111 !important; }
+
+/* Narrative box */
+.cu--light .cu-narrative { background:#f5f5f2 !important; border-color:rgba(0,0,0,.1) !important; }
+.cu--light .cu-narrative__label { color:#6B6A64 !important; }
+.cu--light .cu-narrative__text { color:#111 !important; }
+
+/* KPI boxes */
+.cu--light .cu-kpi { background:#fafafa !important; border-color:rgba(0,0,0,.12) !important; border-top-color:rgba(0,0,0,.2) !important; }
+.cu--light .cu-kpi--hl { border-top-color:#C9A21A !important; }
+.cu--light .cu-kpi__label { color:#6B6A64 !important; }
+.cu--light .cu-kpi__value { color:#111 !important; }
+.cu--light .cu-kpi__sub { color:#6B6A64 !important; }
+.cu--light .cu-kpi__delta--up   { color:#6B6A64 !important; }
+.cu--light .cu-kpi__delta--down { color:#C9A21A !important; }
+.cu--light .cu-kpi__delta--flat { color:#9C9A90 !important; }
+
+/* Cards */
+.cu--light .cu-card { background:#fafafa !important; border-color:rgba(0,0,0,.12) !important; box-shadow:none !important; }
+.cu--light .cu-card__title { color:#111 !important; }
+.cu--light .cu-card__sub { color:#6B6A64 !important; }
+
+/* Wins card */
+.cu--light .cu-wins-card { background:#fafafa !important; border-color:rgba(0,0,0,.12) !important; }
+.cu--light .cu-win { border-bottom-color:rgba(0,0,0,.08) !important; }
+.cu--light .cu-win__tag { color:#C9A21A !important; }
+.cu--light .cu-win__text { color:#333 !important; }
+
+/* Maturity-stage next-steps card */
+.cu--light .cu-ns__shift { color:#333 !important; }
+
+/* Bullet list insight boxes */
+.cu--light .cu-blist { background:#f0efeb !important; border-color:rgba(0,0,0,.1) !important; }
+.cu--light .cu-blist:not(.cu-blist--good) .cu-blist__label { border-bottom-color:#C9A21A !important; }
+.cu--light .cu-blist__label { color:#6B6A64 !important; }
+.cu--light .cu-blist li { color:#333 !important; }
+.cu--light .cu-blist li .cu-blist__mark { color:#C9A21A !important; }
+.cu--light .cu-blist--good li::before { color:#0F6E56 !important; }
+.cu--light .cu-blist__close { color:#444 !important; }
+.cu--light .cu-blist__close strong { color:#111 !important; }
+.cu--light .cu-blist__horizon,
+.cu--light .cu-blist__horizon-label { color:#6B6A64 !important; }
+
+/* Callout / recency insight boxes */
+.cu--light .cu-callout { background:#FFFBE8 !important; border-color:#F1E4A6 !important; color:#5a4a00 !important; }
+.cu--light .cu-callout--ok { background:#E8F5EE !important; border-color:#BFE6CB !important; color:#1a4a2a !important; }
+.cu--light .cu-insight { background:rgba(201,162,26,.08) !important; border-color:rgba(201,162,26,.35) !important; color:#111 !important; }
+.cu--light .cu-insight--faint { background:rgba(0,0,0,.04) !important; border-color:rgba(0,0,0,.1) !important; color:#111 !important; }
+
+/* Milestone pills */
+.cu--light .cu-ms--done { background:#E8F5EE !important; color:#0F6E56 !important; border-color:#BFE6CB !important; }
+.cu--light .cu-ms--todo,
+.cu--light .cu-ms--next { background:#f5f5f2 !important; color:#6B6A64 !important; border-color:rgba(0,0,0,.12) !important; }
+
+/* Adoption trend SVG bars */
+.cu--light .cu-trend__bar { fill:rgba(0,0,0,.25) !important; }
+.cu--light .cu-trend__bar:hover { fill:#111 !important; }
+.cu--light .cu-trend__val { fill:#111 !important; }
+.cu--light .cu-trend__xlabel { fill:#6B6A64 !important; }
+
+/* Themes / bar chart rows */
+.cu--light .cu-theme__label { color:#111 !important; }
+.cu--light .cu-theme__count { color:#6B6A64 !important; }
+.cu--light .cu-theme__track { background:#E6E3D9 !important; }
+.cu--light .cu-theme__fill { background:#111 !important; }
+.cu--light .cu-theme__ex { color:#6B6A64 !important; }
+.cu--light .cu-theme__ex b { color:#6B6A64 !important; }
+
+/* Funnel bars */
+.cu--light .cu-funnel__bar { background:#111 !important; color:#fff !important; }
+.cu--light .cu-funnel__bar--mut { background:rgba(0,0,0,.12) !important; color:#6B6A64 !important; }
+.cu--light .cu-funnel__lab { color:#6B6A64 !important; }
+
+/* Stat strips */
+.cu--light .cu-stat__num { color:#111 !important; }
+.cu--light .cu-stat__lab,
+.cu--light .cu-stat__note { color:#6B6A64 !important; }
+
+/* Table */
+.cu--light .cu-table-wrap { border-color:rgba(0,0,0,.12) !important; }
+.cu--light .cu-table th { color:#6B6A64 !important; border-bottom-color:rgba(0,0,0,.12) !important; background:#f5f5f2 !important; }
+.cu--light .cu-table td { color:#111 !important; border-bottom-color:rgba(0,0,0,.08) !important; }
+.cu--light .cu-table tbody tr:hover td { background:rgba(0,0,0,.03) !important; }
+.cu--light .cu-pill--shared { background:#E8F5EE !important; color:#0F6E56 !important; }
+.cu--light .cu-pill--private { background:#EFEDE7 !important; color:#6B6A64 !important; }
+.cu--light .cu-td-date { color:#6B6A64 !important; }
+
+/* Section labels, dividers */
+.cu--light .cu-section-title { color:#6B6A64 !important; }
+.cu--light .cu-divider { background:rgba(0,0,0,.08) !important; }
+
+/* Expandable project / explain blocks */
+.cu--light .cu-proj > summary::after,
+.cu--light .cu-explain > summary::after { color:rgba(0,0,0,.4) !important; }
+.cu--light .cu-proj__desc { color:#6B6A64 !important; }
+.cu--light .cu-explain > summary { color:#111 !important; }
+.cu--light .cu-explain__body { color:#444 !important; }
+
+/* Methodology footnotes */
+.cu--light .cu-method { color:#444 !important; }
+.cu--light .cu-method summary { color:#111 !important; }
+.cu--light .cu-method td { color:#444 !important; border-bottom-color:rgba(0,0,0,.08) !important; }
+.cu--light .cu-method__total td { border-top-color:rgba(0,0,0,.12) !important; }
+.cu--light .cu-scope { color:#6B6A64 !important; border-top-color:rgba(0,0,0,.08) !important; }
+
+/* Period header + dropdown */
+.cu--light .cu-head__period { color:rgba(0,0,0,.4) !important; }
+.cu--light select { background-color:#f5f5f2 !important; color:#111 !important; border-color:rgba(0,0,0,.2) !important; }
+
+/* Agency picker dropdown + label (colour removed from inline style so CSS can control it) */
+.cu-agency-select { color:#fff; }
+.cu-agency-label { color:rgba(255,255,255,0.45); }
+
+/* LTX / Automation dropdown (.cu-agency-select) — light mode */
+.cu--light .cu-agency-select,
+body.ltx-light-mode .cu-agency-select,
+body.au-light-mode .cu-agency-select { color:#111 !important; background:#f5f5f2 !important; border-color:rgba(0,0,0,.2) !important; }
+
+/* Claude Usage dropdown (.cu-select) — light mode */
+.cu--light .cu-select,
+body.ltx-light-mode .cu-select,
+body.au-light-mode .cu-select {
+  background-color:#f5f5f2 !important; color:#111 !important;
+  border-color:rgba(0,0,0,.2) !important;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='rgba(0%2C0%2C0%2C0.4)' fill='none' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E") !important;
+}
+
+/* Agency label */
+.cu--light .cu-agency-label,
+body.ltx-light-mode .cu-agency-label,
+body.au-light-mode .cu-agency-label { color:#6B6A64 !important; }
+
+/* Milestone dot icons — pending state has hardcoded white border in JS */
+.cu--light .cu-ms span[style*="rgba(255,255,255,.25)"],
+body.ltx-light-mode .cu-ms span[style*="rgba(255,255,255,.25)"],
+body.au-light-mode .cu-ms span[style*="rgba(255,255,255,.25)"] { border-color:rgba(0,0,0,.2) !important; }
+
+/* Inline adoption-depth dot icons (border hardcoded in JS) */
+.cu--light span[style*="rgba(255,255,255,.25)"] { border-color:rgba(0,0,0,.25) !important; }
+
+/* ── Mode toggle button (shared) ────────────────────────────────────────── */
+/* Default (dark mode context): white-tinted pill, always legible on dark bg */
+.cu-mode-toggle {
+  display:inline-flex; align-items:center; gap:5px;
+  font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+  padding:5px 12px; border:none; background:rgba(255,255,255,0.18); color:#fff;
+  cursor:pointer; font-family:inherit; line-height:1; transition:background 140ms;
+}
+.cu-mode-toggle:hover { background:rgba(255,255,255,0.28); }
+/* Active = light mode is on: dark pill so it's legible on the now-white page */
+.cu-mode-toggle--active { background:rgba(0,0,0,0.12); color:#111; }
+.cu-mode-toggle--active:hover { background:rgba(0,0,0,0.2); }
+body.ltx-light-mode, body.au-light-mode { background:#fff !important; }
+
+/* =============================================================
+   ADOPTION HERO — level card with searchlight glow
+   ============================================================= */
+
+.cu-hero {
+  background:#141414; border:1px solid rgba(255,255,255,0.12);
+  border-radius:8px; padding:26px 28px; margin:14px 0 26px;
+  position:relative; overflow:hidden;
+}
+/* Searchlight glow — pure CSS radial gradient, top-right */
+.cu-hero::after {
+  content:''; position:absolute; right:-40px; top:-60px;
+  width:480px; height:480px; border-radius:50%;
+  background:radial-gradient(circle at 50% 50%, rgba(255,226,85,.42), rgba(255,226,85,0) 65%);
+  pointer-events:none;
+}
+.cu-hero__top { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; position:relative; z-index:1; }
+.cu-hero__eyebrow { font-size:12px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,0.55); margin-bottom:8px; }
+.cu-hero__level { display:flex; flex-direction:column; gap:4px; }
+.cu-hero__level-num { font-size:12px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,0.55); }
+.cu-hero__level-name { font-size:40px; font-weight:500; letter-spacing:-0.02em; text-transform:uppercase; color:#fff; line-height:1.05; }
+.cu-hero__chip {
+  font-size:12px; font-weight:500; color:#fff;
+  background:transparent; border:1px solid rgba(255,255,255,0.4);
+  padding:8px 14px; white-space:nowrap; align-self:flex-start;
+}
+
+/* ── Ladder ─────────────────────────────────────────────── */
+.cu-steps { display:flex; gap:6px; margin-top:22px; position:relative; z-index:1; }
+.cu-step { flex:1; height:5px; border-radius:3px; background:rgba(255,255,255,0.16); }
+.cu-step--on { background:#fff; }
+.cu-steps__labels { display:flex; justify-content:space-between; font-size:11px; color:rgba(255,255,255,0.4); margin-top:8px; }
+.cu-steps__labels .cu-step__here { color:#fff; font-weight:500; }
+.cu-hero__line { font-size:15px; line-height:1.6; color:rgba(255,255,255,0.8); margin-top:20px; position:relative; z-index:1; }
+.cu-hero__next { font-size:13px; color:rgba(255,255,255,0.5); margin-top:6px; }
+
+/* ── Hero next milestone highlight ─────────────────────── */
+.cu-hero__ms-hl { border-bottom:2px solid #FFE255; color:#fff; padding-bottom:1px; }
+
+/* ── Hero summary bullets ───────────────────────────────── */
+.cu-hero__bullets { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:22px; }
+@media (max-width:640px) { .cu-hero__bullets { grid-template-columns:1fr; } }
+.cu-blist { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:16px 18px; }
+.cu-blist--good { background:rgba(255,255,255,0.04); }
+.cu-blist__label {
+  font-size:11px; font-weight:500; letter-spacing:.1em; text-transform:uppercase;
+  color:rgba(255,255,255,0.55); margin-bottom:10px; display:inline-block;
+}
+.cu-blist--good .cu-blist__label { color:rgba(255,255,255,0.55); }
+/* "To reach X" eyebrow gets yellow underline */
+.cu-blist:not(.cu-blist--good) .cu-blist__label { border-bottom:2px solid #FFE255; padding-bottom:5px; }
+.cu-blist ul { list-style:none; padding:0; margin:0; }
+.cu-blist li { font-size:13px; line-height:1.5; color:rgba(255,255,255,0.8); padding:4px 0; display:flex; gap:8px; align-items:baseline; }
+/* Tick marks for "going well" */
+.cu-blist--good li::before { content:'✓'; color:#fff; font-weight:600; font-size:11px; flex:none; }
+.cu-blist li .cu-blist__mark { flex:none; font-size:11px; color:#FFE255; }
+.cu-blist__close { margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.08);
+  font-size:12px; line-height:1.5; color:rgba(255,255,255,0.5); }
+.cu-blist__close strong { color:#fff; }
+.cu-blist__horizon { margin-top:8px; font-size:12px; line-height:1.5; color:rgba(255,255,255,0.4); font-style:italic; }
+.cu-blist__horizon-label { font-style:normal; font-weight:500; letter-spacing:.06em; text-transform:uppercase; font-size:10px; color:rgba(255,255,255,0.4); margin-right:4px; }
+
+/* ── Milestone chips ────────────────────────────────────── */
+.cu-ms-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-top:22px; }
+.cu-ms { display:flex; align-items:center; gap:8px; padding:9px 12px; font-size:12px; border:1px solid; }
+.cu-ms--done { background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.7); border-color:rgba(255,255,255,0.14); }
+.cu-ms--todo { background:transparent; color:rgba(255,255,255,0.35); border-color:rgba(255,255,255,0.1); }
+.cu-ms--next { background:transparent; color:#fff; border-color:rgba(255,226,85,0.4); }
+.cu-ms__mark { font-weight:600; font-size:13px; }
+
+/* ── Next steps card ──────────────────────────────────────── */
+.cu-ns__shift { font-size:13px; line-height:1.55; color:rgba(255,255,255,0.8); margin:0; }
+
+/* ── Stat strips ─────────────────────────────────────────── */
+.cu-stat-strip { display:flex; align-items:flex-start; gap:20px; flex-wrap:wrap; margin:16px 0 0; padding-top:14px; border-top:1px solid rgba(255,255,255,0.08); }
+.cu-stat-strip--row { margin:0 0 18px; padding-top:0; border-top:none; }
+.cu-stat { min-width:92px; }
+.cu-stat__num { font-size:24px; font-weight:500; line-height:1.1; color:#fff; }
+.cu-stat__lab { font-size:12px; color:rgba(255,255,255,0.4); margin-top:3px; line-height:1.35; }
+.cu-stat__note { flex:1; min-width:170px; align-self:center; font-size:12px; line-height:1.5; color:rgba(255,255,255,0.4); }
+
+/* ── Inline disclosure ──────────────────────────────────── */
+.cu-explain { margin-top:10px; font-size:12px; }
+.cu-explain > summary { cursor:pointer; font-weight:500; list-style:none; display:inline-flex; align-items:center; gap:5px; color:rgba(255,255,255,0.6); }
+.cu-explain > summary::-webkit-details-marker { display:none; }
+.cu-explain > summary::after { content:'▾'; font-size:9px; transition:transform 180ms; }
+.cu-explain[open] > summary::after { transform:rotate(180deg); }
+.cu-explain__body { margin-top:6px; font-weight:400; line-height:1.5; color:rgba(255,255,255,0.7); }
+.cu-explain__body ul { margin:8px 0 0; padding-left:18px; }
+.cu-explain__body li { margin-bottom:4px; }
+
+/* ── Project name disclosure ────────────────────────────── */
+.cu-proj > summary { cursor:pointer; list-style:none; display:inline-flex; align-items:center; gap:6px; }
+.cu-proj > summary::-webkit-details-marker { display:none; }
+.cu-proj > summary::after { content:'▾'; font-size:10px; color:rgba(255,255,255,0.4); transition:transform 180ms; }
+.cu-proj[open] > summary::after { transform:rotate(180deg); }
+.cu-proj__desc { font-size:12.5px; line-height:1.5; color:rgba(255,255,255,0.4); margin:8px 0 2px; max-width:52ch; }
+
+/* ── Export-as-PDF button ───────────────────────────────── */
+.cu-head__actions { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.cu-print {
+  display:inline-flex; align-items:center; gap:7px;
+  font-family:'PPNeueMontreal','Lato',sans-serif; font-size:13px; font-weight:500;
+  cursor:pointer; padding:9px 16px;
+  background:#FFE255; color:#0b0b0b; border:1px solid #FFE255;
+  transition:opacity 180ms;
+}
+.cu-print:hover { opacity:.82; }
+.cu-print:focus-visible { outline:2px solid #FFE255; outline-offset:2px; }
+.cu-print > span { font-size:15px; line-height:1; }
+
+/* Print-only report footer */
+.cu-print-footer { display:none; }
+
+/* =============================================================
+   PRINT / SAVE-AS-PDF — light variant so emailed PDFs are
+   legible on paper. Dark UI stays on screen.
+   ============================================================= */
+@media print {
+  /* Force a white page so no dark theme bleeds into the PDF below the report
+     (the report is position:absolute, so the page background shows around it). */
+  html, body { background:#fff !important; }
+  body * { visibility:hidden; }
+  .cu, .cu * { visibility:visible; }
+  .cu {
+    position:absolute; left:0; top:0; width:100%;
+    background:#fff !important; color:#111 !important;
+    --c-black: #111; --c-white: #fff; --c-cream: #fafafa;
+    --c-stone: #6B6A64; --c-grey: #E6E3D9;
+    --c-grey-light: #EDECE6; --c-grey-mid: rgba(0,0,0,.15);
+    --shadow-sm: none;
+    /* Flip the chart palette to dark inks on white (see :root block above). */
+    --cu-bar: #111; --cu-bar-mut: #9C9A90; --cu-track: #EDECE6;
+    --cu-amber: #C9A21A;
+    --cu-ramp1: #3A3A34; --cu-ramp2: #6B6A64; --cu-ramp3: #96938A; --cu-ramp4: #C4C0B5;
+    --cu-on-strong: #fff; --cu-on-faint: #6B6A64;
+  }
+  @page { margin:14mm; }
+  .cu, .cu * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+
+  /* ── LTX / Automation usage reports — same light-flip treatment as .cu above.
+     The shared body{visibility:hidden} rule applies; reveal the report and
+     flip its colour tokens to dark inks on white. ── */
+  .ltx, .ltx *, .au, .au * { visibility:visible; }
+  .ltx, .ltx *, .au, .au * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .ltx, .au {
+    position:absolute; left:0; top:0; width:100%;
+    --ltx-bg:#fff; --ltx-surface:#fff; --ltx-border:rgba(0,0,0,.12);
+    --ltx-divider:rgba(0,0,0,.08); --ltx-text:#111; --ltx-muted:#6B6A64;
+    --ltx-sub:#6B6A64; --ltx-track:#EDECE6; --ltx-bar:#111; --ltx-bar-mut:#9C9A90;
+    --ltx-accent:#C9A21A; --ltx-red:#B42318; --ltx-red-lo:#FBE9E7;
+  }
+  .ltx .cu-hero, .au .cu-hero { break-inside:avoid; page-break-inside:avoid; }
+  /* Drop the KPI tiles to 2-up in print (as the Claude report does) so the big
+     numbers aren't squeezed into four narrow columns and clipped at the border.
+     box-sizing:border-box so padding/border are inside the 50% basis (else two
+     tiles don't fit a row and they stack 1-up). */
+  .ltx-kpi, .au-kpi { flex:1 1 calc(50% - 8px) !important; min-width:0 !important; box-sizing:border-box !important; }
+  .cu-print, .cu-head__actions { display:none !important; }
+  /* Pagination: keep only small, atomic blocks together. Large cards and the
+     (tall) Claude hero are allowed to break across pages — forcing them whole
+     leaves big empty gaps and a near-blank first page. Titles stay with the
+     content that follows; table headers repeat if a table spans pages. */
+  .cu-kpi, .cu-win, .cu-ms, .cu-blist, .cu-stat { break-inside:avoid; page-break-inside:avoid; }
+  .cu-card, .cu-hero, .cu-grid { break-inside:auto; page-break-inside:auto; }
+  .cu-card__title, .cu-card__sub, .cu-section-title, .cu-head { break-after:avoid; page-break-after:avoid; }
+  .cu-table tr, .cu-table thead { break-inside:avoid; }
+  .cu-table thead { display:table-header-group; }
+  .cu-card { box-shadow:none; background:#fff !important; border-color:rgba(0,0,0,.12) !important; }
+  .cu-kpi { background:#fff !important; border-color:rgba(0,0,0,.12) !important; border-top-color:rgba(0,0,0,.2) !important; }
+  .cu-kpi--hl { border-top-color:#C9A21A !important; }
+  .cu-kpi__label { color:#6B6A64 !important; }
+  .cu-kpi__value { color:#111 !important; }
+  .cu-kpi__sub { color:#6B6A64 !important; }
+  .cu-kpi__delta--up { color:#16a34a !important; }
+  .cu-kpi__delta--down { color:#9a6200 !important; }
+  .cu-kpi__delta--flat { color:#6B6A64 !important; }
+  .cu-hero { background:#f5f5f2 !important; border-color:rgba(0,0,0,.12) !important; overflow:visible; }
+  .cu-hero::after { display:none !important; }
+  .cu-hero__level-name { color:#111 !important; }
+  .cu-hero__level-num { color:#6B6A64 !important; }
+  .cu-hero__chip { border-color:rgba(0,0,0,.3) !important; color:#111 !important; }
+  .cu-hero__line { color:#333 !important; }
+  .cu-step { background:#E6E3D9 !important; }
+  .cu-step--on { background:#111 !important; }
+  .cu-blist { background:#f0efeb !important; border-color:rgba(0,0,0,.1) !important; }
+  .cu-blist:not(.cu-blist--good) .cu-blist__label { border-bottom-color:#C9A21A !important; }
+  .cu-blist li { color:#333 !important; }
+  .cu-blist li .cu-blist__mark { color:#C9A21A !important; }
+  .cu-blist--good li::before { color:#0F6E56 !important; }
+  .cu-ms--done { background:#E8F5EE !important; color:#0F6E56 !important; border-color:#BFE6CB !important; }
+  .cu-ms--todo, .cu-ms--next { background:#f5f5f2 !important; color:#6B6A64 !important; border-color:rgba(0,0,0,.12) !important; }
+  .cu-callout { background:#FFFBE8 !important; border-color:#F1E4A6 !important; color:#5a4a00 !important; }
+  .cu-callout--ok { background:#E8F5EE !important; border-color:#BFE6CB !important; color:#1a4a2a !important; }
+  .cu-trend__bar { fill:#ccc !important; }
+  .cu-trend__bar:hover { fill:#111 !important; }
+  .cu-trend__val { fill:#111 !important; }
+  .cu-trend__xlabel { fill:#6B6A64 !important; }
+  .cu-win__tag { color:#C9A21A !important; }
+  .cu-win__text { color:#333 !important; }
+  .cu-theme__track { background:#E6E3D9 !important; }
+  .cu-theme__fill { background:#111 !important; }
+  .cu-proj > summary::after, .cu-explain > summary::after { display:none; }
+  .cu-method summary, .cu-explain > summary, .cu-proj > summary { cursor:default; }
+
+  /* ── Text the original print sheet never flipped — without these, card
+     headings and several labels stayed white and vanished on paper. ── */
+  .cu-card__title { color:#111 !important; }
+  .cu-card__sub, .cu-section-title { color:#6B6A64 !important; }
+  .cu-hero__eyebrow, .cu-hero__level-num, .cu-hero__next { color:#6B6A64 !important; }
+  .cu-hero__ms-hl { color:#111 !important; border-bottom-color:#C9A21A !important; }
+  .cu-blist__label { color:#6B6A64 !important; }
+  .cu-blist__close { color:#444 !important; }
+  .cu-blist__close strong { color:#111 !important; }
+  .cu-blist__horizon, .cu-blist__horizon-label { color:#6B6A64 !important; }
+  .cu-steps__labels { color:#6B6A64 !important; }
+  .cu-steps__labels .cu-step__here { color:#111 !important; }
+  /* Projects table + stat strips + footnotes */
+  .cu-table th { color:#6B6A64 !important; background:#f5f5f2 !important; border-bottom-color:rgba(0,0,0,.12) !important; }
+  .cu-table td { color:#111 !important; border-bottom-color:rgba(0,0,0,.08) !important; }
+  .cu-table-wrap { border-color:rgba(0,0,0,.12) !important; }
+  .cu-pill--shared { background:#E8F5EE !important; color:#0F6E56 !important; }
+  .cu-pill--private { background:#EFEDE7 !important; color:#6B6A64 !important; }
+  .cu-td-date { color:#6B6A64 !important; }
+  .cu-stat__num { color:#111 !important; }
+  .cu-stat__lab, .cu-stat__note { color:#6B6A64 !important; }
+  .cu-scope { color:#6B6A64 !important; border-top-color:rgba(0,0,0,.12) !important; }
+  .cu-method, .cu-method td { color:#444 !important; }
+  .cu-method summary { color:#111 !important; }
+  .cu-method td { border-bottom-color:rgba(0,0,0,.08) !important; }
+  .cu-explain > summary { color:#111 !important; }
+  .cu-explain__body { color:#444 !important; }
+  .cu-proj__desc { color:#6B6A64 !important; }
+  .cu-ns__shift { color:#333 !important; }
+
+  .cu-print-footer { display:block; margin-top:22px; padding-top:12px;
+    border-top:1px solid rgba(0,0,0,.15); font-size:10.5px; color:#6B6A64; }
+}

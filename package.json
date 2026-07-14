@@ -1,0 +1,29 @@
+{
+  "name": "miroma-ai-hub-website",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Internal Miroma Group AI hub — static site + Firestore backend",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "verify:sri": "node scripts/verify-sri.mjs",
+    "seed:agency-data": "node scripts/seed-agency-data.mjs",
+    "backup:firestore": "node scripts/export-firestore-licences.mjs",
+    "clear:claude-overrides": "node scripts/clear-claude-overrides.mjs",
+    "usage:upload": "node scripts/usage/upload-usage.mjs",
+    "usage:reconcile": "node scripts/usage/reconcile_licences.mjs",
+    "usage:prune": "node scripts/usage/prune-old-snapshots.mjs",
+    "usage:aggregate-group": "node scripts/usage/aggregate-group-report.mjs",
+    "ltx:upload": "node scripts/usage/upload-ltx.mjs",
+    "ltx:reconcile": "node scripts/usage/reconcile_ltx.mjs",
+    "migrate:ai-team": "node scripts/migrate-ai-team-agency.mjs",
+    "test:rules": "firebase emulators:exec --only firestore --project miroma-ai-hub \"node scripts/usage/test-rules.mjs\"",
+    "migrate:pathway-uid": "node scripts/migrate-pathway-progress-to-uid.mjs",
+    "migrate:uc-reactions": "node scripts/migrate-uc-reactions-per-user.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "firebase-admin": "^13.0.0",
+    "@firebase/rules-unit-testing": "^5.0.1"
+  }
+}

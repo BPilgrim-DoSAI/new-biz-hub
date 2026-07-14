@@ -1,0 +1,1729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Use Cases — Miroma AI Hub</title>
+  <meta name="description" content="Explore how AI is transforming workflows across Miroma Group.">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" integrity="sha384-sEVIly94UBRLKWdkYoPpSG7GD/e79YHMrxVyZaOk712Ga7+EAw6w1EFi+xBzBdd+" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js" integrity="sha384-EkqK+ezBWJuvO3hfrSx2iVqr3YQbhmnzn8kPhOpBZ+0GMVU5oGSgptwIu8D84HjE" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js" integrity="sha384-M481iNZJtbpypKgvlvZ+78Giq0BsewFLk5r2k+MOcGXlwKCc27DQRZ+WCV/zpmpC" crossorigin="anonymous"></script>
+  <script src="js/auth.js"></script>
+  <!-- Google Analytics (config moved to js/analytics.js — S-6 Part B) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-L7H3N34BG1"></script>
+  <script src="js/analytics.js"></script>
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__logo">
+        <div class="nav__monogram"><img src="assets/logos/monogram.png" alt=""></div>
+        <span class="nav__brand">MIROMA · AI HUB</span>
+      </a>
+      <ul class="nav__links">
+        <li><a href="index.html"><span class="nav__num">01</span> Hub</a></li>
+        <li><a href="learning.html"><span class="nav__num">02</span> Learning Pathway</a></li>
+        <li><a href="use-cases.html"><span class="nav__num">03</span> Use Cases</a></li>
+        <li><a href="policy.html"><span class="nav__num">04</span> Policy &amp; Guidelines</a></li>
+        <li><a href="whats-new.html"><span class="nav__num">05</span> What's New</a></li>
+        <li id="nav-admin-item" style="display:none"><a href="admin.html"><span class="nav__num">06</span> Agency Oversight</a></li>
+      </ul>
+      <div class="nav__contact"><a href="https://miromabrandhub.com/" target="_blank" rel="noopener noreferrer" class="nav__brand-hub-btn">Brand Hub ↗</a><span class="nav__divider"></span><button class="nav__signout-btn">Sign out</button></div>
+      <button class="nav__toggle" id="navToggle" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html">Hub</a>
+    <a href="learning.html">Learning Pathway</a>
+    <a href="use-cases.html">Use Cases</a>
+    <a href="policy.html">Policy &amp; Guidelines</a>
+    <a href="whats-new.html">What's New</a>
+    <a id="mob-admin-link" href="admin.html" style="display:none">Agency Oversight</a>
+    <a href="https://miromabrandhub.com/" target="_blank" rel="noopener noreferrer">Brand Hub ↗</a>
+    <button class="mob-signout-btn">Sign out</button>
+  </div>
+
+  <header class="page-header">
+    <div class="page-header__inner">
+      <div class="page-header__left">
+        <p class="page-header__label">03 — Use Cases</p>
+        <h1 class="page-header__title">See What's Possible</h1>
+        <p class="page-header__body">Real ways AI is being applied across Miroma. Browse for inspiration — then submit a use case from your own workflow.</p>
+      </div>
+    </div>
+  </header>
+
+  <section class="section section--white">
+    <div class="container">
+
+      <!-- Guided finder -->
+      <div class="uc-finder" id="ucFinder">
+        <div class="uc-finder__header">
+          <p class="uc-finder__label">How to use this page</p>
+          <button class="uc-finder__dismiss" id="ucFinderDismiss" aria-label="Dismiss">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="uc-finder__steps">
+          <div class="uc-finder__step">
+            <span class="uc-finder__num">01</span>
+            <div class="uc-finder__step-text">
+              <p class="uc-finder__step-title">Think of your most routine task</p>
+              <p class="uc-finder__step-body">What do you do every week that takes longer than it should? Writing first drafts, prepping for client calls, researching prospects, formatting reports?</p>
+            </div>
+          </div>
+          <div class="uc-finder__step">
+            <span class="uc-finder__num">02</span>
+            <div class="uc-finder__step-text">
+              <p class="uc-finder__step-title">Match it to a category</p>
+              <p class="uc-finder__step-body">Choose a category below to narrow down to what's relevant to your role.</p>
+            </div>
+          </div>
+          <div class="uc-finder__step">
+            <span class="uc-finder__num">03</span>
+            <div class="uc-finder__step-text">
+              <p class="uc-finder__step-title">Open a card and follow the steps</p>
+              <p class="uc-finder__step-body">Each card tells you which tool to use and includes a ready-to-use prompt or starting point. Swap in your own details and go — you don't need to get it perfect.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="uc-controls">
+        <div class="uc-controls__top">
+          <div class="search-box">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="search" id="ucSearch" placeholder="Search use cases…">
+          </div>
+        </div>
+        <div class="uc-filter-row">
+          <span class="uc-filter-label">Category</span>
+          <div class="filters">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="new-business-strategy">New Business &amp; Strategy</button>
+            <button class="filter-btn" data-filter="social-media">Social Media</button>
+            <button class="filter-btn" data-filter="account-management">Account Management</button>
+            <button class="filter-btn" data-filter="media-planning-buying">Media Planning &amp; Buying</button>
+            <button class="filter-btn" data-filter="finance">Finance</button>
+            <button class="filter-btn" data-filter="creative-production">Creative &amp; Production</button>
+            <button class="filter-btn" data-filter="pr-communications">PR &amp; Communications</button>
+            <button class="filter-btn" data-filter="technology-development">Technology &amp; Development</button>
+          </div>
+        </div>
+      </div>
+
+      <p id="ucResultCount" class="uc-result-count"></p>
+
+      <div class="uc-grid" id="ucGrid">
+
+        <article class="uc-card" data-category="new-business-strategy">
+          <div class="uc-card__thumb uc-card__thumb--new-business-strategy">
+            <div class="uc-card__thumb-bg">BRIEF</div>
+            <p class="uc-card__thumb-label">New Business &amp; Strategy</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Draft a campaign brief at speed</h2>
+            <p class="uc-card__desc">Use Claude to rapidly structure a campaign brief from a client conversation or set of notes. Feed it the raw context and get a polished, structured brief back in minutes.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">New Business &amp; Strategy</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="social-media">
+          <div class="uc-card__thumb uc-card__thumb--social-media">
+            <div class="uc-card__thumb-bg">SOCIAL</div>
+            <p class="uc-card__thumb-label">Social Media</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Generate social content at scale</h2>
+            <p class="uc-card__desc">Give Claude a campaign idea, brand tone of voice and platform requirements. Get 20+ on-brand post variations across LinkedIn, Instagram and X — in seconds, not hours.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Social Media</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="creative-production">
+          <div class="uc-card__thumb uc-card__thumb--creative-production">
+            <div class="uc-card__thumb-bg">SPARK</div>
+            <p class="uc-card__thumb-label">Creative & Production</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Explore creative territory for any brief</h2>
+            <p class="uc-card__desc">Feed Springboards a brief and get a wide range of creative sparks — directions, angles, and ideas you might not land on alone. Use the Randomness Bar to push into more unexpected territory and map the creative landscape before the team commits.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Creative & Production</span><span class="tag tag--springboards">Springboards</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="creative-production">
+          <div class="uc-card__thumb uc-card__thumb--creative-production">
+            <div class="uc-card__thumb-bg">VIDEO</div>
+            <p class="uc-card__thumb-label">Creative & Production</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Produce AI video content for campaigns</h2>
+            <p class="uc-card__desc">Turn a script or creative brief into a professional-quality video with LTX Studio. Ideal for concept videos, social reels and client presentations where production speed matters.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Creative & Production</span><span class="tag tag--ltx">LTX Studio</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="account-management">
+          <div class="uc-card__thumb uc-card__thumb--account-management">
+            <div class="uc-card__thumb-bg">MEET</div>
+            <p class="uc-card__thumb-label">Account Management</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Turn every meeting into action items</h2>
+            <p class="uc-card__desc">Let Fireflies join your client calls and internal meetings. Get automatic transcripts, AI summaries and a clean list of action items — shared with your team before you've closed the laptop.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Account Management</span><span class="tag tag--fireflies">Fireflies</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="creative-production">
+          <div class="uc-card__thumb uc-card__thumb--creative-production">
+            <div class="uc-card__thumb-bg">EDIT</div>
+            <p class="uc-card__thumb-label">Creative & Production</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Edit a client podcast in 10 minutes</h2>
+            <p class="uc-card__desc">Upload your recording to Descript and use AI transcription to cut filler words, remove dead air and restructure the episode — all by editing text, not timelines.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Creative & Production</span><span class="tag tag--descript">Descript</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="new-business-strategy">
+          <div class="uc-card__thumb uc-card__thumb--new-business-strategy">
+            <div class="uc-card__thumb-bg">COMP</div>
+            <p class="uc-card__thumb-label">New Business &amp; Strategy</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Synthesise competitor research instantly</h2>
+            <p class="uc-card__desc">Paste competitor content, ads and positioning into Claude. Get a structured competitive landscape analysis identifying patterns, gaps and opportunities in the time it takes to make a coffee.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">New Business &amp; Strategy</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="account-management">
+          <div class="uc-card__thumb uc-card__thumb--account-management">
+            <div class="uc-card__thumb-bg">DATA</div>
+            <p class="uc-card__thumb-label">Account Management</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Transform campaign data into client stories</h2>
+            <p class="uc-card__desc">Feed Claude your campaign performance numbers and ask it to write the narrative — turning raw metrics into a compelling story that highlights what worked, what didn't, and what's next.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Account Management</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="pr-communications">
+          <div class="uc-card__thumb uc-card__thumb--pr-communications">
+            <div class="uc-card__thumb-bg">EMAIL</div>
+            <p class="uc-card__thumb-label">PR & Communications</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Write email campaigns in minutes</h2>
+            <p class="uc-card__desc">Brief Claude on your audience, product, tone and goal. Get a full email campaign — subject lines, preview text, hero copy and CTA — ready to drop into your sending platform.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">PR & Communications</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="creative-production">
+          <div class="uc-card__thumb uc-card__thumb--creative-production">
+            <div class="uc-card__thumb-bg">IDEA</div>
+            <p class="uc-card__thumb-label">Creative & Production</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Expand creative concepts at volume</h2>
+            <p class="uc-card__desc">Use Claude to take a single creative concept and explode it into 15 executional directions — adapting tone, format and angle for different audiences, channels and markets in one session.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Creative & Production</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="social-media">
+          <div class="uc-card__thumb uc-card__thumb--social-media">
+            <div class="uc-card__thumb-bg">INFL</div>
+            <p class="uc-card__thumb-label">Social Media</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Create influencer briefs at scale</h2>
+            <p class="uc-card__desc">Give Claude your campaign objectives, brand guidelines and influencer profiles. Generate tailored, personalised briefs for every creator — consistent yet bespoke.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Social Media</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="creative-production">
+          <div class="uc-card__thumb uc-card__thumb--creative-production">
+            <div class="uc-card__thumb-bg">REPR</div>
+            <p class="uc-card__thumb-label">Creative & Production</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Repurpose long-form video for social</h2>
+            <p class="uc-card__desc">Upload a webinar or interview to Descript. Use the transcript to identify the best clips, then export vertical cuts for Reels, TikTok and LinkedIn — without touching a timeline.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Creative & Production</span><span class="tag tag--descript">Descript</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="account-management">
+          <div class="uc-card__thumb uc-card__thumb--account-management">
+            <div class="uc-card__thumb-bg">PREP</div>
+            <p class="uc-card__thumb-label">Account Management</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Prep for any client meeting in 5 minutes</h2>
+            <p class="uc-card__desc">Search your Fireflies transcript library to find everything discussed with a client across all past meetings. Brief yourself fully in minutes — without reading a single set of notes.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Account Management</span><span class="tag tag--fireflies">Fireflies</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="media-planning-buying">
+          <div class="uc-card__thumb uc-card__thumb--media-planning-buying">
+            <div class="uc-card__thumb-bg">PLAN</div>
+            <p class="uc-card__thumb-label">Media Planning & Buying</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Write a media plan narrative</h2>
+            <p class="uc-card__desc">Share your media plan data with Claude and ask it to write a clear, persuasive narrative — explaining channel mix, budget allocation and targeting strategy, ready for client presentation.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Media Planning & Buying</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="pr-communications">
+          <div class="uc-card__thumb uc-card__thumb--pr-communications">
+            <div class="uc-card__thumb-bg">PR</div>
+            <p class="uc-card__thumb-label">PR & Communications</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Draft press releases and media pitches</h2>
+            <p class="uc-card__desc">Brief Claude on the news, the angle and the target publications. Get a polished press release and personalised journalist pitches — tailored by outlet and editorial interest.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">PR & Communications</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="social-media">
+          <div class="uc-card__thumb uc-card__thumb--social-media">
+            <div class="uc-card__thumb-bg">SENT</div>
+            <p class="uc-card__thumb-label">Social Media</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Build a social sentiment dashboard in minutes</h2>
+            <p class="uc-card__desc">Feed in social data across platforms and get a structured dashboard showing brand sentiment trends at a glance. Spot how audiences are reacting to a campaign or brand moment — without manual aggregation.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Social Media</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="creative-production">
+          <div class="uc-card__thumb uc-card__thumb--creative-production">
+            <div class="uc-card__thumb-bg">TEAM</div>
+            <p class="uc-card__thumb-label">Creative & Production</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Run a creative ideation session with your team</h2>
+            <p class="uc-card__desc">Share a Springboards session with your team, generate sparks together, and use the Canvas to organise the strongest directions in real time. Replaces the whiteboard brainstorm with something faster and more diverse in output.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Creative & Production</span><span class="tag tag--springboards">Springboards</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="media-planning-buying">
+          <div class="uc-card__thumb uc-card__thumb--media-planning-buying">
+            <div class="uc-card__thumb-bg">GEO</div>
+            <p class="uc-card__thumb-label">Media Planning & Buying</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Generate an AEO and GEO readiness report</h2>
+            <p class="uc-card__desc">Assess how well a client's content is optimised for AI-generated answers and geographic search signals. Get a structured report with gaps identified and actionable steps to improve visibility in AI-powered search.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Media Planning & Buying</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="creative-production">
+          <div class="uc-card__thumb uc-card__thumb--creative-production">
+            <div class="uc-card__thumb-bg">TEST</div>
+            <p class="uc-card__thumb-label">Creative & Production</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Pressure-test a brief before presenting it</h2>
+            <p class="uc-card__desc">Use Springboards to stress-test a creative concept before it goes in front of a client — generating alternatives, identifying where your territory feels familiar, and sharpening what makes your direction genuinely distinctive.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Creative & Production</span><span class="tag tag--springboards">Springboards</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="new-business-strategy">
+          <div class="uc-card__thumb uc-card__thumb--new-business-strategy">
+            <div class="uc-card__thumb-bg">NEWS</div>
+            <p class="uc-card__thumb-label">New Business &amp; Strategy</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Get a curated industry news digest</h2>
+            <p class="uc-card__desc">Specify a client's industry or sector and get a structured roundup of the most relevant news, trends, and developments — ready for a weekly client call or status update. Stay sharp without the scroll.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">New Business &amp; Strategy</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="new-business-strategy">
+          <div class="uc-card__thumb uc-card__thumb--new-business-strategy">
+            <div class="uc-card__thumb-bg">SURV</div>
+            <p class="uc-card__thumb-label">New Business &amp; Strategy</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Draft research-quality surveys in minutes</h2>
+            <p class="uc-card__desc">Describe the survey objective and target audience and get a polished first draft across multiple question types — informed by research best practice and adaptable to any campaign or insight-gathering brief.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">New Business &amp; Strategy</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="media-planning-buying">
+          <div class="uc-card__thumb uc-card__thumb--media-planning-buying">
+            <div class="uc-card__thumb-bg">PPC</div>
+            <p class="uc-card__thumb-label">Media Planning & Buying</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Build a PPC campaign structure from a brief</h2>
+            <p class="uc-card__desc">Input a campaign brief and get a full PPC structure — ad groups, keyword themes, headlines, descriptions, and bid strategy guidance. Speeds up campaign setup significantly without sacrificing rigour or quality.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Media Planning & Buying</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="creative-production">
+          <div class="uc-card__thumb uc-card__thumb--creative-production">
+            <div class="uc-card__thumb-bg">REFS</div>
+            <p class="uc-card__thumb-label">Creative & Production</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Research creative ideas and references for any brief</h2>
+            <p class="uc-card__desc">Explore cultural references, trend angles, and creative territory for any brief. Gets copy and creative teams past the blank page with real substance to back up the ideas — fast.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Creative & Production</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="new-business-strategy">
+          <div class="uc-card__thumb uc-card__thumb--new-business-strategy">
+            <div class="uc-card__thumb-bg">BWAY</div>
+            <p class="uc-card__thumb-label">New Business &amp; Strategy</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Generate a curated Broadway show list instantly</h2>
+            <p class="uc-card__desc">Get a structured, researched list of current and upcoming Broadway productions with key details including genre, run dates, and target demographic. Supports campaign planning, sponsorship research, and cultural context work for entertainment clients.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">New Business &amp; Strategy</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="new-business-strategy">
+          <div class="uc-card__thumb uc-card__thumb--new-business-strategy">
+            <div class="uc-card__thumb-bg">PITCH</div>
+            <p class="uc-card__thumb-label">New Business &amp; Strategy</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Run the full new business workflow</h2>
+            <p class="uc-card__desc">A seven-phase prompt chain for taking a prospect from first contact to pitch-ready deck. Covers client research, call briefing, brief summary, case study selection, Springboards positioning, and RFP response — all structured and validated at each stage.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">New Business &amp; Strategy</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="new-business-strategy">
+          <div class="uc-card__thumb uc-card__thumb--new-business-strategy">
+            <div class="uc-card__thumb-bg">SEO</div>
+            <p class="uc-card__thumb-label">New Business &amp; Strategy</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Refresh and optimise existing content for SEO</h2>
+            <p class="uc-card__desc">Upload existing content and get an updated version optimised for current search intent, keywords, and structure — without losing the original voice. Keeps client content performing without starting from scratch.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">New Business &amp; Strategy</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="creative-production">
+          <div class="uc-card__thumb uc-card__thumb--creative-production">
+            <div class="uc-card__thumb-bg">REFN</div>
+            <p class="uc-card__thumb-label">Creative & Production</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Refine copy while keeping the brand voice intact</h2>
+            <p class="uc-card__desc">Input a draft and specify the tone, audience, and brand constraints — and get a polished version that maintains the brand's voice. Ideal for final-pass copy edits before work goes to the client for approval.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Creative & Production</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="account-management">
+          <div class="uc-card__thumb uc-card__thumb--account-management">
+            <div class="uc-card__thumb-bg">PRES</div>
+            <p class="uc-card__thumb-label">Account Management</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Create professional presentations from raw notes</h2>
+            <p class="uc-card__desc">Share raw notes or content and get a fully structured presentation with clear narrative flow, slide-by-slide structure, and formatting guidance. Gets you from blank slide to first draft without the manual layout work.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Account Management</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="account-management">
+          <div class="uc-card__thumb uc-card__thumb--account-management">
+            <div class="uc-card__thumb-bg">BREF</div>
+            <p class="uc-card__thumb-label">Account Management</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Distil a lengthy creative brief into the essentials</h2>
+            <p class="uc-card__desc">Upload a sprawling brief and get a concise summary of the core ask, target audience, tone, and must-have creative elements. Cuts onboarding time for the creative team and keeps everyone pointing in the same direction.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Account Management</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="account-management">
+          <div class="uc-card__thumb uc-card__thumb--account-management">
+            <div class="uc-card__thumb-bg">SLID</div>
+            <p class="uc-card__thumb-label">Account Management</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Format and restructure slides from a Word document</h2>
+            <p class="uc-card__desc">Paste in Word document content and get a suggested slide structure with clear hierarchy and visual layout guidance. Takes the manual work out of translating written docs into presentation format.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Account Management</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+        <article class="uc-card" data-category="account-management">
+          <div class="uc-card__thumb uc-card__thumb--account-management">
+            <div class="uc-card__thumb-bg">DGST</div>
+            <p class="uc-card__thumb-label">Account Management</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Build a daily client account digest</h2>
+            <p class="uc-card__desc">Aggregate the last 24 hours of client comms, project updates, performance alerts, and sector news — filtered to what's genuinely new — into a morning briefing under 250 words.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Account Management</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+        <article class="uc-card" data-category="account-management">
+          <div class="uc-card__thumb uc-card__thumb--account-management">
+            <div class="uc-card__thumb-bg">GROW</div>
+            <p class="uc-card__thumb-label">Account Management</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Identify growth opportunities in an existing account</h2>
+            <p class="uc-card__desc">Pattern-match the client's trajectory against capability adjacencies and peer-account benchmarks to generate three ranked growth hypotheses, each tied to specific evidence.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Account Management</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="account-management">
+          <div class="uc-card__thumb uc-card__thumb--account-management">
+            <div class="uc-card__thumb-bg">AUDB</div>
+            <p class="uc-card__thumb-label">Account Management</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Audience Identification Brief</h2>
+            <p class="uc-card__desc">Moves from broad genre audience to primary, secondary, and exploratory audiences — each with a buying motivation, channel map, and budget allocation, not just demographics.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Account Management</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="account-management">
+          <div class="uc-card__thumb uc-card__thumb--account-management">
+            <div class="uc-card__thumb-bg">MOMS</div>
+            <p class="uc-card__thumb-label">Account Management</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Key Period &amp; Moments Calendar</h2>
+            <p class="uc-card__desc">Identifies the 6 to 10 moments worth a coordinated push across a 12-month forward window, each with a hook, channel mix, yield expectation, and lead time.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Account Management</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="account-management">
+          <div class="uc-card__thumb uc-card__thumb--account-management">
+            <div class="uc-card__thumb-bg">INSB</div>
+            <p class="uc-card__thumb-label">Account Management</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Client Insight Presentation Builder</h2>
+            <p class="uc-card__desc">Structures a client presentation around one takeaway and builds the deck spine backwards from it — insight, evidence, implication, action. One narrative, not a data dump.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Account Management</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="account-management">
+          <div class="uc-card__thumb uc-card__thumb--account-management">
+            <div class="uc-card__thumb-bg">FMTS</div>
+            <p class="uc-card__thumb-label">Account Management</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Creative Format Identification Brief</h2>
+            <p class="uc-card__desc">Maps every format in the media plan to an existing asset (REUSE/RECUT) or a new production brief (NEW), stages the schedule against lead times, and flags any gaps.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Account Management</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="account-management">
+          <div class="uc-card__thumb uc-card__thumb--account-management">
+            <div class="uc-card__thumb-bg">QBR</div>
+            <p class="uc-card__thumb-label">Account Management</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Quarterly Client Review Prep Pack</h2>
+            <p class="uc-card__desc">Produces the internal honest assessment and the client-facing QBR deck spine separately — three highlights, three lessons, three priorities, and the big asks surfaced, not buried.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Account Management</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="pr-communications">
+          <div class="uc-card__thumb uc-card__thumb--pr-communications">
+            <div class="uc-card__thumb-bg">PRSS</div>
+            <p class="uc-card__thumb-label">PR & Communications</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Log and organise press coverage automatically</h2>
+            <p class="uc-card__desc">Compile press hits across publications into a structured log with outlet, date, sentiment, and coverage angle. Keeps tracking organised and client-ready throughout a campaign or award cycle.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">PR & Communications</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="pr-communications">
+          <div class="uc-card__thumb uc-card__thumb--pr-communications">
+            <div class="uc-card__thumb-bg">PULL</div>
+            <p class="uc-card__thumb-label">PR & Communications</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Pull the best quotes from press coverage instantly</h2>
+            <p class="uc-card__desc">Scan through press coverage and transcripts to surface the strongest quotes and soundbites quickly. Ideal for building award entries, client highlight reels, and end-of-campaign reports.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">PR & Communications</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="media-planning-buying">
+          <div class="uc-card__thumb uc-card__thumb--media-planning-buying">
+            <div class="uc-card__thumb-bg">SPEC</div>
+            <p class="uc-card__thumb-label">Media Planning & Buying</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Extract ad specs from PDFs into a clean CSV</h2>
+            <p class="uc-card__desc">Upload a PDF media plan or spec sheet and get a structured CSV with all key ad specifications — dimensions, formats, file sizes, and deadlines. Eliminates manual data entry and reduces spec errors across a campaign.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Media Planning & Buying</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="creative-production">
+          <div class="uc-card__thumb uc-card__thumb--creative-production">
+            <div class="uc-card__thumb-bg">HTML</div>
+            <p class="uc-card__thumb-label">Creative & Production</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Speed up HTML ad builds and fix code errors fast</h2>
+            <p class="uc-card__desc">Paste in your HTML code and get fixes, optimisations, or build suggestions back instantly. Cuts debugging time and helps the team move faster on rich media ad builds without digging through documentation.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Creative & Production</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="creative-production">
+          <div class="uc-card__thumb uc-card__thumb--creative-production">
+            <div class="uc-card__thumb-bg">VISL</div>
+            <p class="uc-card__thumb-label">Creative & Production</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Generate visual comps for pitch decks</h2>
+            <p class="uc-card__desc">Create photorealistic, brand-aligned visual comps for new business pitches in minutes. Lets the team present polished creative concepts at pitch stage without waiting on production timelines or external suppliers.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Creative & Production</span><span class="tag tag--ltx">LTX Studio</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="creative-production">
+          <div class="uc-card__thumb uc-card__thumb--creative-production">
+            <div class="uc-card__thumb-bg">SKTCH</div>
+            <p class="uc-card__thumb-label">Creative & Production</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Validate a sketch concept before production</h2>
+            <p class="uc-card__desc">Upload a rough sketch or hand-drawn concept and generate a polished visual showing what it could look like in reality. Bridges the gap between idea and execution at the proposal or early creative stage.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Creative & Production</span><span class="tag tag--ltx">LTX Studio</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="creative-production">
+          <div class="uc-card__thumb uc-card__thumb--creative-production">
+            <div class="uc-card__thumb-bg">UPSC</div>
+            <p class="uc-card__thumb-label">Creative & Production</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Upscale low-res images and retouch for delivery</h2>
+            <p class="uc-card__desc">Enhance image resolution and apply retouching automatically — turning rough or legacy visuals into client-presentable assets. Useful for repurposing older campaign imagery or elevating supplied assets that don't meet spec.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Creative & Production</span><span class="tag tag--ltx">LTX Studio</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="creative-production">
+          <div class="uc-card__thumb uc-card__thumb--creative-production">
+            <div class="uc-card__thumb-bg">GEN</div>
+            <p class="uc-card__thumb-label">Creative & Production</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Generate images and video from a text prompt</h2>
+            <p class="uc-card__desc">Describe the visual you need — scene, mood, style, subject — and generate a high-quality image or short video clip. Speeds up concept development without a brief needing to go through full production.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Creative & Production</span><span class="tag tag--ltx">LTX Studio</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="creative-production">
+          <div class="uc-card__thumb uc-card__thumb--creative-production">
+            <div class="uc-card__thumb-bg">MOCK</div>
+            <p class="uc-card__thumb-label">Creative & Production</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Generate rapid mockups for brand visual development</h2>
+            <p class="uc-card__desc">Create multiple visual directions for a brand identity or campaign key visual in minutes. Helps teams explore creative territory and pressure-test options with stakeholders before committing to production.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Creative & Production</span><span class="tag tag--ltx">LTX Studio</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="creative-production">
+          <div class="uc-card__thumb uc-card__thumb--creative-production">
+            <div class="uc-card__thumb-bg">ART</div>
+            <p class="uc-card__thumb-label">Creative & Production</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Create photo comps for key art proposals</h2>
+            <p class="uc-card__desc">Composite photorealistic key art visuals for client proposals or campaign presentations. Presents the creative vision in a production-ready way — helping clients commit to a direction with confidence.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Creative & Production</span><span class="tag tag--ltx">LTX Studio</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="creative-production">
+          <div class="uc-card__thumb uc-card__thumb--creative-production">
+            <div class="uc-card__thumb-bg">STRY</div>
+            <p class="uc-card__thumb-label">Creative & Production</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Generate storyboards from a script or concept</h2>
+            <p class="uc-card__desc">Turn a script, shot list, or creative concept into a visual storyboard automatically. Accelerates pre-production and helps clients and directors visualise the creative vision before a shoot is committed to.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Creative & Production</span><span class="tag tag--ltx">LTX Studio</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="creative-production">
+          <div class="uc-card__thumb uc-card__thumb--creative-production">
+            <div class="uc-card__thumb-bg">AV</div>
+            <p class="uc-card__thumb-label">Creative & Production</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Generate video content from an audio track</h2>
+            <p class="uc-card__desc">Feed in an audio file and generate matching video visuals automatically. Useful for social content, podcast clips, or any audio-first production that needs a compelling visual layer without a dedicated shoot.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Creative & Production</span><span class="tag tag--ltx">LTX Studio</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="creative-production">
+          <div class="uc-card__thumb uc-card__thumb--creative-production">
+            <div class="uc-card__thumb-bg">RTKE</div>
+            <p class="uc-card__thumb-label">Creative & Production</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Fix a video scene without going back to set</h2>
+            <p class="uc-card__desc">Make targeted corrections to existing footage — adjust an expression, swap a background, correct a moment — without returning to set. Reduces reshooting costs and turnaround time significantly on final delivery.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Creative & Production</span><span class="tag tag--ltx">LTX Studio</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="creative-production">
+          <div class="uc-card__thumb uc-card__thumb--creative-production">
+            <div class="uc-card__thumb-bg">STCK</div>
+            <p class="uc-card__thumb-label">Creative & Production</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Generate bespoke stock images on demand</h2>
+            <p class="uc-card__desc">Create branded, on-brief imagery without licensing fees or generic stock results. Generates visuals that actually match the campaign aesthetic and brand guidelines — rather than settling for what's in a library.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Creative & Production</span><span class="tag tag--ltx">LTX Studio</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="creative-production">
+          <div class="uc-card__thumb uc-card__thumb--creative-production">
+            <div class="uc-card__thumb-bg">BRND</div>
+            <p class="uc-card__thumb-label">Creative & Production</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Generate consistent creative using brand packs</h2>
+            <p class="uc-card__desc">Use LTX brand packs — objects, casts, fonts, and colour palettes — to generate campaign assets with built-in visual consistency. Keeps production scalable across multiple deliverables without sacrificing brand integrity.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Creative & Production</span><span class="tag tag--ltx">LTX Studio</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="creative-production">
+          <div class="uc-card__thumb uc-card__thumb--creative-production">
+            <div class="uc-card__thumb-bg">MMNT</div>
+            <p class="uc-card__thumb-label">Creative & Production</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Identify high-potential moments from raw footage</h2>
+            <p class="uc-card__desc">Use Descript's AI to scan footage and surface the most engaging moments — grouped by sentiment, character, or theme — then auto-format them for social. Replaces hours of manual scrubbing with an intelligent first pass.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Creative & Production</span><span class="tag tag--descript">Descript</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="creative-production">
+          <div class="uc-card__thumb uc-card__thumb--creative-production">
+            <div class="uc-card__thumb-bg">PREM</div>
+            <p class="uc-card__thumb-label">Creative & Production</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Export a clean rough cut directly to Premiere</h2>
+            <p class="uc-card__desc">Remove filler words, silences, and retakes in one click, then export a structured rough cut to Adobe Premiere XML. Lets editors skip the cleaning phase entirely and focus their time on the creative finish.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Creative & Production</span><span class="tag tag--descript">Descript</span>
+          </div>
+        </article>
+        <article class="uc-card" data-category="creative-production">
+          <div class="uc-card__thumb uc-card__thumb--creative-production">
+            <div class="uc-card__thumb-bg">CALL</div>
+            <p class="uc-card__thumb-label">Creative &amp; Production</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Create a production call sheet from pre-pro notes</h2>
+            <p class="uc-card__desc">Two-stage production: draft without personal contact details, then finalise under separate review. Builds header, schedule in 24-hour format, locations, talent table, crew table, and H&S notes.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Creative &amp; Production</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="creative-production">
+          <div class="uc-card__thumb uc-card__thumb--creative-production">
+            <div class="uc-card__thumb-bg">SHOT</div>
+            <p class="uc-card__thumb-label">Creative &amp; Production</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Shot List Creator</h2>
+            <p class="uc-card__desc">Organises every required shot into a day schedule grouped by location and lighting — with per-shot cards, three priority shots tagged, and a 15% time buffer built in.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Creative &amp; Production</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="creative-production">
+          <div class="uc-card__thumb uc-card__thumb--creative-production">
+            <div class="uc-card__thumb-bg">▶</div>
+            <p class="uc-card__thumb-label">LTX Studio</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Animate a still image into video</h2>
+            <p class="uc-card__desc">Upload a photograph or key visual, write a motion prompt (push in, pan, dolly out), and generate a dynamic video clip — without a shoot. Ideal for social content, client presentations, and pitches where movement adds impact.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Creative &amp; Production</span><span class="tag tag--ltx">LTX Studio</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="creative-production">
+          <div class="uc-card__thumb uc-card__thumb--creative-production">
+            <div class="uc-card__thumb-bg">🎬</div>
+            <p class="uc-card__thumb-label">LTX Studio</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Write a video script and produce it end-to-end in LTX Studio</h2>
+            <p class="uc-card__desc">Go from brief to finished video without leaving LTX Studio — write the script, auto-generate a storyboard, produce scene visuals, assemble the timeline, and export a finished cut ready for client or social.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Creative &amp; Production</span><span class="tag tag--ltx">LTX Studio</span>
+          </div>
+        </article>
+
+        <!-- Finance cards -->
+        <article class="uc-card" data-category="finance">
+          <div class="uc-card__thumb uc-card__thumb--finance">
+            <div class="uc-card__thumb-bg">RCPT</div>
+            <p class="uc-card__thumb-label">Finance</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Match receipts to expense claims automatically</h2>
+            <p class="uc-card__desc">Paste statement rows, receipt descriptions, and your job code list — and Claude matches transactions, assigns codes, flags discrepancies, and produces a ready-to-submit reconciliation table. Cuts manual AMEX and expense reconciliation from hours to minutes.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Finance</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="finance">
+          <div class="uc-card__thumb uc-card__thumb--finance">
+            <div class="uc-card__thumb-bg">MNTH</div>
+            <p class="uc-card__thumb-label">Finance</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Automate month-end summaries and variance analysis</h2>
+            <p class="uc-card__desc">Feed monthly figures into Excel and use the Claude extension to generate a structured summary with variance analysis, trend callouts, and a narrative ready for finance reporting. Replaces hours of manual formatting and interpretation at close.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Finance</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+        <article class="uc-card" data-category="finance">
+          <div class="uc-card__thumb uc-card__thumb--finance">
+            <div class="uc-card__thumb-bg">INVC</div>
+            <p class="uc-card__thumb-label">Finance</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Reconcile an invoice against the media plan</h2>
+            <p class="uc-card__desc">Line-by-line matching of an invoice against a booked media plan with EXACT / WITHIN_TOLERANCE / OVER_TOLERANCE / NOT_ON_PLAN classification per line, plus vendor-name mismatch detection.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Finance</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+        <article class="uc-card" data-category="finance">
+          <div class="uc-card__thumb uc-card__thumb--finance">
+            <div class="uc-card__thumb-bg">FCST</div>
+            <p class="uc-card__thumb-label">Finance</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Draft forecast commentary from finalised figures</h2>
+            <p class="uc-card__desc">Claude writes the narrative around locked numbers — never the numbers themselves. Pairs each variance to its driver, separates underlying performance from one-offs, and flags any inconsistent inputs.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Finance</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="finance">
+          <div class="uc-card__thumb uc-card__thumb--finance">
+            <div class="uc-card__thumb-bg">SLSP</div>
+            <p class="uc-card__thumb-label">Finance</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Sales Performance Commentary Writer</h2>
+            <p class="uc-card__desc">Pairs each sales movement with its probable cause, distinguishes what the team controlled from market forces, and surfaces one finding the team probably didn't expect.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Finance</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="finance">
+          <div class="uc-card__thumb uc-card__thumb--finance">
+            <div class="uc-card__thumb-bg">DISC</div>
+            <p class="uc-card__thumb-label">Finance</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Discounting Strategy Recommendation</h2>
+            <p class="uc-card__desc">Diagnoses the sales problem first, then generates three discount options ranked by risk-adjusted lift — with floor price and brand constraints locked in throughout.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Finance</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="finance">
+          <div class="uc-card__thumb uc-card__thumb--finance">
+            <div class="uc-card__thumb-bg">PROF</div>
+            <p class="uc-card__thumb-label">Finance</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Project Profitability Commentary</h2>
+            <p class="uc-card__desc">Decomposes the margin gap into scope, estimation, and execution failures — by role, against agency average — and surfaces the leakage from unrecovered scope.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Finance</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="finance">
+          <div class="uc-card__thumb uc-card__thumb--finance">
+            <div class="uc-card__thumb-bg">RREV</div>
+            <p class="uc-card__thumb-label">Finance</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Revenue Recognition Memo Helper</h2>
+            <p class="uc-card__desc">Drafts the revenue recognition memo for Finance and Legal review — obligation by obligation, with every judgement tagged [FINANCE REVIEW] or [LEGAL REVIEW] and no final decisions made.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Finance</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <!-- New Business & Strategy: pitch deck -->
+        <article class="uc-card" data-category="new-business-strategy">
+          <div class="uc-card__thumb uc-card__thumb--new-business-strategy">
+            <div class="uc-card__thumb-bg">DECK</div>
+            <p class="uc-card__thumb-label">New Business &amp; Strategy</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Build a pitch deck structure and narrative from a brief</h2>
+            <p class="uc-card__desc">Paste a client brief and get a complete pitch deck skeleton back in minutes — slide-by-slide narrative, exec summary, strategic positioning, case study hooks, budget structure, and next steps. Customise with your agency and client name for an immediately usable output.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">New Business &amp; Strategy</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+        <article class="uc-card" data-category="new-business-strategy">
+          <div class="uc-card__thumb uc-card__thumb--new-business-strategy">
+            <div class="uc-card__thumb-bg">CASE</div>
+            <p class="uc-card__thumb-label">New Business &amp; Strategy</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Write a case study for new business pitches</h2>
+            <p class="uc-card__desc">A two-pass process: extract the sharpest insight from your campaign data, anchor the headline on the single most striking result, then self-check every claim against the source material.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">New Business &amp; Strategy</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+        <article class="uc-card" data-category="new-business-strategy">
+          <div class="uc-card__thumb uc-card__thumb--new-business-strategy">
+            <div class="uc-card__thumb-bg">RFP</div>
+            <p class="uc-card__thumb-label">New Business &amp; Strategy</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Draft an RFP response to a client question</h2>
+            <p class="uc-card__desc">Match the client question to past responses and credentials, adapt the language to the question's exact wording, and keep one provable proof point. Every claim either traces to source material or gets a [VERIFY] flag.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">New Business &amp; Strategy</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="new-business-strategy">
+          <div class="uc-card__thumb uc-card__thumb--new-business-strategy">
+            <div class="uc-card__thumb-bg">BSTR</div>
+            <p class="uc-card__thumb-label">New Business &amp; Strategy</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Brand Strategy Synthesiser</h2>
+            <p class="uc-card__desc">Synthesises brand assets, audience insights, and competitor positioning into a single strategic platform statement — one sharp idea, not a deck.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">New Business &amp; Strategy</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="new-business-strategy">
+          <div class="uc-card__thumb uc-card__thumb--new-business-strategy">
+            <div class="uc-card__thumb-bg">PTCH</div>
+            <p class="uc-card__thumb-label">New Business &amp; Strategy</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Pitch Strategy &amp; Plan</h2>
+            <p class="uc-card__desc">Builds the pitch strategy before the deck: one positioning, the unstated need behind each stated objective, and a 7-beat pitch arc that pre-empts competitor angles.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">New Business &amp; Strategy</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <!-- Media Planning: media plan parser -->
+        <article class="uc-card" data-category="media-planning-buying">
+          <div class="uc-card__thumb uc-card__thumb--media-planning-buying">
+            <div class="uc-card__thumb-bg">PARSE</div>
+            <p class="uc-card__thumb-label">Media Planning &amp; Buying</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Parse a complex media plan into a clean data structure</h2>
+            <p class="uc-card__desc">Paste raw media plan rows and get a normalised table back with consistent fields, separated gross/net costs, flagged discrepancies, and a budget summary by channel. Ready to drop into a reporting tool or share with a client.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Media Planning &amp; Buying</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+        <article class="uc-card" data-category="media-planning-buying">
+          <div class="uc-card__thumb uc-card__thumb--media-planning-buying">
+            <div class="uc-card__thumb-bg">ADS</div>
+            <p class="uc-card__thumb-label">Media Planning &amp; Buying</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Analyse ad creative performance data</h2>
+            <p class="uc-card__desc">Answer the question first, explain second, warn about confidence third. Sorts creatives by the metric that best answers the question and flags any with insufficient sample size.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Media Planning &amp; Buying</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+        <article class="uc-card" data-category="media-planning-buying">
+          <div class="uc-card__thumb uc-card__thumb--media-planning-buying">
+            <div class="uc-card__thumb-bg">BOOK</div>
+            <p class="uc-card__thumb-label">Media Planning &amp; Buying</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Draft a media booking confirmation email</h2>
+            <p class="uc-card__desc">Drafts a booking confirmation to a vendor with every figure verbatim from the plan — plus a short follow-up version for chasing. Checks completeness before drafting and flags any missing fields.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Media Planning &amp; Buying</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="media-planning-buying">
+          <div class="uc-card__thumb uc-card__thumb--media-planning-buying">
+            <div class="uc-card__thumb-bg">MPVW</div>
+            <p class="uc-card__thumb-label">Media Planning &amp; Buying</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Media Plan Review</h2>
+            <p class="uc-card__desc">Stress-tests the plan against the brief, channel by channel — flags what's missing, what's excess, what's mispriced against benchmarks, and what the test budget should be.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Media Planning &amp; Buying</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="media-planning-buying">
+          <div class="uc-card__thumb uc-card__thumb--media-planning-buying">
+            <div class="uc-card__thumb-bg">XCHN</div>
+            <p class="uc-card__thumb-label">Media Planning &amp; Buying</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Cross-Channel Reporting Commentary</h2>
+            <p class="uc-card__desc">Finds the one story across paid, organic, PR, and earned — distinguishes correlation from contribution and lands on what the evidence changes about next period's plan.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Media Planning &amp; Buying</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <!-- Additional PR & Communications cards -->
+        <article class="uc-card" data-category="pr-communications">
+          <div class="uc-card__thumb uc-card__thumb--pr-communications">
+            <div class="uc-card__thumb-bg">AWRD</div>
+            <p class="uc-card__thumb-label">PR & Communications</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Write award entries from campaign results</h2>
+            <p class="uc-card__desc">Input campaign objectives, activity, and results to get a polished first-draft award entry structured for the specific category and judging criteria. Takes the hardest part of award season — starting — off the team's plate.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">PR & Communications</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="pr-communications">
+          <div class="uc-card__thumb uc-card__thumb--pr-communications">
+            <div class="uc-card__thumb-bg">INTL</div>
+            <p class="uc-card__thumb-label">PR & Communications</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Draft internal communications for any announcement</h2>
+            <p class="uc-card__desc">Input the key message, audience, and tone to get a polished internal comms draft — from all-staff emails to team updates and leadership announcements. Keeps messaging clear, consistent, and on-brand across the group.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">PR & Communications</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="pr-communications">
+          <div class="uc-card__thumb uc-card__thumb--pr-communications">
+            <div class="uc-card__thumb-bg">COVR</div>
+            <p class="uc-card__thumb-label">PR &amp; Communications</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Search and compile press coverage for any show or campaign</h2>
+            <p class="uc-card__desc">Give Claude a show name or campaign and a list of target publications — get a structured coverage log with headlines, authors, key quotes, and sentiment analysis back in minutes. Includes gap analysis and follow-up pitch angles for publications that haven't covered it yet.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">PR &amp; Communications</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+        <article class="uc-card" data-category="pr-communications">
+          <div class="uc-card__thumb uc-card__thumb--pr-communications">
+            <div class="uc-card__thumb-bg">LEAD</div>
+            <p class="uc-card__thumb-label">PR &amp; Communications</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Ghostwrite thought leadership for a senior author</h2>
+            <p class="uc-card__desc">Match the author's voice first, argument second. Analyses a voice sample for sentence length, vocabulary register, and opening style before drafting a piece built around one sharp idea.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">PR &amp; Communications</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <!-- Additional Social Media cards -->
+        <article class="uc-card" data-category="social-media">
+          <div class="uc-card__thumb uc-card__thumb--social-media">
+            <div class="uc-card__thumb-bg">CAL</div>
+            <p class="uc-card__thumb-label">Social Media</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Plan a monthly social content calendar</h2>
+            <p class="uc-card__desc">Brief Claude on the client, upcoming moments, and content pillars and get a structured monthly calendar with post themes, formats, and platform guidance. Gives the team a plan to react against rather than starting from scratch each week.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Social Media</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="social-media">
+          <div class="uc-card__thumb uc-card__thumb--social-media">
+            <div class="uc-card__thumb-bg">COMM</div>
+            <p class="uc-card__thumb-label">Social Media</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Draft community management responses at scale</h2>
+            <p class="uc-card__desc">Feed in a batch of comments or DMs and get draft replies in the brand's tone — covering common questions, complaints, and compliments. Keeps response times fast without sacrificing quality or consistency.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Social Media</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+        <article class="uc-card" data-category="social-media">
+          <div class="uc-card__thumb uc-card__thumb--social-media">
+            <div class="uc-card__thumb-bg">TLNT</div>
+            <p class="uc-card__thumb-label">Social Media</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Shortlist influencer talent for a campaign</h2>
+            <p class="uc-card__desc">Score an influencer pool against five dimensions — audience fit, engagement quality, brand-value alignment, risk, and cost — then surface a ranked top 8, a do-not list, and the gap in the pool.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Social Media</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="social-media">
+          <div class="uc-card__thumb uc-card__thumb--social-media">
+            <div class="uc-card__thumb-bg">CAL</div>
+            <p class="uc-card__thumb-label">Social Media</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Content Calendar Builder</h2>
+            <p class="uc-card__desc">Matches content to brand moments and external anchors, distributes pillars across the window, and builds a week-by-week grid within production capacity.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Social Media</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="social-media">
+          <div class="uc-card__thumb uc-card__thumb--social-media">
+            <div class="uc-card__thumb-bg">FAQ</div>
+            <p class="uc-card__thumb-label">Social Media</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Community FAQ Doc Compilation</h2>
+            <p class="uc-card__desc">Clusters community questions by volume, drafts canonical responses in brand voice, flags sensitive topics for human handling, and marks each entry NEW, UPDATED, or RETIRED.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Social Media</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <!-- V4 supplement cards -->
+        <article class="uc-card" data-category="account-management">
+          <div class="uc-card__thumb uc-card__thumb--account-management">
+            <div class="uc-card__thumb-bg">REPORT</div>
+            <p class="uc-card__thumb-label">Account Management</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Build a monthly content performance report</h2>
+            <p class="uc-card__desc">Turn raw Sprout Social and YouTube Studio exports into a slide-ready monthly report — metrics block, per-channel commentary, and three actionable insights, all from the data.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Account Management</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="social-media">
+          <div class="uc-card__thumb uc-card__thumb--social-media">
+            <div class="uc-card__thumb-bg">TRANSLATE</div>
+            <p class="uc-card__thumb-label">Social Media</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Translate social copy for a new market</h2>
+            <p class="uc-card__desc">Translate campaign social copy into a new language while preserving the hook, brand voice, and platform conventions — not just the words. Flags anything that won't travel culturally.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Social Media</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="new-business-strategy">
+          <div class="uc-card__thumb uc-card__thumb--new-business-strategy">
+            <div class="uc-card__thumb-bg">INTEL</div>
+            <p class="uc-card__thumb-label">New Business &amp; Strategy</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Build a prospect research dossier</h2>
+            <p class="uc-card__desc">Build the pitch dossier your new business team can actually use — strategic shifts, role profiles, the trigger for outreach now, and three conversation openers grounded in what the prospect has done.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">New Business &amp; Strategy</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="account-management">
+          <div class="uc-card__thumb uc-card__thumb--account-management">
+            <div class="uc-card__thumb-bg">STATUS</div>
+            <p class="uc-card__thumb-label">Account Management</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Build a weekly client status deck</h2>
+            <p class="uc-card__desc">Convert project status notes into a structured weekly deck that leads with what changed, surfaces decisions on both sides, and closes with the one ask of the meeting.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Account Management</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="new-business-strategy">
+          <div class="uc-card__thumb uc-card__thumb--new-business-strategy">
+            <div class="uc-card__thumb-bg">TREND</div>
+            <p class="uc-card__thumb-label">New Business &amp; Strategy</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Analyse brand content trends and plan next month</h2>
+            <p class="uc-card__desc">Answer "what should this brand make next month?" — identifying uncrowded territory, distinguishing trends from fads, and recommending three concrete content concepts with rationale.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">New Business &amp; Strategy</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="social-media">
+          <div class="uc-card__thumb uc-card__thumb--social-media">
+            <div class="uc-card__thumb-bg">BRIEF</div>
+            <p class="uc-card__thumb-label">Social Media</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Create a full influencer briefing pack</h2>
+            <p class="uc-card__desc">Beyond the creative brief — the complete operational pack: compliance disclosure language, usage rights, approval workflow, payment terms, and a brand-specific do/don't list.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Social Media</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="new-business-strategy">
+          <div class="uc-card__thumb uc-card__thumb--new-business-strategy">
+            <div class="uc-card__thumb-bg">OUTREACH</div>
+            <p class="uc-card__thumb-label">New Business &amp; Strategy</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Write a new business outreach sequence</h2>
+            <p class="uc-card__desc">Build a multi-touch outreach sequence where every email earns its place — opening with prospect-specific intelligence, varying the angle across touches, and closing with a soft ask.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">New Business &amp; Strategy</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="account-management">
+          <div class="uc-card__thumb uc-card__thumb--account-management">
+            <div class="uc-card__thumb-bg">ONBOARD</div>
+            <p class="uc-card__thumb-label">Account Management</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Create a client onboarding pack</h2>
+            <p class="uc-card__desc">Build the onboarding pack a new client can read once and refer back to — team contacts, communication protocols, approval workflows, and 30/60/90-day milestones from your SOW and kick-off notes.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Account Management</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="social-media">
+          <div class="uc-card__thumb uc-card__thumb--social-media">
+            <div class="uc-card__thumb-bg">EMAIL</div>
+            <p class="uc-card__thumb-label">Social Media</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Draft a targeted email blast</h2>
+            <p class="uc-card__desc">One objective per email. Get five subject line candidates, a preheader, body copy, CTA, plain-text variant, and a pre-flight checklist — built around why this email exists today.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Social Media</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <!-- Technology & Development cards -->
+        <article class="uc-card" data-category="technology-development">
+          <div class="uc-card__thumb uc-card__thumb--technology-development">
+            <div class="uc-card__thumb-bg">BUILD</div>
+            <p class="uc-card__thumb-label">Technology & Development</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Build a landing page or microsite from a brief</h2>
+            <p class="uc-card__desc">Paste a creative or client brief into Claude and get a fully working landing page — HTML, CSS, and JavaScript — as an Artifact you can preview instantly. From there, iterate in conversation until it's ready to hand off or deploy.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Technology & Development</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="technology-development">
+          <div class="uc-card__thumb uc-card__thumb--technology-development">
+            <div class="uc-card__thumb-bg">BUG</div>
+            <p class="uc-card__thumb-label">Technology & Development</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Debug and fix errors across any codebase</h2>
+            <p class="uc-card__desc">Paste an error message and the surrounding code and get a targeted fix with a clear explanation of what went wrong and why. Faster than searching Stack Overflow — and it understands the specific context you're working in.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Technology & Development</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="technology-development">
+          <div class="uc-card__thumb uc-card__thumb--technology-development">
+            <div class="uc-card__thumb-bg">CODE</div>
+            <p class="uc-card__thumb-label">Technology & Development</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Review and understand an unfamiliar codebase</h2>
+            <p class="uc-card__desc">Upload code files or paste key sections and ask Claude to explain the architecture, summarise what each component does, or flag potential issues. Gets you productive in a new codebase significantly faster than reading alone.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Technology & Development</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="technology-development">
+          <div class="uc-card__thumb uc-card__thumb--technology-development">
+            <div class="uc-card__thumb-bg">PROT</div>
+            <p class="uc-card__thumb-label">Technology & Development</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Design and prototype UI components rapidly</h2>
+            <p class="uc-card__desc">Use Claude Design to create interactive UI prototypes directly from a brief or sketch — without writing code or spinning up a design tool. Get something in front of a client or stakeholder in minutes for early directional feedback.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Technology & Development</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="technology-development">
+          <div class="uc-card__thumb uc-card__thumb--technology-development">
+            <div class="uc-card__thumb-bg">DOCS</div>
+            <p class="uc-card__thumb-label">Technology & Development</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Generate technical documentation from existing code</h2>
+            <p class="uc-card__desc">Paste your code and get a structured README, API reference, or developer onboarding guide written automatically. Keeps documentation up to date without it becoming a separate project — and makes handoffs significantly cleaner.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Technology & Development</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="technology-development">
+          <div class="uc-card__thumb uc-card__thumb--technology-development">
+            <div class="uc-card__thumb-bg">SPEC</div>
+            <p class="uc-card__thumb-label">Technology & Development</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Translate a client brief into a technical specification</h2>
+            <p class="uc-card__desc">Feed Claude a creative or client brief and get a structured technical specification — scope, functional requirements, edge cases, and acceptance criteria. Bridges the gap between what a client asked for and what the development team needs to build it.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Technology & Development</span><span class="tag tag--claude">Claude</span>
+          </div>
+        </article>
+
+        <!-- Custom Build cards -->
+        <article class="uc-card" data-category="creative-production" data-type="custom-build">
+          <div class="uc-card__thumb uc-card__thumb--creative-production">
+            <div class="uc-card__thumb-bg">CLIP</div>
+            <p class="uc-card__thumb-label">Creative &amp; Production</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Adobe Clipping Solution</h2>
+            <p class="uc-card__desc">Automates the entire social clipping workflow inside Adobe Premiere Pro — auto-clipping, AI speaker reframing, subtitle transcription, and batch export of 9:16 videos from a timecode spreadsheet.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Creative &amp; Production</span><span class="tag tag--build">Custom Build</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="media-planning-buying" data-type="custom-build">
+          <div class="uc-card__thumb uc-card__thumb--media-planning-buying">
+            <div class="uc-card__thumb-bg">AUTO</div>
+            <p class="uc-card__thumb-label">Media Planning &amp; Buying</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Meta Campaign Automation</h2>
+            <p class="uc-card__desc">Removes manual effort from Meta paid media setup. Upload a CSV and the platform builds the full campaign architecture automatically — ready to activate. Now embedded in Sold Out's workflow.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Media Planning &amp; Buying</span><span class="tag tag--build">Custom Build</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="pr-communications" data-type="custom-build">
+          <div class="uc-card__thumb uc-card__thumb--pr-communications">
+            <div class="uc-card__thumb-bg">COVER</div>
+            <p class="uc-card__thumb-label">PR &amp; Communications</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">PR Daily Coverage</h2>
+            <p class="uc-card__desc">Monitors news sources daily and automatically surfaces reviews, features, and mentions for each show or film in the portfolio — assembling a formatted daily coverage report for PR teams.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">PR &amp; Communications</span><span class="tag tag--build">Custom Build</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="media-planning-buying" data-type="custom-build">
+          <div class="uc-card__thumb uc-card__thumb--media-planning-buying">
+            <div class="uc-card__thumb-bg">DATA</div>
+            <p class="uc-card__thumb-label">Media Planning &amp; Buying</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Data Parsing &amp; Tag Request Automation</h2>
+            <p class="uc-card__desc">Automates the data flow from insertion order to media plan to tag request sheet at Spot Co — eliminating double-keying, reducing errors, and freeing the team for higher-value work.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Media Planning &amp; Buying</span><span class="tag tag--build">Custom Build</span>
+          </div>
+        </article>
+
+        <article class="uc-card" data-category="media-planning-buying" data-type="custom-build">
+          <div class="uc-card__thumb uc-card__thumb--media-planning-buying">
+            <div class="uc-card__thumb-bg">MEDIA</div>
+            <p class="uc-card__thumb-label">Media Planning &amp; Buying</p>
+          </div>
+          <div class="uc-card__body">
+            <h2 class="uc-card__title">Media Platform</h2>
+            <p class="uc-card__desc">A centralised platform transforming how media services are delivered across Miroma Group — from brief intake and AI planning through campaign activation to real-time performance dashboards.</p>
+          </div>
+          <div class="uc-card__footer">
+            <span class="tag">Media Planning &amp; Buying</span><span class="tag tag--build">Custom Build</span>
+          </div>
+        </article>
+
+        <!-- Submit card — always visible at end of grid -->
+        <article class="uc-card uc-card--submit" id="ucSubmitCard">
+          <div class="uc-card__body uc-card--submit__body">
+            <p class="uc-card--submit__eyebrow">Got one to share?</p>
+            <h2 class="uc-card__title">Add your own use case to the hub</h2>
+            <p class="uc-card__desc">If you've found a smart way to use AI in your workflow, submit it. We'll add it to the hub so the whole group can learn from it.</p>
+          </div>
+          <div class="uc-card__footer">
+            <a href="#submitSection" class="btn btn--outline btn--sm">Submit a use case →</a>
+          </div>
+        </article>
+
+      </div>
+
+      <p id="noResults" hidden style="text-align:center; padding: 48px 0; font-size:15px; color: var(--c-stone);">No use cases found. Try a different search or filter.</p>
+
+    </div>
+  </section>
+
+  <!-- SUBMIT -->
+  <section class="section" id="submitSection">
+    <div class="container">
+      <div class="submit-box">
+        <div class="submit-box__header">
+          <p class="submit-box__label">Share Your Work</p>
+          <h2 class="submit-box__title">Got a use case worth sharing?</h2>
+          <p class="submit-box__body">If you've found a smart way to use AI in your day-to-day work, we want to hear about it. Submit your use case and we'll add it to the hub for the whole group to learn from.</p>
+        </div>
+        <form class="submit-form" id="submitForm" novalidate>
+          <div class="form-field">
+            <label for="f-name">Your Name</label>
+            <input type="text" id="f-name" name="name" placeholder="e.g. Jamie Smith" required>
+          </div>
+          <div class="form-field">
+            <label for="f-team">Team / Agency</label>
+            <input type="text" id="f-team" name="team" placeholder="e.g. Digital Team at Spot Co" required>
+          </div>
+          <div class="form-field form-field--full">
+            <label for="f-title">Use Case Title</label>
+            <input type="text" id="f-title" name="title" placeholder="e.g. Using Claude to draft client briefs" required>
+          </div>
+          <div class="form-field">
+            <label for="f-tool">AI Tool Used</label>
+            <select id="f-tool" name="tool" required>
+              <option value="" disabled selected>Select a tool</option>
+              <option>Claude</option>
+              <option>LTX Studio</option>
+              <option>Descript</option>
+              <option>Springboards</option>
+              <option>Fireflies</option>
+              <option>Multiple Tools</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="f-category">Category</label>
+            <select id="f-category" name="category" required>
+              <option value="" disabled selected>Select a category</option>
+              <option>New Business &amp; Strategy</option>
+              <option>Social Media</option>
+              <option>Account Management</option>
+              <option>Media Planning &amp; Buying</option>
+              <option>Finance</option>
+              <option>Creative &amp; Production</option>
+              <option>PR &amp; Communications</option>
+              <option>Technology &amp; Development</option>
+            </select>
+          </div>
+          <div class="form-field form-field--full">
+            <label for="f-desc">Describe the Use Case</label>
+            <textarea id="f-desc" name="description" placeholder="What problem were you solving? How did you use the tool? What was the process?"></textarea>
+          </div>
+          <div class="form-field form-field--full">
+            <label for="f-outcome">Outcome / Result</label>
+            <textarea id="f-outcome" name="outcome" placeholder="What was the result? Time saved, quality improvement, client reaction?" style="min-height:90px;"></textarea>
+          </div>
+          <div class="form-footer">
+            <button type="submit" class="btn btn--outline-inv">Submit Use Case →</button>
+            <p class="form-note">Sent directly to <a href="mailto:aiteam@miroma.com" style="color:rgba(255,255,255,0.5);text-decoration:underline;">aiteam@miroma.com</a></p>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer__inner">
+      <div class="footer__top">
+        <div>
+          <a href="index.html" class="footer__logo"><img src="assets/logos/logo-white.png" alt="Miroma Group"></a>
+          <p class="footer__tagline">The central hub for all things AI at Miroma Group.</p>
+        </div>
+        <div>
+          <p class="footer__col-label">Quick Links</p>
+          <ul class="footer__links">
+            <li><a href="tools.html">AI Tools</a></li>
+            <li><a href="learning.html">Learning Pathway</a></li>
+            <li><a href="use-cases.html">Use Cases</a></li>
+            <li><a href="policy.html">Policy &amp; Guidelines</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="footer__col-label">AI Team</p>
+          <a href="mailto:aiteam@miroma.com" class="footer__email">aiteam@miroma.com</a>
+          <p class="footer__email-note">Submit a use case or share your AI story with the team.</p>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p class="footer__copy">© 2025 Miroma Group. All rights reserved.</p>
+        <p class="footer__copy">AI Hub — Internal Resource</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- USE CASE DRAWER -->
+  <div class="uc-overlay" id="ucOverlay" role="presentation"></div>
+  <aside class="uc-drawer" id="ucDrawer" role="dialog" aria-modal="true" aria-label="Use case detail">
+    <div class="uc-drawer__header">
+      <button class="uc-drawer__back" id="ucDrawerClose">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Use Cases
+      </button>
+      <button class="uc-drawer__close" id="ucDrawerCloseX" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="uc-drawer__body" id="ucDrawerBody">
+      <!-- populated by JS -->
+    </div>
+  </aside>
+
+  <script src="js/use-cases-data.js"></script>
+  <script src="js/requests.js"></script>
+  <script src="js/main.js"></script>
+  <!-- Firestore-first upgrade of the grid (admin-managed content_use_cases);
+       falls back to the static cards above on any failure. -->
+  <script src="js/use-cases-content.js"></script>
+  <script src="js/admin-nav.js?v=3"></script>
+</body>
+</html>

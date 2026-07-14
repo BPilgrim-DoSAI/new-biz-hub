@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Tools — Miroma AI Hub</title>
+  <meta name="description" content="Five AI tools to supercharge how you work at Miroma Group.">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" integrity="sha384-sEVIly94UBRLKWdkYoPpSG7GD/e79YHMrxVyZaOk712Ga7+EAw6w1EFi+xBzBdd+" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js" integrity="sha384-EkqK+ezBWJuvO3hfrSx2iVqr3YQbhmnzn8kPhOpBZ+0GMVU5oGSgptwIu8D84HjE" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js" integrity="sha384-M481iNZJtbpypKgvlvZ+78Giq0BsewFLk5r2k+MOcGXlwKCc27DQRZ+WCV/zpmpC" crossorigin="anonymous"></script>
+  <script src="js/auth.js"></script>
+  <!-- Google Analytics (config moved to js/analytics.js — S-6 Part B) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-L7H3N34BG1"></script>
+  <script src="js/analytics.js"></script>
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__logo">
+        <div class="nav__monogram"><img src="assets/logos/monogram.png" alt=""></div>
+        <span class="nav__brand">MIROMA · AI HUB</span>
+      </a>
+      <ul class="nav__links">
+        <li><a href="index.html"><span class="nav__num">01</span> Hub</a></li>
+        <li><a href="learning.html"><span class="nav__num">02</span> Learning Pathway</a></li>
+        <li><a href="use-cases.html"><span class="nav__num">03</span> Use Cases</a></li>
+        <li><a href="policy.html"><span class="nav__num">04</span> Policy &amp; Guidelines</a></li>
+        <li><a href="whats-new.html"><span class="nav__num">05</span> What's New</a></li>
+        <li id="nav-admin-item" style="display:none"><a href="admin.html"><span class="nav__num">06</span> Agency Oversight</a></li>
+      </ul>
+      <div class="nav__contact"><a href="https://miromabrandhub.com/" target="_blank" rel="noopener noreferrer" class="nav__brand-hub-btn">Brand Hub ↗</a><span class="nav__divider"></span><button class="nav__signout-btn">Sign out</button></div>
+      <button class="nav__toggle" id="navToggle" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html">Hub</a>
+    <a href="learning.html">Learning Pathway</a>
+    <a href="use-cases.html">Use Cases</a>
+    <a href="policy.html">Policy &amp; Guidelines</a>
+    <a href="whats-new.html">What's New</a>
+    <a id="mob-admin-link" href="admin.html" style="display:none">Agency Oversight</a>
+    <a href="https://miromabrandhub.com/" target="_blank" rel="noopener noreferrer">Brand Hub ↗</a>
+    <button class="mob-signout-btn">Sign out</button>
+  </div>
+
+  <header class="page-header">
+    <div class="page-header__inner">
+      <div class="page-header__left">
+        <p class="page-header__label">01 — The Tools</p>
+        <h1 class="page-header__title">Your AI Toolkit</h1>
+        <p class="page-header__body">Miroma's approved AI platforms, with everything you need to use them well. Launch any tool directly or work through the training to get up to speed. Anything not on this list isn't authorised for use without prior approval.</p>
+      </div>
+    </div>
+  </header>
+
+  <section class="section section--white">
+    <div class="container">
+      <div class="tools-list">
+
+        <article class="tool-card-lg">
+          <div>
+            <p class="tool-card-lg__num">01</p>
+            <h2 class="tool-card-lg__name">Claude</h2>
+            <p class="tool-card-lg__type">AI Assistant</p>
+          </div>
+          <div>
+            <p class="tool-card-lg__desc">The most capable AI assistant available, and the one you'll use most. Claude can write, research, analyse data, summarise long documents, draft presentations, review contracts and automate repetitive work — all through conversation. Available on web, mobile, desktop and inside Word, Excel and PowerPoint.</p>
+            <div class="tool-card-lg__tags">
+              <span class="tag">Writing &amp; Editing</span>
+              <span class="tag">Research</span>
+              <span class="tag">Data Analysis</span>
+              <span class="tag">Strategy</span>
+              <span class="tag">Code</span>
+              <span class="tag">Long Documents</span>
+            </div>
+          </div>
+          <div class="tool-card-lg__action">
+            <a href="https://claude.ai/" target="_blank" rel="noopener noreferrer" class="btn btn--primary">Launch →</a>
+            <a href="learning.html" class="btn btn--outline">Training</a>
+          </div>
+        </article>
+
+        <article class="tool-card-lg">
+          <div>
+            <p class="tool-card-lg__num">02</p>
+            <h2 class="tool-card-lg__name">LTX Studio</h2>
+            <p class="tool-card-lg__type">AI Video Generation</p>
+          </div>
+          <div>
+            <p class="tool-card-lg__desc">Miroma's approved platform for AI image and video generation. Use LTX Studio to produce concept visuals, storyboards, social content, campaign mockups and short videos — straight from a script or brief. No production team or specialist skills required.</p>
+            <div class="tool-card-lg__tags">
+              <span class="tag">AI Video</span>
+              <span class="tag">Storyboarding</span>
+              <span class="tag">Script to Screen</span>
+              <span class="tag">Social Content</span>
+              <span class="tag">Campaign Video</span>
+            </div>
+          </div>
+          <div class="tool-card-lg__action">
+            <a href="https://app.ltx.studio/" target="_blank" rel="noopener noreferrer" class="btn btn--primary">Launch →</a>
+            <a href="learning.html" class="btn btn--outline">Training</a>
+          </div>
+        </article>
+
+        <article class="tool-card-lg">
+          <div>
+            <p class="tool-card-lg__num">03</p>
+            <h2 class="tool-card-lg__name">Descript</h2>
+            <p class="tool-card-lg__type">Audio &amp; Video Editing</p>
+          </div>
+          <div>
+            <p class="tool-card-lg__desc">The fastest way to edit audio and video. Descript transcribes your recording automatically — then you edit the media by editing the text. Cut filler words, remove sections, reorder content and export to Premiere or Final Cut. Ideal for podcasts, client videos, webinar clips and social repurposing.</p>
+            <div class="tool-card-lg__tags">
+              <span class="tag">Auto-Transcription</span>
+              <span class="tag">Filler Word Removal</span>
+              <span class="tag">Podcast Editing</span>
+              <span class="tag">Video Repurposing</span>
+              <span class="tag">Screen Recording</span>
+            </div>
+          </div>
+          <div class="tool-card-lg__action">
+            <a href="https://web.descript.com/" target="_blank" rel="noopener noreferrer" class="btn btn--primary">Launch →</a>
+            <a href="learning.html" class="btn btn--outline">Training</a>
+          </div>
+        </article>
+
+        <article class="tool-card-lg">
+          <div>
+            <p class="tool-card-lg__num">04</p>
+            <h2 class="tool-card-lg__name">Springboards</h2>
+            <p class="tool-card-lg__type">Creative Ideation</p>
+          </div>
+          <div>
+            <p class="tool-card-lg__desc">An AI platform for advertising and marketing teams who want better ideas, not just faster answers. Springboards generates a wide range of creative directions, angles and territories from any brief — helping teams explore more ground, pressure-test concepts, and push into unexpected territory before committing to a direction. Use it solo or share a session with your team in real time.</p>
+            <div class="tool-card-lg__tags">
+              <span class="tag">Creative Ideation</span>
+              <span class="tag">Concept Development</span>
+              <span class="tag">Brief Exploration</span>
+              <span class="tag">Team Brainstorming</span>
+              <span class="tag">Creative Strategy</span>
+            </div>
+          </div>
+          <div class="tool-card-lg__action">
+            <a href="https://springboards.ai/" target="_blank" rel="noopener noreferrer" class="btn btn--primary">Launch →</a>
+            <a href="learning.html" class="btn btn--outline">Training</a>
+          </div>
+        </article>
+
+        <article class="tool-card-lg">
+          <div>
+            <p class="tool-card-lg__num">05</p>
+            <h2 class="tool-card-lg__name">Fireflies</h2>
+            <p class="tool-card-lg__type">Meeting Intelligence</p>
+          </div>
+          <div>
+            <p class="tool-card-lg__desc">An AI meeting assistant that joins your calls automatically. Fireflies records, transcribes and summarises every meeting — surfacing key decisions, action items and follow-ups without anyone needing to take notes. Search across all your past meetings and share highlights with your team in one click.</p>
+            <div class="tool-card-lg__tags">
+              <span class="tag">Transcription</span>
+              <span class="tag">Action Items</span>
+              <span class="tag">Meeting Search</span>
+              <span class="tag">AI Summaries</span>
+              <span class="tag">CRM Integration</span>
+            </div>
+          </div>
+          <div class="tool-card-lg__action">
+            <a href="https://app.fireflies.ai/" target="_blank" rel="noopener noreferrer" class="btn btn--primary">Launch →</a>
+            <a href="learning.html" class="btn btn--outline">Training</a>
+          </div>
+        </article>
+
+        <article class="tool-card-lg">
+          <div>
+            <p class="tool-card-lg__num">06</p>
+            <h2 class="tool-card-lg__name">Gemini</h2>
+            <p class="tool-card-lg__type">AI Assistant · Google Workspace</p>
+            <span class="tool-card-lg__badge">Google Enterprise only</span>
+          </div>
+          <div>
+            <p class="tool-card-lg__desc">Google's AI assistant, built directly into the apps your team already uses. Gemini works inside Gmail, Google Docs, Sheets, Slides, Drive and Meet — letting you draft emails, summarise documents, analyse data, build presentations and generate content without switching platforms.<br><br>Available to teams operating under a Google Enterprise agreement only. Under Enterprise tier, your data stays within Google's secure infrastructure and is governed by your existing contractual terms, making it suitable for day-to-day work within our Data Use Policy. All usage must follow our standard tiered data approach — identify your data tier before use and apply the required controls. Full policy on the <a href="policy.html">Policy &amp; Guidelines page</a>. If you're unsure whether your team is on Enterprise tier, check with your IT lead before use.</p>
+            <div class="tool-card-lg__tags">
+              <span class="tag">Google Workspace</span>
+              <span class="tag">Writing &amp; Editing</span>
+              <span class="tag">Email Drafting</span>
+              <span class="tag">Sheets &amp; Data</span>
+              <span class="tag">Summarisation</span>
+              <span class="tag">Slides &amp; Presentations</span>
+            </div>
+          </div>
+          <div class="tool-card-lg__action">
+            <a href="https://gemini.google.com/app" target="_blank" rel="noopener noreferrer" class="btn btn--primary">Launch →</a>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer__inner">
+      <div class="footer__top">
+        <div>
+          <a href="index.html" class="footer__logo"><img src="assets/logos/logo-white.png" alt="Miroma Group"></a>
+          <p class="footer__tagline">The central hub for all things AI at Miroma Group.</p>
+        </div>
+        <div>
+          <p class="footer__col-label">Quick Links</p>
+          <ul class="footer__links">
+            <li><a href="tools.html">AI Tools</a></li>
+            <li><a href="learning.html">Learning Pathway</a></li>
+            <li><a href="use-cases.html">Use Cases</a></li>
+            <li><a href="policy.html">Policy &amp; Guidelines</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="footer__col-label">AI Team</p>
+          <a href="mailto:aiteam@miroma.com" class="footer__email">aiteam@miroma.com</a>
+          <p class="footer__email-note">Questions about any of the tools? Get in touch.</p>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p class="footer__copy">© 2025 Miroma Group. All rights reserved.</p>
+        <p class="footer__copy">AI Hub — Internal Resource</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/requests.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/admin-nav.js?v=3"></script>
+</body>
+</html>

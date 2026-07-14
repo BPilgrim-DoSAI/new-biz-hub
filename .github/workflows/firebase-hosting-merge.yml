@@ -1,0 +1,95 @@
+# Deploys Hosting + Firestore rules together on every push to main.
+# Both must ship atomically — rule changes that depend on client code
+# (or vice versa) will break if deployed in isolation.
+
+name: Deploy to Firebase on merge
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    env:
+      # Opt actions that haven't yet shipped a Node 24 release (notably
+      # FirebaseExtended/action-hosting-deploy@v0) into running on Node 24.
+      # Node 20 is being deprecated by GitHub Actions on 2026-06-16 and
+      # removed on 2026-09-16. This flag is GitHub-supported and lets us
+      # stay current without waiting for every action maintainer.
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - uses: actions/checkout@v5
+
+      # 1) Compile JSX → JS (S-6 Part A — removes need for @babel/standalone
+      #    in the browser, lets us drop CSP 'unsafe-eval').
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+      # Fail fast with a clear message if package.json was changed without
+      # running 'npm install' to regenerate the lockfile. Without this step,
+      # the next 'npm ci' fails with cryptic "Missing X from lock file"
+      # errors that take a minute to recognise as a lockfile-drift issue.
+      - name: Verify package-lock.json matches package.json
+        run: |
+          if [ ! -f package.json ] || [ ! -f package-lock.json ]; then
+            echo "No package.json or package-lock.json; skipping lockfile check"
+            exit 0
+          fi
+          if ! npm ci --dry-run --no-audit --no-fund > /dev/null 2>&1; then
+            echo "::error::package-lock.json is out of sync with package.json."
+            echo "::error::This happens when package.json is edited but 'npm install'"
+            echo "::error::wasn't run to regenerate the lockfile. To fix:"
+            echo "::error::  1. git pull (in case the lockfile was updated by someone else)"
+            echo "::error::  2. npm install (regenerates the lockfile)"
+            echo "::error::  3. git add package-lock.json && git commit && git push"
+            # Run npm ci again WITHOUT --dry-run to get the actual error message
+            # so the log shows the specific missing entries.
+            npm ci --no-audit --no-fund 2>&1 | tail -30 || true
+            exit 1
+          fi
+          echo "Lockfile verified in sync with package.json."
+      - name: Install build dependencies
+        run: npm ci
+      - name: Build (compile JSX to js/dist)
+        run: npm run build
+      # Belt-and-braces: SRI hashes are already verified by the PR workflow,
+      # but main is the deployable branch. Catch the case where someone
+      # pushed straight to main (or merged a PR that landed before this
+      # check was added) with stale hashes.
+      - name: Verify SRI hashes against CDN
+        run: npm run verify:sri
+
+      # Firestore security-rules regression test, run against the emulator
+      # BEFORE any deploy. A failing (or missing) rule check blocks the deploy,
+      # so cross-agency isolation can't silently break and a new collection
+      # can't ship without a rule (the agencyMeetings gap that broke the
+      # meeting log). The emulator needs a JRE; firebase-tools is fetched via
+      # npx (same as the rules-deploy step below), not a project dependency.
+      - name: Set up Java (Firestore emulator runtime)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Run Firestore rules tests
+        run: npx --yes -p firebase-tools firebase emulators:exec --only firestore --project miroma-ai-hub "node scripts/usage/test-rules.mjs"
+
+      # 2) Hosting deploy — includes the freshly-built js/dist files.
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_MIROMA_AI_HUB }}
+          channelId: live
+          projectId: miroma-ai-hub
+
+      # 2) Firestore rules deploy — uses the same service account
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+      - name: Authenticate Firebase CLI
+        run: |
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_MIROMA_AI_HUB }}' > "$RUNNER_TEMP/sa.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/sa.json" >> "$GITHUB_ENV"
+      - name: Deploy Firestore rules
+        run: npx --yes firebase-tools@latest deploy --only firestore:rules --project miroma-ai-hub --non-interactive

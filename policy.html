@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Policy &amp; Guidelines — Miroma AI Hub</title>
+  <meta name="description" content="Access Miroma Group's AI policy, usage guidelines and data handling documentation.">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" integrity="sha384-sEVIly94UBRLKWdkYoPpSG7GD/e79YHMrxVyZaOk712Ga7+EAw6w1EFi+xBzBdd+" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js" integrity="sha384-EkqK+ezBWJuvO3hfrSx2iVqr3YQbhmnzn8kPhOpBZ+0GMVU5oGSgptwIu8D84HjE" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js" integrity="sha384-M481iNZJtbpypKgvlvZ+78Giq0BsewFLk5r2k+MOcGXlwKCc27DQRZ+WCV/zpmpC" crossorigin="anonymous"></script>
+  <script src="js/auth.js"></script>
+  <!-- Google Analytics (config moved to js/analytics.js — S-6 Part B) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-L7H3N34BG1"></script>
+  <script src="js/analytics.js"></script>
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__logo">
+        <div class="nav__monogram"><img src="assets/logos/monogram.png" alt=""></div>
+        <span class="nav__brand">MIROMA · AI HUB</span>
+      </a>
+      <ul class="nav__links">
+        <li><a href="index.html"><span class="nav__num">01</span> Hub</a></li>
+        <li><a href="learning.html"><span class="nav__num">02</span> Learning Pathway</a></li>
+        <li><a href="use-cases.html"><span class="nav__num">03</span> Use Cases</a></li>
+        <li><a href="policy.html"><span class="nav__num">04</span> Policy &amp; Guidelines</a></li>
+        <li><a href="whats-new.html"><span class="nav__num">05</span> What's New</a></li>
+        <li id="nav-admin-item" style="display:none"><a href="admin.html"><span class="nav__num">06</span> Agency Oversight</a></li>
+      </ul>
+      <div class="nav__contact"><a href="https://miromabrandhub.com/" target="_blank" rel="noopener noreferrer" class="nav__brand-hub-btn">Brand Hub ↗</a><span class="nav__divider"></span><button class="nav__signout-btn">Sign out</button></div>
+      <button class="nav__toggle" id="navToggle" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html">Hub</a>
+    <a href="learning.html">Learning Pathway</a>
+    <a href="use-cases.html">Use Cases</a>
+    <a href="policy.html">Policy &amp; Guidelines</a>
+    <a href="whats-new.html">What's New</a>
+    <a id="mob-admin-link" href="admin.html" style="display:none">Agency Oversight</a>
+    <a href="https://miromabrandhub.com/" target="_blank" rel="noopener noreferrer">Brand Hub ↗</a>
+    <button class="mob-signout-btn">Sign out</button>
+  </div>
+
+  <header class="page-header">
+    <div class="page-header__inner">
+      <div class="page-header__left">
+        <p class="page-header__label">04 — Policy &amp; Guidelines</p>
+        <h1 class="page-header__title">Use AI With Confidence</h1>
+        <p class="page-header__body">Everything you need to use AI tools at Miroma Group responsibly. Read the policy, understand the guidelines, and know how to handle data correctly.</p>
+      </div>
+    </div>
+  </header>
+
+  <section class="section section--white">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-header__label">Documents</p>
+        <h2 class="section-header__title">Policy Documents</h2>
+        <p class="section-header__body">Download and read our AI governance documents. These apply to all Miroma Group employees using AI tools.</p>
+      </div>
+
+      <div class="doc-grid">
+
+        <a href="assets/docs/ai-policy.pdf" target="_blank" rel="noopener noreferrer" class="doc-card">
+          <div class="doc-card__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+          <p class="doc-card__type">PDF — Policy</p>
+          <h3 class="doc-card__name">Generative AI Policy</h3>
+          <p class="doc-card__desc">Miroma Group's official policy on the use of generative AI tools. Covers permitted uses, prohibited activities, accountability and governance.</p>
+          <p class="doc-card__action">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download PDF
+          </p>
+        </a>
+
+        <a href="assets/docs/ai-guidelines.pdf" target="_blank" rel="noopener noreferrer" class="doc-card">
+          <div class="doc-card__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="12" y2="16"/></svg></div>
+          <p class="doc-card__type">PDF — Guidelines</p>
+          <h3 class="doc-card__name">Guidelines for Use of Generative AI Tools</h3>
+          <p class="doc-card__desc">Practical guidance on how to apply AI tools responsibly day-to-day — covering data handling, client confidentiality, output review and attribution.</p>
+          <p class="doc-card__action">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download PDF
+          </p>
+        </a>
+
+        <a href="assets/docs/data-privacy-impact-assessment.docx" target="_blank" rel="noopener noreferrer" class="doc-card">
+          <div class="doc-card__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+          <p class="doc-card__type">Word Doc — Template</p>
+          <h3 class="doc-card__name">Data Privacy Impact Assessment</h3>
+          <p class="doc-card__desc">Use this template when you plan to use AI tools with personal, client or sensitive data. Complete and submit to your Division Head and Legal before proceeding.</p>
+          <p class="doc-card__action">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download Template
+          </p>
+        </a>
+
+        <a href="assets/docs/claude-usage-rules.pdf" target="_blank" rel="noopener noreferrer" class="doc-card">
+          <div class="doc-card__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+          <p class="doc-card__type">PDF — Rules</p>
+          <h3 class="doc-card__name">Claude Usage Rules</h3>
+          <p class="doc-card__desc">The rules governing use of Claude across Miroma Group. Covers data handling, permitted inputs, connectors, model selection, output review, and reporting obligations.</p>
+          <p class="doc-card__action">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download
+          </p>
+        </a>
+
+        <a href="assets/images/data-flowchart.png" target="_blank" rel="noopener noreferrer" class="doc-card">
+          <div class="doc-card__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg></div>
+          <p class="doc-card__type">PNG — Reference</p>
+          <h3 class="doc-card__name">Data Handling Decision Guide</h3>
+          <p class="doc-card__desc">Not sure whether you can use AI with a particular dataset? Follow this flowchart to understand the risk level and what steps to take before proceeding.</p>
+          <p class="doc-card__action">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            View Flowchart
+          </p>
+        </a>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--white">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-header__label">At a Glance</p>
+        <h2 class="section-header__title">The Golden Rules</h2>
+        <p class="section-header__body">A quick reference for using AI tools responsibly at Miroma. Always read the full policy documents above.</p>
+      </div>
+
+      <div class="rules-grid">
+
+        <div class="rule-card">
+          <span class="rule-card__num">01</span>
+          <h3 class="rule-card__title">Never input confidential client data</h3>
+          <p class="rule-card__body">Do not enter personally identifiable information, client financial data, or proprietary business data into any AI tool without completing a DPIA first.</p>
+        </div>
+
+        <div class="rule-card">
+          <span class="rule-card__num">02</span>
+          <h3 class="rule-card__title">Always review AI output</h3>
+          <p class="rule-card__body">AI-generated content must be reviewed, fact-checked and edited by a human before being shared with clients or published externally. You are responsible for the final output.</p>
+        </div>
+
+        <div class="rule-card">
+          <span class="rule-card__num">03</span>
+          <h3 class="rule-card__title">Be transparent about AI use</h3>
+          <p class="rule-card__body">Where AI has been used to create client-facing work, this should be disclosed appropriately. Check client contracts for any specific restrictions.</p>
+        </div>
+
+        <div class="rule-card">
+          <span class="rule-card__num">04</span>
+          <h3 class="rule-card__title">Protect intellectual property</h3>
+          <p class="rule-card__body">Do not input Miroma Group's, or any client's, proprietary strategies, creative IP, or trade secrets into external AI tools. Use only approved platforms.</p>
+        </div>
+
+        <div class="rule-card">
+          <span class="rule-card__num">05</span>
+          <h3 class="rule-card__title">Assess your data risk level</h3>
+          <p class="rule-card__body">Use the data handling flowchart above before using AI with any dataset. High-risk data requires a DPIA and legal sign-off before proceeding.</p>
+        </div>
+
+        <div class="rule-card">
+          <span class="rule-card__num">06</span>
+          <h3 class="rule-card__title">When in doubt, ask the AI team</h3>
+          <p class="rule-card__body">If you're unsure whether a particular use of AI is permitted, reach out to the AI team before proceeding. Better to check than to create a compliance issue.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="section--sm">
+    <div class="container">
+      <div class="callout callout--dark">
+        <span class="callout__icon">✉</span>
+        <div>
+          <p class="callout__title">Questions about AI compliance or data handling?</p>
+          <p class="callout__text">Contact the AI team at <a href="mailto:aiteam@miroma.com">aiteam@miroma.com</a> — we'll help you navigate the right approach.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer__inner">
+      <div class="footer__top">
+        <div>
+          <a href="index.html" class="footer__logo"><img src="assets/logos/logo-white.png" alt="Miroma Group"></a>
+          <p class="footer__tagline">The central hub for all things AI at Miroma Group.</p>
+        </div>
+        <div>
+          <p class="footer__col-label">Quick Links</p>
+          <ul class="footer__links">
+            <li><a href="tools.html">AI Tools</a></li>
+            <li><a href="learning.html">Learning Pathway</a></li>
+            <li><a href="use-cases.html">Use Cases</a></li>
+            <li><a href="policy.html">Policy &amp; Guidelines</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="footer__col-label">AI Team</p>
+          <a href="mailto:aiteam@miroma.com" class="footer__email">aiteam@miroma.com</a>
+          <p class="footer__email-note">Policy questions or compliance concerns? We're here to help.</p>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p class="footer__copy">© 2025 Miroma Group. All rights reserved.</p>
+        <p class="footer__copy">AI Hub — Internal Resource</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/requests.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/admin-nav.js?v=3"></script>
+</body>
+</html>

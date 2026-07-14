@@ -1,0 +1,86 @@
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "emulators": {
+    "auth": {
+      "port": 9099
+    },
+    "firestore": {
+      "port": 8080
+    },
+    "hosting": {
+      "port": 5050
+    },
+    "ui": {
+      "enabled": true,
+      "port": 4000
+    },
+    "singleProjectMode": true
+  },
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "docs/**",
+      "scripts/**",
+      "package.json",
+      "package-lock.json",
+      "js/admin-data.js",
+      "*.local.html",
+      "**/*.local.html",
+      "firestore-*-backup-*.json",
+      "**/firestore-*-backup-*.json",
+      "*.log",
+      "**/*.log"
+    ],
+    "headers": [
+      {
+        "source": "**/*.html",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, must-revalidate"
+          },
+          {
+            "key": "Content-Security-Policy",
+            "value": "default-src 'none'; script-src 'self' https://www.gstatic.com/firebasejs/ https://apis.google.com https://unpkg.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://img.youtube.com https://*.googleusercontent.com; font-src 'self'; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://share.descript.com https://www.loom.com https://miroma-ai-hub.firebaseapp.com https://accounts.google.com http://localhost:9099 http://127.0.0.1:9099; connect-src 'self' https://www.gstatic.com/firebasejs/ https://apis.google.com https://*.googleapis.com wss://*.firebaseio.com https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://www.googletagmanager.com http://localhost:8080 http://127.0.0.1:8080 http://localhost:9099 http://127.0.0.1:9099; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none';"
+          },
+          {
+            "key": "X-Frame-Options",
+            "value": "DENY"
+          },
+          {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          },
+          {
+            "key": "Referrer-Policy",
+            "value": "strict-origin-when-cross-origin"
+          }
+        ]
+      },
+      {
+        "source": "**/*.css",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, must-revalidate"
+          }
+        ]
+      },
+      {
+        "source": "**/*.js",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, must-revalidate"
+          }
+        ]
+      }
+    ]
+  }
+}

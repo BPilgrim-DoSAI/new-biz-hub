@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Learning Pathway — Miroma AI Hub</title>
+  <meta name="description" content="Watch training videos for every AI tool in the Miroma toolkit.">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/claude-pathway.css">
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <!-- @babel/standalone removed (KNOWN_ISSUES.md S-6 Part A). JSX is now
+       compiled at deploy time by scripts/build.mjs into js/dist/*.js,
+       so the browser receives plain JS and CSP no longer needs 'unsafe-eval'. -->
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" integrity="sha384-sEVIly94UBRLKWdkYoPpSG7GD/e79YHMrxVyZaOk712Ga7+EAw6w1EFi+xBzBdd+" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js" integrity="sha384-EkqK+ezBWJuvO3hfrSx2iVqr3YQbhmnzn8kPhOpBZ+0GMVU5oGSgptwIu8D84HjE" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js" integrity="sha384-M481iNZJtbpypKgvlvZ+78Giq0BsewFLk5r2k+MOcGXlwKCc27DQRZ+WCV/zpmpC" crossorigin="anonymous"></script>
+  <script src="js/auth.js"></script>
+  <!-- Google Analytics (config moved to js/analytics.js — S-6 Part B) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-L7H3N34BG1"></script>
+  <script src="js/analytics.js"></script>
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__logo">
+        <div class="nav__monogram"><img src="assets/logos/monogram.png" alt=""></div>
+        <span class="nav__brand">MIROMA · AI HUB</span>
+      </a>
+      <ul class="nav__links">
+        <li><a href="index.html"><span class="nav__num">01</span> Hub</a></li>
+        <li><a href="learning.html"><span class="nav__num">02</span> Learning Pathway</a></li>
+        <li><a href="use-cases.html"><span class="nav__num">03</span> Use Cases</a></li>
+        <li><a href="policy.html"><span class="nav__num">04</span> Policy &amp; Guidelines</a></li>
+        <li><a href="whats-new.html"><span class="nav__num">05</span> What's New</a></li>
+        <li id="nav-admin-item" style="display:none"><a href="admin.html"><span class="nav__num">06</span> Agency Oversight</a></li>
+      </ul>
+      <div class="nav__contact"><a href="https://miromabrandhub.com/" target="_blank" rel="noopener noreferrer" class="nav__brand-hub-btn">Brand Hub ↗</a><span class="nav__divider"></span><button class="nav__signout-btn">Sign out</button></div>
+      <button class="nav__toggle" id="navToggle" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html">Hub</a>
+    <a href="learning.html">Learning Pathway</a>
+    <a href="use-cases.html">Use Cases</a>
+    <a href="policy.html">Policy &amp; Guidelines</a>
+    <a href="whats-new.html">What's New</a>
+    <a id="mob-admin-link" href="admin.html" style="display:none">Agency Oversight</a>
+    <a href="https://miromabrandhub.com/" target="_blank" rel="noopener noreferrer">Brand Hub ↗</a>
+    <button class="mob-signout-btn">Sign out</button>
+  </div>
+
+  <section class="section section--white" style="padding-top: calc(var(--nav-height) + 40px);">
+    <div class="container">
+
+      <!-- Pick a tool label -->
+      <div class="pick-label">
+        <span class="pick-label__text">Pick a Tool</span>
+      </div>
+
+      <!-- Tool selector -->
+      <div class="tool-selector">
+        <button class="tool-tile active" data-tab="tab-claude" id="btn-claude">
+          <div class="tool-tile__top">
+            <span class="tool-tile__dot tool-tile__dot--claude"></span>
+            <span class="tool-tile__count">0/6</span>
+          </div>
+          <span class="tool-tile__name">CLAUDE</span>
+          <span class="tool-tile__category">Think, write, and create faster</span>
+        </button>
+        <button class="tool-tile" data-tab="tab-ltx" id="btn-ltx">
+          <div class="tool-tile__top">
+            <span class="tool-tile__dot tool-tile__dot--ltx"></span>
+            <span class="tool-tile__count">0/6</span>
+          </div>
+          <span class="tool-tile__name">LTX STUDIO</span>
+          <span class="tool-tile__category">Turn ideas into images, video, and storyboards</span>
+        </button>
+        <button class="tool-tile" data-tab="tab-descript" id="btn-descript">
+          <div class="tool-tile__top">
+            <span class="tool-tile__dot tool-tile__dot--descript"></span>
+            <span class="tool-tile__count">0/4</span>
+          </div>
+          <span class="tool-tile__name">DESCRIPT</span>
+          <span class="tool-tile__category">Edit audio and video like a doc</span>
+        </button>
+        <button class="tool-tile" data-tab="tab-springboards" id="btn-springboards">
+          <div class="tool-tile__top">
+            <span class="tool-tile__dot tool-tile__dot--springboards"></span>
+            <span class="tool-tile__count">0/2</span>
+          </div>
+          <span class="tool-tile__name">SPRINGBOARDS</span>
+          <span class="tool-tile__category">Generate and validate creative ideas early</span>
+        </button>
+        <button class="tool-tile" data-tab="tab-fireflies" id="btn-fireflies">
+          <div class="tool-tile__top">
+            <span class="tool-tile__dot tool-tile__dot--fireflies"></span>
+            <span class="tool-tile__count">0/3</span>
+          </div>
+          <span class="tool-tile__name">FIREFLIES</span>
+          <span class="tool-tile__category">Record, transcribe, and action every meeting</span>
+        </button>
+      </div>
+
+      <!-- CLAUDE -->
+      <div class="tab-panel active" id="tab-claude">
+        <div id="cp-root"></div>
+      </div>
+
+      <!-- LTX -->
+      <div class="tab-panel" id="tab-ltx">
+        <div class="module-header">
+          <div class="module-header__left">
+            <p class="module-breadcrumb">Module · LTX Studio</p>
+            <h2 class="module-count">10 Videos</h2>
+          </div>
+          <span class="module-watched">0 / 10 watched</span>
+        </div>
+        <div class="video-grid">
+          <div class="video-card">
+            <a class="video-card__thumb" href="https://www.youtube.com/watch?v=HkJygZsbA6Y" target="_blank" rel="noopener noreferrer">
+              <img src="https://img.youtube.com/vi/HkJygZsbA6Y/hqdefault.jpg" alt="How to Use Brand Kit" loading="lazy">
+              <div class="video-play-btn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+            </a>
+            <div class="video-card__info">
+              <p class="video-card__label">LTX Studio — Brand Kit</p>
+              <p class="video-card__title">How to Use Brand Kit</p>
+            </div>
+          </div>
+          <div class="video-card">
+            <a class="video-card__thumb" href="https://www.youtube.com/watch?v=fhXR1Xn9-BY" target="_blank" rel="noopener noreferrer">
+              <img src="https://img.youtube.com/vi/fhXR1Xn9-BY/hqdefault.jpg" alt="Visualize Your Story Instantly with LTX Studio Moodboards" loading="lazy">
+              <div class="video-play-btn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+            </a>
+            <div class="video-card__info">
+              <p class="video-card__label">LTX Studio — Moodboards</p>
+              <p class="video-card__title">Visualise Your Story Instantly with LTX Studio Moodboards</p>
+            </div>
+          </div>
+          <div class="video-card">
+            <a class="video-card__thumb" href="https://www.youtube.com/watch?v=nnq8JVBSVIc" target="_blank" rel="noopener noreferrer">
+              <img src="https://img.youtube.com/vi/nnq8JVBSVIc/hqdefault.jpg" alt="How to use Elements in LTX Studio" loading="lazy">
+              <div class="video-play-btn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+            </a>
+            <div class="video-card__info">
+              <p class="video-card__label">LTX Studio — Elements</p>
+              <p class="video-card__title">How to Use Elements in LTX Studio</p>
+            </div>
+          </div>
+          <div class="video-card">
+            <a class="video-card__thumb" href="https://www.youtube.com/watch?v=azqFpxq29GM" target="_blank" rel="noopener noreferrer">
+              <img src="https://img.youtube.com/vi/azqFpxq29GM/hqdefault.jpg" alt="How to Extend Any Shot in LTX Studio" loading="lazy">
+              <div class="video-play-btn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+            </a>
+            <div class="video-card__info">
+              <p class="video-card__label">LTX Studio — Editing</p>
+              <p class="video-card__title">How to Extend Any Shot in LTX Studio</p>
+            </div>
+          </div>
+          <div class="video-card">
+            <a class="video-card__thumb" href="https://www.youtube.com/watch?v=9QkXWQ3BvXU" target="_blank" rel="noopener noreferrer">
+              <img src="https://img.youtube.com/vi/9QkXWQ3BvXU/hqdefault.jpg" alt="Storyboard Builder: Script to Storyboard in Minutes" loading="lazy">
+              <div class="video-play-btn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+            </a>
+            <div class="video-card__info">
+              <p class="video-card__label">LTX Studio — Storyboard</p>
+              <p class="video-card__title">Storyboard Builder: Script to Storyboard in Minutes</p>
+            </div>
+          </div>
+          <div class="video-card">
+            <a class="video-card__thumb" href="https://www.youtube.com/watch?v=NXk5XrvziXE" target="_blank" rel="noopener noreferrer">
+              <img src="https://img.youtube.com/vi/NXk5XrvziXE/hqdefault.jpg" alt="How to translate your video using AI Dubbing and Captions" loading="lazy">
+              <div class="video-play-btn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+            </a>
+            <div class="video-card__info">
+              <p class="video-card__label">LTX Studio — Dubbing</p>
+              <p class="video-card__title">How to Translate Your Video Using AI Dubbing and Captions</p>
+            </div>
+          </div>
+          <div class="video-card">
+            <a class="video-card__thumb" href="https://www.youtube.com/watch?v=ZL5Foa_OXeQ" target="_blank" rel="noopener noreferrer">
+              <img src="https://img.youtube.com/vi/ZL5Foa_OXeQ/hqdefault.jpg" alt="Moving Between the Storyboard, Gen Space &amp; Video Editor" loading="lazy">
+              <div class="video-play-btn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+            </a>
+            <div class="video-card__info">
+              <p class="video-card__label">LTX Studio — Workflow</p>
+              <p class="video-card__title">Moving Between the Storyboard, Gen Space &amp; Video Editor</p>
+            </div>
+          </div>
+          <div class="video-card">
+            <div class="video-card__embed">
+              <iframe data-src="https://www.loom.com/embed/868056509de9472597b11d6ae71ae3c2" title="Use LTX Flow to Resize Creatives" allowfullscreen></iframe>
+            </div>
+            <div class="video-card__info">
+              <p class="video-card__label">LTX Studio — Resize</p>
+              <p class="video-card__title">Use LTX Flow to Resize Creatives</p>
+            </div>
+          </div>
+          <div class="video-card">
+            <a class="video-card__thumb" href="https://www.youtube.com/watch?v=H9XJ9j4zcn0" target="_blank" rel="noopener noreferrer">
+              <img src="https://img.youtube.com/vi/H9XJ9j4zcn0/hqdefault.jpg" alt="How to use Audio-to-Video (Walkthrough)" loading="lazy">
+              <div class="video-play-btn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+            </a>
+            <div class="video-card__info">
+              <p class="video-card__label">LTX Studio — Audio-to-Video</p>
+              <p class="video-card__title">How to Use Audio-to-Video (Walkthrough)</p>
+            </div>
+          </div>
+          <div class="video-card">
+            <a class="video-card__thumb" href="https://www.youtube.com/watch?v=K1lJi38EZbY" target="_blank" rel="noopener noreferrer">
+              <img src="https://img.youtube.com/vi/K1lJi38EZbY/hqdefault.jpg" alt="How to Use the New Brush Tool" loading="lazy">
+              <div class="video-play-btn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+            </a>
+            <div class="video-card__info">
+              <p class="video-card__label">LTX Studio — Brush Tool</p>
+              <p class="video-card__title">How to Use the New Brush Tool</p>
+            </div>
+          </div>
+        </div>
+        <div class="mt-md">
+          <a href="https://app.ltx.studio/" target="_blank" rel="noopener noreferrer" class="btn btn--primary">Launch LTX Studio →</a>
+          <a href="https://ltx.studio/blog-category/tutorials" target="_blank" rel="noopener noreferrer" class="btn btn--secondary">LTX Tutorials →</a>
+        </div>
+      </div>
+
+      <!-- DESCRIPT -->
+      <div class="tab-panel" id="tab-descript">
+        <div class="module-header">
+          <div class="module-header__left">
+            <p class="module-breadcrumb">Module · Descript</p>
+            <h2 class="module-count">4 Videos</h2>
+          </div>
+          <span class="module-watched">0 / 4 watched</span>
+        </div>
+        <div class="video-grid">
+          <div class="video-card">
+            <div class="video-card__embed">
+              <iframe data-src="https://share.descript.com/embed/T5YuJEopFJc" title="How to use Descript" allowfullscreen></iframe>
+            </div>
+            <div class="video-card__info">
+              <p class="video-card__label">Descript — Foundations</p>
+              <p class="video-card__title">How to Use Descript</p>
+            </div>
+          </div>
+          <div class="video-card">
+            <div class="video-card__embed">
+              <iframe data-src="https://share.descript.com/embed/9Ux0rz3x0NT" title="Getting Started with Underlord" allowfullscreen></iframe>
+            </div>
+            <div class="video-card__info">
+              <p class="video-card__label">Descript — AI Features</p>
+              <p class="video-card__title">Getting Started with Underlord</p>
+            </div>
+          </div>
+          <div class="video-card">
+            <div class="video-card__embed">
+              <iframe data-src="https://share.descript.com/embed/IOWYkBf1VTm" title="Make Clips &amp; Highlights" allowfullscreen></iframe>
+            </div>
+            <div class="video-card__info">
+              <p class="video-card__label">Descript — Clips</p>
+              <p class="video-card__title">Make Clips &amp; Highlights</p>
+            </div>
+          </div>
+          <div class="video-card">
+            <div class="video-card__embed">
+              <iframe data-src="https://share.descript.com/embed/SjBHO7OhG1U" title="Underlord Prompts Built for Miroma" allowfullscreen></iframe>
+            </div>
+            <div class="video-card__info">
+              <p class="video-card__label">Descript — Miroma</p>
+              <p class="video-card__title">Underlord Prompts Built for Miroma</p>
+            </div>
+          </div>
+        </div>
+        <div class="mt-md">
+          <a href="https://web.descript.com/" target="_blank" rel="noopener noreferrer" class="btn btn--primary">Launch Descript →</a>
+        </div>
+      </div>
+
+      <!-- SPRINGBOARDS -->
+      <div class="tab-panel" id="tab-springboards">
+        <div class="module-header">
+          <div class="module-header__left">
+            <p class="module-breadcrumb">Module · Springboards</p>
+            <h2 class="module-count">2 Videos</h2>
+          </div>
+          <span class="module-watched">0 / 2 watched</span>
+        </div>
+        <div class="video-grid">
+          <div class="video-card">
+            <div class="video-card__embed">
+              <iframe data-src="https://www.loom.com/embed/4b05e7a5467249d08a8d6edb7cdfbf37" title="Springboards Unique Features for Creative Collaboration" allowfullscreen></iframe>
+            </div>
+            <div class="video-card__info">
+              <p class="video-card__label">Springboards — Features</p>
+              <p class="video-card__title">Springboards Unique Features for Creative Collaboration</p>
+            </div>
+          </div>
+          <div class="video-card">
+            <div class="video-card__embed">
+              <iframe data-src="https://www.loom.com/embed/e095ceeedf9a4148be65217c516285f0" title="Getting Started with Springboards: A Quick Overview" allowfullscreen></iframe>
+            </div>
+            <div class="video-card__info">
+              <p class="video-card__label">Springboards — Getting Started</p>
+              <p class="video-card__title">Getting Started with Springboards: A Quick Overview</p>
+            </div>
+          </div>
+        </div>
+        <div class="mt-md" style="display:flex;gap:12px;flex-wrap:wrap;">
+          <a href="https://springboards.ai/" target="_blank" rel="noopener noreferrer" class="btn btn--primary">Launch Springboards →</a>
+          <a href="https://help.springboards.ai/category/apddiy1ug6-getting-started" target="_blank" rel="noopener noreferrer" class="btn btn--outline">Help Centre →</a>
+        </div>
+      </div>
+
+      <!-- FIREFLIES -->
+      <div class="tab-panel" id="tab-fireflies">
+        <div class="module-header">
+          <div class="module-header__left">
+            <p class="module-breadcrumb">Module · Fireflies</p>
+            <h2 class="module-count">3 Videos</h2>
+          </div>
+          <span class="module-watched">0 / 3 watched</span>
+        </div>
+        <div class="video-grid">
+          <div class="video-card">
+            <a class="video-card__thumb" href="https://www.youtube.com/watch?v=mPSAYeursWM" target="_blank" rel="noopener noreferrer">
+              <img src="https://img.youtube.com/vi/mPSAYeursWM/hqdefault.jpg" alt="How to Record Meetings with Fireflies" loading="lazy">
+              <div class="video-play-btn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+            </a>
+            <div class="video-card__info">
+              <p class="video-card__label">Fireflies — Getting Started</p>
+              <p class="video-card__title">How to Record Meetings with Fireflies</p>
+            </div>
+          </div>
+          <div class="video-card">
+            <a class="video-card__thumb" href="https://www.youtube.com/watch?v=btWmFDpIYQk" target="_blank" rel="noopener noreferrer">
+              <img src="https://img.youtube.com/vi/btWmFDpIYQk/hqdefault.jpg" alt="Fireflies Meeting Notes: Review Summaries, Search Transcripts &amp; Share with Your Team" loading="lazy">
+              <div class="video-play-btn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+            </a>
+            <div class="video-card__info">
+              <p class="video-card__label">Fireflies — Meeting Notes</p>
+              <p class="video-card__title">Fireflies Meeting Notes: Review Summaries, Search Transcripts &amp; Share</p>
+            </div>
+          </div>
+          <div class="video-card">
+            <a class="video-card__thumb" href="https://www.youtube.com/watch?v=bWG0B4SWwrk" target="_blank" rel="noopener noreferrer">
+              <img src="https://img.youtube.com/vi/bWG0B4SWwrk/hqdefault.jpg" alt="AskFred: Get AI Insights &amp; Draft Follow-ups from Your Meeting" loading="lazy">
+              <div class="video-play-btn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+            </a>
+            <div class="video-card__info">
+              <p class="video-card__label">Fireflies — AskFred</p>
+              <p class="video-card__title">AskFred: Get AI Insights &amp; Draft Follow-ups from Your Meeting</p>
+            </div>
+          </div>
+        </div>
+        <div class="mt-md">
+          <a href="https://app.fireflies.ai/" target="_blank" rel="noopener noreferrer" class="btn btn--primary">Launch Fireflies →</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer__inner">
+      <div class="footer__top">
+        <div>
+          <a href="index.html" class="footer__logo"><img src="assets/logos/logo-white.png" alt="Miroma Group"></a>
+          <p class="footer__tagline">The central hub for all things AI at Miroma Group.</p>
+        </div>
+        <div>
+          <p class="footer__col-label">Quick Links</p>
+          <ul class="footer__links">
+            <li><a href="tools.html">AI Tools</a></li>
+            <li><a href="learning.html">Learning Pathway</a></li>
+            <li><a href="use-cases.html">Use Cases</a></li>
+            <li><a href="policy.html">Policy &amp; Guidelines</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="footer__col-label">AI Team</p>
+          <a href="mailto:aiteam@miroma.com" class="footer__email">aiteam@miroma.com</a>
+          <p class="footer__email-note">Suggestions for the training content? Let us know.</p>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p class="footer__copy">© 2025 Miroma Group. All rights reserved.</p>
+        <p class="footer__copy">AI Hub — Internal Resource</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/admin-nav.js?v=3"></script>
+  <script src="js/requests.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/claude-prompts.js?v=2"></script>
+  <!-- Compiled JSX output (see scripts/build.mjs). Cache-bust via ?v=. -->
+  <script src="js/dist/claude-sandbox.js?v=15"></script>
+  <script src="js/dist/claude-pathway.js?v=15"></script>
+</body>
+</html>

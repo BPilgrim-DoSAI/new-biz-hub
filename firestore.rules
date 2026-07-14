@@ -1,0 +1,474 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // S-7 free-tier mitigation: enforce the Miroma Group email-domain
+    // allowlist at the database layer. js/auth.js also enforces this
+    // client-side for UX, but the true security boundary is here — even
+    // if a non-allowlisted user briefly holds a valid Firebase token
+    // (before client-side signOut), every Firestore op is rejected.
+    //
+    // Pattern: '[^@]*@<escaped-domain>$' anchors the match to the entire
+    // domain portion. Without the [^@]* prefix the wildcard could allow
+    // 'attacker@notmiroma.com' to slip through under '.*@miroma\.com$'.
+    function isAllowedDomain() {
+      // Token might lack an email claim (e.g. anonymous auth, custom auth
+      // without email, certain emulator flows). Calling .lower() on null
+      // would throw an evaluation error and abort the whole query rather
+      // than fail-closed. Guard up front.
+      return isSignedIn() && request.auth.token.email != null && (
+        request.auth.token.email.lower().matches('^[^@]*@miroma\\.com$') ||
+        request.auth.token.email.lower().matches('^[^@]*@spotnyc\\.com$') ||
+        request.auth.token.email.lower().matches('^[^@]*@themultipleagency\\.com$') ||
+        request.auth.token.email.lower().matches('^[^@]*@wearemakerlab\\.com$') ||
+        request.auth.token.email.lower().matches('^[^@]*@dewynters\\.com$') ||
+        request.auth.token.email.lower().matches('^[^@]*@mxlocation\\.co$') ||
+        request.auth.token.email.lower().matches('^[^@]*@fold7\\.com$') ||
+        request.auth.token.email.lower().matches('^[^@]*@buzz16\\.uk$') ||
+        request.auth.token.email.lower().matches('^[^@]*@miromafounders\\.com$') ||
+        request.auth.token.email.lower().matches('^[^@]*@soldout\\.co\\.uk$') ||
+        request.auth.token.email.lower().matches('^[^@]*@twelveam\\.com$') ||
+        request.auth.token.email.lower().matches('^[^@]*@attentive\\.media$') ||
+        request.auth.token.email.lower().matches('^[^@]*@storyhousepr\\.co\\.uk$') ||
+        request.auth.token.email.lower().matches('^[^@]*@weareravenagency\\.com$') ||
+        request.auth.token.email.lower().matches('^[^@]*@wearehyperactive\\.com$')
+      );
+    }
+
+    function isAdmin() {
+      return isAllowedDomain()
+        && exists(/databases/$(database)/documents/admins/$(request.auth.token.email.lower()));
+    }
+
+    // Reads the calling user's /admins/{email} doc.
+    // Caller MUST be a confirmed admin first (callers should chain isAdmin() &&)
+    // because get() consumes a read against the daily quota even if the doc
+    // doesn't exist. Returns { name, access, agency } per the migration schema.
+    function adminProfile() {
+      return get(/databases/$(database)/documents/admins/$(request.auth.token.email.lower())).data;
+    }
+
+    // "All-access" tier: admins with cross-agency visibility. Covers both
+    // 'all' (AI team) and 'finance' (finance/legal — same broad scope per
+    // admin-panel.js visibleFor()). Anyone else is single-agency and must
+    // pass canAccessAgency(key) for that key.
+    //
+    // Defensive: `'access' in adminProfile()` before reading .access.
+    // In Firestore rules, reading a missing map property throws an
+    // evaluation error that aborts the entire query, so we check existence
+    // first. Older /admins docs (pre-S-1-seed) may lack the field.
+    function isFullAccessAdmin() {
+      return isAdmin()
+        && ('access' in adminProfile())
+        && (adminProfile().access == 'all' || adminProfile().access == 'finance');
+    }
+
+    // Enforces per-agency isolation: an admin can only access a given
+    // agency's data if they are full-access, OR their profile says this is
+    // their home agency, OR they're listed in the agency_admins override
+    // doc for that agency. Used for /agencies, /agency_contacts,
+    // /agency_admins, /license_overrides, and /audit_log reads.
+    //
+    // Two defensive checks vs the naïve version:
+    //   1. `'agency' in adminProfile()` before reading .agency — all-access
+    //      admins don't have this field, and the naïve read would throw.
+    //   2. `exists(/agency_admins/{key})` before get()-ing the doc — most
+    //      agencies don't have an override doc (it's opt-in), and get() on
+    //      a missing path throws.
+    function canAccessAgency(agencyKey) {
+      return isAdmin() && (
+        isFullAccessAdmin() ||
+        (('agency' in adminProfile()) && adminProfile().agency == agencyKey) ||
+        (exists(/databases/$(database)/documents/agency_admins/$(agencyKey))
+          && request.auth.token.email.lower() in
+             get(/databases/$(database)/documents/agency_admins/$(agencyKey)).data.admins)
+      );
+    }
+
+    // Defence in depth: caller identity in the document body must match
+    // the authenticated principal AND come from an allowlisted domain.
+    // Every create-rule below references this.
+    function callerIsSubmitter() {
+      return isAllowedDomain()
+        && request.resource.data.submittedBy == request.auth.token.email.lower();
+    }
+
+    // Admins collection — read-only from the app, managed manually in the console.
+    // Document IDs are lowercase email addresses (e.g. tess.mckean@miroma.com).
+    // Per-agency isolation requirement: an agency admin can read only their OWN
+    // doc — they cannot enumerate other admins or learn who is an admin in other
+    // agencies. Full-access admins can read any admin doc (needed for the admin-
+    // management UI).
+    match /admins/{adminEmail} {
+      // isAllowedDomain() already guards against null email, so .lower() is safe here.
+      allow read: if isAllowedDomain() && request.auth.token.email.lower() == adminEmail;
+      allow read: if isFullAccessAdmin();
+      allow write: if false;
+    }
+
+    // Tool/access requests — any signed-in user can submit; only admins can read or update.
+    // The "email" field can be the target person (different from caller); submittedBy must
+    // be the caller — that's the audit-trail anchor.
+    match /onboarding_requests/{docId} {
+      allow create: if callerIsSubmitter()
+        && request.resource.data.size() <= 15;
+      allow read, update: if isAdmin();
+      allow delete: if false;
+    }
+
+    // Prompt copy tracking — users log their own copies; only admins can read
+    match /prompt_copies/{docId} {
+      allow create: if callerIsSubmitter()
+        && request.resource.data.email == request.auth.token.email.lower()
+        && request.resource.data.size() <= 10;
+      allow read: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    // Learning pathway progress — closes KNOWN_ISSUES.md S-3.
+    // docId is the Firebase Auth uid of the user whose pathway state this
+    // doc represents. Caller can only write their own doc. Even with full
+    // DevTools access an attacker can't write to someone else's record.
+    // Reads are admin-only (existing analytics behaviour preserved).
+    match /pathway_progress/{userId} {
+      allow read: if isAdmin();
+      allow create, update: if isAllowedDomain()
+        && userId == request.auth.uid
+        && request.resource.data.email == request.auth.token.email.lower()
+        && request.resource.data.stagesCompleted is list
+        && request.resource.data.stagesCompleted.size() <= 10;
+      allow delete: if false;
+    }
+
+    // Use case reactions — closes KNOWN_ISSUES.md S-4.
+    //
+    // Two-collection model:
+    //   /uc_reactions/{slug}              aggregate count per use case (read = all
+    //                                     allowlisted; write = ±1 only)
+    //   /uc_reaction_users/{slug__uid}    per-user reaction record (read = own +
+    //                                     admin; write = own only)
+    //
+    // Privacy upgrade: regular users can see the aggregate count for any use
+    // case (low sensitivity — a number says nothing identifying), but cannot
+    // see WHO reacted (which would leak browsing/interest behaviour). Admins
+    // can list /uc_reaction_users for analytics.
+    //
+    // Tamper resistance: aggregate-doc writes only permit ±1 transitions, so
+    // a malicious client can't set count to 99999 in one write. They could
+    // still rapid-fire ±1 writes to inflate the count, but the per-user
+    // collection (which gates the actual reaction state) is the source of
+    // truth — Tess's leaderboard could re-derive counts from there if needed.
+    match /uc_reactions/{slug} {
+      allow read: if isAllowedDomain();
+      allow create: if isAllowedDomain()
+        && request.resource.data.count == 1
+        && request.resource.data.slug == slug;
+      allow update: if isAllowedDomain()
+        && request.resource.data.count is int
+        && request.resource.data.count >= 0
+        && (request.resource.data.count == resource.data.count + 1
+            || request.resource.data.count == resource.data.count - 1);
+      allow delete: if false;
+    }
+    match /uc_reaction_users/{docId} {
+      // Get: own doc, or any if admin. docId format is "{slug}__{uid}".
+      allow get: if isAdmin()
+        || (isAllowedDomain() && docId.split('__')[1] == request.auth.uid);
+      // List: admins see all; regular users only via a where('uid', '==', own-uid)
+      // query (the rule's data dependence forces the constraint).
+      allow list: if isAdmin()
+        || (isAllowedDomain() && resource.data.uid == request.auth.uid);
+      // Create: caller can only create their own reaction record.
+      allow create: if isAllowedDomain()
+        && docId == request.resource.data.slug + '__' + request.auth.uid
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.email == request.auth.token.email.lower();
+      // Delete: caller can only remove their own reaction.
+      allow delete: if isAllowedDomain()
+        && docId.split('__')[1] == request.auth.uid;
+      allow update: if false;
+    }
+
+    // Use case usage tracking — users log usage; only admins can read.
+    // Numeric caps prevent the "99 million minutes saved" inflation attack.
+    match /uc_usage/{docId} {
+      allow create: if callerIsSubmitter()
+        && request.resource.data.email == request.auth.token.email.lower()
+        && request.resource.data.timeSavedMinutes is int
+        && request.resource.data.timeSavedMinutes >= 0
+        && request.resource.data.timeSavedMinutes <= 1440
+        && request.resource.data.frequencyPerMonth is int
+        && request.resource.data.frequencyPerMonth >= 0
+        && request.resource.data.frequencyPerMonth <= 60
+        && request.resource.data.size() <= 12;
+      allow read: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    // Site visit tracking — users log visits; only admins can read
+    match /site_visits/{docId} {
+      allow create: if callerIsSubmitter()
+        && request.resource.data.email == request.auth.token.email.lower()
+        && request.resource.data.size() <= 8;
+      allow read: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    // ROI stories — any user can submit their own story; only admins can read and update status.
+    // Cap body length to prevent stuffing (L-1 from the 2026-06-03 audit).
+    // Client-side maxlength attributes in share-a-win.html provide UX limits;
+    // these rule-level checks are the authoritative defence.
+    match /roi_stories/{docId} {
+      // Field-count cap: client currently sends 18 form fields + 3 system fields
+      // (submittedBy, status, submittedAt) = 21. Cap set to 24 leaves a small
+      // headroom for future additions without immediately re-needing a rule
+      // bump. Was 20 in the original L-1 commit — that was an undercount which
+      // blocked every legitimate submission. Per-field size checks below remain
+      // the real defence against payload-stuffing.
+      allow create: if callerIsSubmitter()
+        && request.resource.data.size() <= 24
+        && (!('detail' in request.resource.data)          || request.resource.data.detail is string          && request.resource.data.detail.size() <= 5000)
+        && (!('goal' in request.resource.data)            || request.resource.data.goal is string            && request.resource.data.goal.size() <= 1000)
+        && (!('clientQuote' in request.resource.data)     || request.resource.data.clientQuote is string     && request.resource.data.clientQuote.size() <= 2000)
+        && (!('title' in request.resource.data)           || request.resource.data.title is string           && request.resource.data.title.size() <= 200)
+        && (!('client' in request.resource.data)          || request.resource.data.client is string          && request.resource.data.client.size() <= 120)
+        && (!('name' in request.resource.data)            || request.resource.data.name is string            && request.resource.data.name.size() <= 120)
+        && (!('role' in request.resource.data)            || request.resource.data.role is string            && request.resource.data.role.size() <= 120)
+        && (!('agency' in request.resource.data)          || request.resource.data.agency is string          && request.resource.data.agency.size() <= 80)
+        && (!('commercialValue' in request.resource.data) || request.resource.data.commercialValue is string && request.resource.data.commercialValue.size() <= 300)
+        && (!('timeSaved' in request.resource.data)       || request.resource.data.timeSaved is string       && request.resource.data.timeSaved.size() <= 100)
+        && (!('supportingLink' in request.resource.data)  || request.resource.data.supportingLink is string  && request.resource.data.supportingLink.size() <= 2000);
+      allow read, update: if isAdmin();
+      allow delete: if false;
+    }
+
+    // ── Editable site content: news feed ──
+    // Public-facing news items, editable from the admin panel rather than
+    // via a code deploy. Reads are open to any allowlisted user (the feed
+    // renders on the homepage and What's New); writes are admin-only with
+    // field caps. NOTE (A-L-4): these strings are runtime-authored, so
+    // every renderer must escape them at output — home-news.js,
+    // whats-new.js and the admin editor all use their esc helpers.
+    match /content_news/{docId} {
+      allow read: if isAllowedDomain();
+      // Writes are super-admin only (access == 'all'), matching the UI:
+      // the Site Content section is only shown to super admins, so the
+      // rule shouldn't quietly grant the same power to the ~40 agency
+      // and finance admins.
+      allow create, update: if isAdmin()
+        && ('access' in adminProfile()) && adminProfile().access == 'all'
+        && request.resource.data.size() <= 10
+        && request.resource.data.title is string && request.resource.data.title.size() > 0   && request.resource.data.title.size() <= 200
+        && request.resource.data.body  is string && request.resource.data.body.size() <= 5000
+        && request.resource.data.date  is string && request.resource.data.date.size() == 10
+        && request.resource.data.type in ['update', 'tip', 'video']
+        && (!('tool'  in request.resource.data) || (request.resource.data.tool  is string && request.resource.data.tool.size() <= 40))
+        && (!('links' in request.resource.data) || (request.resource.data.links is list   && request.resource.data.links.size() <= 4))
+        && (!('video' in request.resource.data) || request.resource.data.video is map)
+        && request.resource.data.updatedBy == request.auth.token.email.lower();
+      allow delete: if isAdmin()
+        && ('access' in adminProfile()) && adminProfile().access == 'all';
+    }
+
+    // ── Editable site content: use-case library ──
+    // Mirrors content_news: public reads for any allowlisted user (the
+    // library renders on use-cases.html); writes are super-admin only
+    // (access == 'all') with per-field type and size caps.
+    //
+    // The docId IS the slug, and the slug field must equal the docId, so a
+    // use case's slug is immutable for the life of the document. This is
+    // load-bearing: production /uc_reactions/{slug} aggregates (and the
+    // /uc_reaction_users records behind them) are keyed by these slugs, so
+    // re-keying a use case would orphan its reaction history. Retitling a
+    // use case is fine — the slug stays as minted at import/create time.
+    //
+    // Size caps are measured from the real data (2026-06-12): the largest
+    // prompt in js/use-cases-data.js is 8,992 chars, so the 20,000 cap is
+    // a little over 2x headroom. Largest description is 876 chars; most
+    // variables on one use case is 11; most steps is 8.
+    //
+    // NOTE (A-L-4): these strings are runtime-authored, so every renderer
+    // must escape them at output — use-cases-content.js, the drawer
+    // builder in main.js, and admin-use-cases.js all do.
+    match /content_use_cases/{slug} {
+      allow read: if isAllowedDomain();
+      allow create, update: if isAdmin()
+        && ('access' in adminProfile()) && adminProfile().access == 'all'
+        && request.resource.data.size() <= 16
+        && request.resource.data.slug == slug
+        && request.resource.data.slug.size() <= 160
+        && request.resource.data.title is string && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 200
+        && request.resource.data.category in [
+             'New Business & Strategy', 'Social Media', 'Account Management',
+             'Media Planning & Buying', 'Finance', 'Creative & Production',
+             'PR & Communications', 'Technology & Development',
+             'Legal', 'HR & People'
+           ]
+        && request.resource.data.tool in ['Claude', 'LTX Studio', 'Descript', 'Springboards', 'Fireflies']
+        && request.resource.data.description is string && request.resource.data.description.size() <= 5000
+        && request.resource.data.type in ['prompt', 'workflow']
+        && request.resource.data.order is int
+        && request.resource.data.order >= 0 && request.resource.data.order <= 100000
+        && (!('summary'     in request.resource.data) || (request.resource.data.summary     is string && request.resource.data.summary.size() <= 500))
+        && (!('prompt'      in request.resource.data) || (request.resource.data.prompt      is string && request.resource.data.prompt.size() <= 20000))
+        && (!('variables'   in request.resource.data) || (request.resource.data.variables   is list   && request.resource.data.variables.size() <= 24))
+        && (!('steps'       in request.resource.data) || (request.resource.data.steps       is list   && request.resource.data.steps.size() <= 20))
+        && (!('video'       in request.resource.data) || (request.resource.data.video       is string && request.resource.data.video.size() <= 500))
+        && (!('tutorialUrl' in request.resource.data) || (request.resource.data.tutorialUrl is string && request.resource.data.tutorialUrl.size() <= 500))
+        && (!('dpia'        in request.resource.data) || request.resource.data.dpia in ['standard', 'client-check', 'legal-review', 'dpia-required'])
+        && request.resource.data.updatedBy == request.auth.token.email.lower();
+      allow delete: if isAdmin()
+        && ('access' in adminProfile()) && adminProfile().access == 'all';
+    }
+
+    // ── Audit log ──
+    // Per-agency isolation: agency admins read only entries for their own
+    // agency; full-access admins read all. Creates are also scoped — the
+    // caller's agencyKey on the new entry must match what they can access,
+    // so an agency admin can't write an audit entry against another agency.
+    //
+    // Same defensive pattern: 'agency' in adminProfile() before reading.
+    match /audit_log/{docId} {
+      allow read: if isFullAccessAdmin() ||
+                     (isAdmin() && ('agency' in adminProfile())
+                       && resource.data.agencyKey == adminProfile().agency);
+      allow create: if isAdmin() && (
+                     isFullAccessAdmin() ||
+                     (('agency' in adminProfile())
+                       && request.resource.data.agencyKey == adminProfile().agency));
+      allow update, delete: if false;
+    }
+
+    // ── Licence overrides ──
+    // Per-agency isolation:
+    //  - GET (single doc): docId encodes the agencyKey as its prefix
+    //    ("{agencyKey}_{slugified-tool-name}"); canAccessAgency uses that.
+    //    No current agencyKey contains an underscore so split('_')[0] is safe.
+    //  - LIST: full-access admins can list everything. Agency-scoped admins
+    //    must constrain their query with .where('agencyKey', '==', <own-key>);
+    //    the rule verifies each matched doc's agencyKey against the caller's
+    //    profile.agency. Firestore enforces that the rule's data dependence
+    //    is satisfied by the query — i.e. an unconstrained LIST is rejected
+    //    for agency-scoped admins, but the constrained one passes.
+    //  - WRITE: uses request.resource.data.agencyKey for the canAccessAgency
+    //    check so the caller can't write to another agency by playing
+    //    with the docId.
+    match /license_overrides/{docId} {
+      allow get: if canAccessAgency(docId.split('_')[0]);
+      allow list: if isFullAccessAdmin() ||
+                     (isAdmin() && ('agency' in adminProfile())
+                       && resource.data.agencyKey == adminProfile().agency);
+      allow create, update: if canAccessAgency(request.resource.data.agencyKey);
+      allow delete: if false;
+    }
+
+    // ── Agency admin lists ──
+    // The docId IS the agencyKey, so per-agency isolation is direct.
+    match /agency_admins/{agencyKey} {
+      allow read, write: if canAccessAgency(agencyKey);
+    }
+
+    // ── System metadata (seed timestamps etc.) ──
+    // Read-only for any authenticated admin. Used by the admin panel to
+    // show "Licence data last updated" to all admin tiers, not just super admins.
+    // Writes happen only via the Admin SDK (seed script), never from the client.
+    match /_meta/{docId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    // ── Base agency licence data ──
+    // Seeded once from admin-data.js's LICENSE_DATA.agencies array. Becomes the
+    // authoritative source after migration; client merges /license_overrides on
+    // top at runtime per the colleague's pattern. Writes happen via admin UI
+    // through /license_overrides, never directly here, so the base data is
+    // immutable from the client.
+    match /agencies/{agencyKey} {
+      allow read: if canAccessAgency(agencyKey);
+      allow write: if false;
+    }
+
+    // ── Per-agency contact info ──
+    // Seeded once from admin-data.js's AGENCY_CONTACTS. Same isolation as
+    // /agencies — caller must have access to the specific agency.
+    match /agency_contacts/{agencyKey} {
+      allow read: if canAccessAgency(agencyKey);
+      allow write: if false;
+    }
+
+    // ── Per-agency Claude usage dashboards ──
+    // Monthly snapshots written by the offline pipeline (scripts/usage/
+    // upload-usage.mjs) via the Admin SDK, which bypasses these rules.
+    // Reads are locked to admins of THAT agency (super/finance admins are
+    // full-access via canAccessAgency). The {document=**} wildcard covers the
+    // /claude_usage/{agencyKey}/snapshots/{period} subcollection.
+    // Contains aggregated, anonymised usage PLUS a named onboarding/power-user
+    // roster — agency-isolated reads are exactly why that naming is acceptable.
+    match /claude_usage/{agencyKey}/{document=**} {
+      allow read: if canAccessAgency(agencyKey);
+      allow write: if false;
+    }
+
+    // ── LTX Studio usage snapshots ──
+    // Same structure as claude_usage. Aggregated, anonymised per-agency data
+    // written offline by upload-ltx.mjs (Admin SDK). Read-gated to that agency.
+    match /ltx_usage/{agencyKey}/{document=**} {
+      allow read: if canAccessAgency(agencyKey);
+      allow write: if false;
+    }
+
+    // ── Bespoke automation usage snapshots ──
+    // For AI-team-built, agency-specific automations (e.g. Sold Out's Meta
+    // Ads Automation) rather than a group-wide licensed tool. Structured as
+    // /automation_usage/{agencyKey}/automations/{automationKey}/snapshots/{period}.
+    // Business/campaign data (ads, budgets, artists/tours), not personal
+    // behavioural data — still agency-isolated like the tool dashboards above.
+    // Written offline via the Admin SDK; no client writes.
+    match /automation_usage/{agencyKey}/{document=**} {
+      allow read: if canAccessAgency(agencyKey);
+      allow write: if false;
+    }
+
+    // ── Per-agency meeting log ──
+    // Rolling monthly oversight-meeting notes, stored at
+    // /agencyMeetings/{agencyKey}/entries/{period} (period = "YYYY-MM").
+    // Readable by that agency's own admins (canAccessAgency). Writes are
+    // super-admin only (access == 'all'), matching content_news /
+    // content_use_cases: the Meeting Log UI is shown to super and single-agency
+    // admins but hidden from finance (admin-panel.js: user.access !== 'finance'),
+    // so the rule must not quietly grant finance (a full-access tier) write
+    // access. Mirrors the documented intent in js/requests.js (fsSetMeetingEntry).
+    // No delete path — entries are corrected via edit (merge write).
+    match /agencyMeetings/{agencyKey}/entries/{period} {
+      allow read: if canAccessAgency(agencyKey);
+      allow create, update: if isAdmin()
+        && ('access' in adminProfile()) && adminProfile().access == 'all';
+      allow delete: if false;
+    }
+
+    // ── Group AI Progress report ──
+    // Monthly cross-agency rollup (Claude/LTX/automation totals, licence
+    // matrix, adoption-curve inputs) computed offline by scripts/usage/
+    // aggregate-group-report.mjs via the Admin SDK, which bypasses these
+    // rules entirely on write. This is a superset view across every agency's
+    // otherwise agency-isolated usage data, so — unlike claude_usage/
+    // ltx_usage/automation_usage (canAccessAgency, i.e. isFullAccessAdmin
+    // OR that one agency) — reads here are locked to the STRICT access=='all'
+    // tier only, deliberately excluding 'finance' (which is full-access
+    // elsewhere via isFullAccessAdmin()). Finance already has its own
+    // cross-agency spend view (Group Spend); this one carries additional
+    // per-agency performance/adoption detail that doesn't need to widen
+    // beyond the same access=='all' tier used for AI Hub Engagement and
+    // Site Content above.
+    match /group_reports/{period} {
+      allow read: if isAdmin()
+        && ('access' in adminProfile()) && adminProfile().access == 'all';
+      allow write: if false;
+    }
+
+  }
+}

@@ -1,0 +1,1867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Usage — Preview (sample) · Miroma AI Hub</title>
+  <!-- GENERATED FILE — do not edit by hand. Rebuild with:
+       python3 scripts/usage/build_preview.py
+       Self-contained on purpose so it works opened any way (file or server). -->
+  <style>
+
+  :root {
+    --c-black:#0A0A0A; --c-white:#FFFFFF; --c-cream:#F4F2EE;
+    --c-grey:#C9C5BD; --c-grey-mid:#DDD9D3; --c-grey-light:#ECEAE5;
+    --c-stone:#8A8580; --c-yellow:#FFE255;
+    --font-display:'Lato',-apple-system,'Helvetica Neue',Arial,sans-serif;
+    --font-body:'Lato',-apple-system,'Helvetica Neue',Arial,sans-serif;
+    --radius-sm:4px; --radius-md:10px; --radius-lg:20px; --gutter:clamp(20px,5vw,72px);
+    --shadow-sm:0 1px 4px rgba(0,0,0,.06); --shadow-md:0 6px 24px rgba(0,0,0,.08);
+    --t-fast:140ms; --t-normal:230ms; --t-slow:360ms; --ease:cubic-bezier(.4,0,.2,1);
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font-body); background:var(--c-cream); color:var(--c-black);
+    -webkit-font-smoothing:antialiased; }
+
+
+  .preview-wrap { max-width:1100px; margin:0 auto; padding:48px var(--gutter) 80px; }
+  .preview-note { background:#FFF8E1; border:1px solid #F2E2A8; color:#6b5d2a;
+    border-radius:10px; padding:12px 16px; font-size:13px; margin-bottom:28px; line-height:1.5; }
+  .preview-h { font-family:var(--font-display); font-size:26px; font-weight:700; margin:0 0 4px; }
+  .preview-sub { color:var(--c-stone); font-size:13px; margin:0 0 24px; }
+
+/* ===== css/claude-usage.css (inlined) ===== */
+/* =============================================================
+   MIROMA AI HUB — Claude Usage dashboard
+   Self-contained styles for the per-agency Claude usage view.
+   Uses the hub's design tokens (css/styles.css :root) so it
+   matches the rest of Agency Oversight. All classes are .cu-*
+   prefixed to avoid collisions.
+   ============================================================= */
+
+.cu { --cu-gap: 20px; }
+
+/* ── Header / period ─────────────────────────────────────── */
+.cu-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:6px; }
+.cu-head__period { font-size:12px; color:var(--c-stone); letter-spacing:.04em; }
+.cu-badge { display:inline-block; font-size:10px; font-weight:600; letter-spacing:.1em; text-transform:uppercase;
+  padding:4px 10px; border-radius:999px; background:var(--c-grey-light); color:var(--c-stone); }
+
+/* ── Narrative talking-points callout ───────────────────── */
+.cu-narrative { background:var(--c-black); color:#fff; border-radius:var(--radius-md); padding:20px 22px; margin:14px 0 26px; }
+.cu-narrative__label { font-size:10px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; color:rgba(255,255,255,.45); margin-bottom:8px; }
+.cu-narrative__text { font-size:15px; line-height:1.55; color:rgba(255,255,255,.92); }
+
+/* ── KPI cards ──────────────────────────────────────────── */
+.cu-kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:var(--cu-gap); margin-bottom:28px; }
+@media (max-width:860px){ .cu-kpis{ grid-template-columns:repeat(2,1fr); } }
+.cu-kpi { background:var(--c-white); border:1px solid var(--c-grey-mid); border-radius:var(--radius-md); padding:18px 18px 16px; box-shadow:var(--shadow-sm); }
+.cu-kpi__label { font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--c-stone); }
+.cu-kpi__value { font-size:30px; font-weight:600; line-height:1.1; margin-top:8px; color:var(--c-black); }
+.cu-kpi__sub { font-size:12px; color:var(--c-stone); margin-top:4px; }
+.cu-kpi__delta { font-size:12px; font-weight:600; margin-top:8px; display:inline-flex; align-items:center; gap:4px; }
+.cu-kpi__delta--up { color:#16a34a; } .cu-kpi__delta--down { color:#dc2626; } .cu-kpi__delta--flat { color:var(--c-stone); }
+
+/* ── Generic card / grid ────────────────────────────────── */
+.cu-grid { display:grid; grid-template-columns:1.3fr 1fr; gap:var(--cu-gap); margin-bottom:28px; }
+@media (max-width:860px){ .cu-grid{ grid-template-columns:1fr; } }
+.cu-card { background:var(--c-white); border:1px solid var(--c-grey-mid); border-radius:var(--radius-md); padding:22px; box-shadow:var(--shadow-sm); }
+.cu-card__title { font-size:13px; font-weight:600; letter-spacing:.04em; color:var(--c-black); margin-bottom:4px; }
+.cu-card__sub { font-size:12px; color:var(--c-stone); margin-bottom:18px; }
+
+/* ── Weekly adoption trend (SVG) ─────────────────────────── */
+.cu-trend__svg { width:100%; height:140px; display:block; overflow:visible; }
+.cu-trend__bar { fill:var(--c-grey); transition:fill var(--t-fast); }
+.cu-trend__bar:hover { fill:var(--c-black); }
+.cu-trend__xlabel { font-size:9px; fill:var(--c-stone); }
+.cu-trend__val { font-size:10px; font-weight:600; fill:var(--c-black); }
+
+/* ── Volume by theme ────────────────────────────────────── */
+.cu-theme { margin-bottom:16px; }
+.cu-theme__top { display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
+.cu-theme__label { font-size:13px; font-weight:600; color:var(--c-black); }
+.cu-theme__count { font-size:12px; color:var(--c-stone); white-space:nowrap; }
+.cu-theme__track { height:8px; background:var(--c-grey-light); border-radius:999px; margin:7px 0 6px; overflow:hidden; }
+.cu-theme__fill { height:100%; background:var(--c-black); border-radius:999px; }
+.cu-theme__ex { font-size:11.5px; color:var(--c-stone); line-height:1.5; }
+.cu-theme__ex b { color:var(--c-stone); font-weight:600; }
+
+/* ── Adoption funnel ────────────────────────────────────── */
+.cu-funnel__row { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+.cu-funnel__bar { height:34px; background:var(--c-black); border-radius:var(--radius-sm); display:flex; align-items:center; padding:0 12px; color:#fff; font-size:13px; font-weight:600; min-width:54px; }
+.cu-funnel__bar--mut { background:var(--c-grey); color:var(--c-black); }
+.cu-funnel__lab { font-size:12px; color:var(--c-stone); flex:1; }
+.cu-callout { margin-top:14px; padding:12px 14px; border-radius:var(--radius-sm); background:#FFF8E1; border:1px solid #F2E2A8; font-size:12.5px; line-height:1.5; color:#6b5d2a; }
+.cu-callout--ok { background:#EAF7EE; border-color:#BFE6CB; color:#22633a; }
+
+/* ── Projects table ─────────────────────────────────────── */
+.cu-table-wrap { overflow-x:auto; border:1px solid var(--c-grey-mid); border-radius:var(--radius-md); }
+.cu-table { width:100%; border-collapse:collapse; font-size:13px; }
+.cu-table th { text-align:left; font-size:10px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--c-stone); padding:11px 14px; border-bottom:1px solid var(--c-grey-mid); background:var(--c-grey-light); }
+.cu-table td { padding:11px 14px; border-bottom:1px solid var(--c-grey-light); vertical-align:middle; }
+.cu-table tbody tr:last-child td { border-bottom:none; }
+.cu-table tbody tr:hover td { background:#fafafa; }
+.cu-pill { display:inline-block; font-size:10px; font-weight:600; letter-spacing:.04em; padding:3px 8px; border-radius:999px; }
+.cu-pill--shared { background:#EAF7EE; color:#22633a; } .cu-pill--private { background:var(--c-grey-light); color:var(--c-stone); }
+.cu-td-date { color:var(--c-stone); white-space:nowrap; font-size:12px; }
+
+/* ── Method / assumptions disclosure ────────────────────── */
+.cu-method { margin-top:8px; font-size:12px; color:var(--c-stone); }
+.cu-method summary { cursor:pointer; font-weight:600; color:var(--c-black); }
+.cu-method table { width:100%; border-collapse:collapse; margin-top:10px; }
+.cu-method td { padding:5px 8px; border-bottom:1px solid var(--c-grey-light); }
+.cu-section-title { font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--c-stone); margin:6px 0 14px; }
+.cu-divider { height:1px; background:var(--c-grey-light); margin:30px 0; }
+
+/* ── Scope / data coverage footnote ─────────────────────── */
+.cu-scope { margin-top:22px; padding-top:16px; border-top:1px solid var(--c-grey-light);
+  font-size:11.5px; line-height:1.6; color:var(--c-stone); }
+.cu-scope__excl { color:var(--c-stone); opacity:.85; }
+.cu-method__total td { border-top:1px solid var(--c-grey-mid); border-bottom:none; padding-top:8px; }
+
+/* ── Agency picker (super/finance admins) ───────────────── */
+.cu-select { font-family:var(--font-body); font-size:13px; padding:7px 10px; border:1px solid var(--c-grey-mid);
+  border-radius:var(--radius-sm); background:var(--c-white); color:var(--c-black); }
+
+/* ── Standout wins ──────────────────────────────────────── */
+.cu-wins-card { background:var(--c-cream); border-color:var(--c-grey); }
+.cu-wins { list-style:none; margin:4px 0 0; padding:0; }
+.cu-win { display:flex; align-items:baseline; gap:10px; padding:9px 0; border-bottom:1px solid var(--c-grey-light); }
+.cu-win:last-child { border-bottom:none; }
+.cu-win__tag { flex:none; font-size:10px; font-weight:600; letter-spacing:.04em; text-transform:uppercase;
+  color:var(--c-stone); background:var(--c-white); border:1px solid var(--c-grey-mid); border-radius:999px;
+  padding:3px 9px; white-space:nowrap; }
+.cu-win__text { font-size:14px; line-height:1.5; color:var(--c-black); }
+
+/* =============================================================
+   GAMIFIED REFRESH — clean card aesthetic + adoption hero
+   (appended so these overrides win the cascade)
+   ============================================================= */
+
+/* Softer, cleaner cards + sentence-case titles (less "corporate label") */
+.cu-card, .cu-kpi { border-color:rgba(0,0,0,.09); box-shadow:none; }
+.cu-card__title { font-size:16px; font-weight:500; letter-spacing:0; text-transform:none; }
+.cu-card__sub { font-size:13px; }
+.cu-kpi__label { font-size:12px; font-weight:500; letter-spacing:0; text-transform:none; }
+.cu-kpi__value { font-weight:500; }
+
+/* ── Adoption hero (level + progress + milestones) ─────────── */
+.cu-hero { background:var(--c-white); border:1px solid rgba(0,0,0,.09); border-radius:var(--radius-md);
+  padding:22px 24px; margin:14px 0 26px; }
+.cu-hero__top { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.cu-hero__eyebrow { font-size:12px; color:var(--c-stone); }
+.cu-hero__level { font-size:22px; font-weight:500; color:var(--c-black); margin-top:2px; }
+.cu-hero__chip { font-size:12px; font-weight:500; color:#0F6E56; background:#E1F5EE; padding:5px 12px; border-radius:999px; }
+.cu-steps { display:flex; gap:6px; margin-top:18px; }
+.cu-step { flex:1; height:8px; border-radius:999px; background:var(--c-grey-light); }
+.cu-step--on { background:#1D9E75; }
+.cu-steps__labels { display:flex; justify-content:space-between; font-size:11px; color:var(--c-stone); margin-top:6px; }
+.cu-steps__labels .cu-step__here { color:#0F6E56; font-weight:600; }
+.cu-hero__line { font-size:14px; line-height:1.55; color:var(--c-black); margin-top:16px; }
+.cu-hero__next { font-size:13px; color:var(--c-stone); margin-top:6px; }
+.cu-hero__next strong { color:var(--c-black); font-weight:600; }
+
+/* ── Hero summary bullets (going well / to reach next level) ─── */
+.cu-hero__bullets { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:18px; }
+@media (max-width:640px) { .cu-hero__bullets { grid-template-columns:1fr; } }
+.cu-blist { background:var(--c-grey-light); border-radius:var(--radius-sm); padding:14px 16px; }
+.cu-blist--good { background:#E1F5EE; }
+.cu-blist__label { font-size:10px; font-weight:600; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--c-stone); margin-bottom:8px; }
+.cu-blist--good .cu-blist__label { color:#0F6E56; }
+.cu-blist ul { list-style:none; padding:0; margin:0; }
+.cu-blist li { font-size:13px; line-height:1.5; color:var(--c-black); padding:3px 0;
+  display:flex; gap:7px; align-items:baseline; }
+.cu-blist li::before { content:''; flex:none; }
+.cu-blist--good li::before { content:'✓'; color:#0F6E56; font-weight:700; font-size:11px; }
+.cu-blist li .cu-blist__mark { flex:none; font-size:11px; color:var(--c-stone); }
+.cu-blist__close { margin-top:10px; padding-top:9px; border-top:1px solid var(--c-grey-mid);
+  font-size:12px; line-height:1.5; color:var(--c-stone); }
+.cu-blist__close strong { color:var(--c-black); }
+.cu-blist__horizon { margin-top:8px; font-size:12px; line-height:1.5; color:var(--c-stone);
+  font-style:italic; }
+.cu-blist__horizon-label { font-style:normal; font-weight:600; letter-spacing:.06em;
+  text-transform:uppercase; font-size:10px; color:var(--c-stone); margin-right:4px; }
+
+.cu-ms-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-top:18px; }
+.cu-ms { display:flex; align-items:center; gap:8px; padding:9px 12px; border-radius:var(--radius-sm); font-size:12px; }
+.cu-ms--done { background:#E1F5EE; color:#0F6E56; }
+.cu-ms--todo { background:var(--c-grey-light); color:var(--c-stone); }
+.cu-ms__mark { font-weight:700; font-size:13px; }
+
+/* ── Next steps card (AI Maturity Framework guidance) ──────── */
+.cu-next-steps .cu-card__title { font-size:16px; }
+.cu-nsgrid { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin:18px 0 0; }
+@media (max-width:700px) { .cu-nsgrid { grid-template-columns:1fr; } }
+.cu-ns__heading { font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--c-stone); margin-bottom:8px; }
+.cu-ns__list { list-style:none; padding:0; margin:0; }
+.cu-ns__list li { font-size:13px; line-height:1.5; padding:5px 0;
+  border-bottom:1px solid var(--c-grey-light); color:var(--c-black); }
+.cu-ns__list li:last-child { border-bottom:none; }
+.cu-ns__list--actions li { padding-left:0; }
+.cu-ns__list--actions li::before { content:'→ '; color:var(--c-stone); font-size:12px; }
+.cu-ns__shift { font-size:13px; line-height:1.55; color:var(--c-black); margin:0; }
+.cu-ns__progress { margin-top:18px; padding:12px 14px; background:var(--c-grey-light);
+  border-radius:var(--radius-sm); font-size:13px; line-height:1.55; color:var(--c-black); }
+.cu-ns__progress strong { color:#0F6E56; }
+
+/* ── Stat strips (extended-thinking signal, project hygiene) ─── */
+.cu-stat-strip { display:flex; align-items:flex-start; gap:20px; flex-wrap:wrap;
+  margin:16px 0 0; padding-top:14px; border-top:1px solid var(--c-grey-light); }
+.cu-stat-strip--row { margin:0 0 18px; padding-top:0; border-top:none; }
+.cu-stat { min-width:92px; }
+.cu-stat__num { font-size:24px; font-weight:500; line-height:1.1; color:var(--c-black); }
+.cu-stat__lab { font-size:12px; color:var(--c-stone); margin-top:3px; line-height:1.35; }
+.cu-stat__note { flex:1; min-width:170px; align-self:center; font-size:12px; line-height:1.5; color:var(--c-stone); }
+
+/* ── Inline "explain this" disclosure (e.g. what makes a power user) ─── */
+.cu-explain { margin-top:10px; font-size:12px; }
+.cu-explain > summary { cursor:pointer; font-weight:600; list-style:none; display:inline-flex; align-items:center; gap:5px; }
+.cu-explain > summary::-webkit-details-marker { display:none; }
+.cu-explain > summary::after { content:'▾'; font-size:9px; transition:transform var(--t-fast); }
+.cu-explain[open] > summary::after { transform:rotate(180deg); }
+.cu-explain__body { margin-top:6px; font-weight:400; line-height:1.5; }
+
+/* ── Project name → description disclosure (in the projects table) ──── */
+.cu-proj > summary { cursor:pointer; list-style:none; display:inline-flex; align-items:center; gap:6px; }
+.cu-proj > summary::-webkit-details-marker { display:none; }
+.cu-proj > summary::after { content:'▾'; font-size:10px; color:var(--c-stone); transition:transform var(--t-fast); }
+.cu-proj[open] > summary::after { transform:rotate(180deg); }
+.cu-proj__desc { font-size:12.5px; line-height:1.5; color:var(--c-stone); margin:8px 0 2px; max-width:52ch; }
+
+/* ── Header actions + Export-as-PDF button ──────────────────── */
+.cu-head__actions { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.cu-print { display:inline-flex; align-items:center; gap:7px; font-family:var(--font-body);
+  font-size:13px; font-weight:500; cursor:pointer; padding:8px 14px; border-radius:var(--radius-sm);
+  background:var(--c-black); color:#fff; border:1px solid var(--c-black); transition:opacity var(--t-fast); }
+.cu-print:hover { opacity:.85; }
+.cu-print:focus-visible { outline:2px solid #1D9E75; outline-offset:2px; }
+.cu-print > span { font-size:15px; line-height:1; }
+
+/* Print-only report footer — hidden on screen, shown when printing/saving as PDF */
+.cu-print-footer { display:none; }
+
+/* =============================================================
+   PRINT / SAVE-AS-PDF — turns the on-screen report into a clean
+   document an admin can email. The dashboard is normal HTML + SVG
+   (no canvas), so it prints crisply with selectable text.
+   ============================================================= */
+@media print {
+  /* Isolate the report from the surrounding admin chrome: hide everything,
+     then reveal only the .cu subtree. visibility (not display) keeps the
+     report's own layout intact; lifting .cu to the page origin drops the
+     blank space the hidden siblings would otherwise leave. */
+  body * { visibility:hidden; }
+  .cu, .cu * { visibility:visible; }
+  .cu { position:absolute; left:0; top:0; width:100%; }
+
+  @page { margin:14mm; }
+
+  /* Keep the brand colours (green ramps, hero, callouts) in the PDF — by
+     default browsers drop backgrounds when printing. */
+  .cu, .cu * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+
+  /* The button is a screen control, not part of the report. */
+  .cu-print, .cu-head__actions { display:none !important; }
+
+  /* Don't split cards, KPIs, hero or wins across a page break. */
+  .cu-card, .cu-kpi, .cu-hero, .cu-win, .cu-ms { break-inside:avoid; page-break-inside:avoid; }
+  .cu-card { box-shadow:none; }
+
+  /* Disclosures are force-opened in JS before printing (see claude-usage.js).
+     Just tidy the now-pointless expand/collapse markers in the PDF. */
+  .cu-proj > summary::after, .cu-explain > summary::after { display:none; }
+  .cu-method summary, .cu-explain > summary, .cu-proj > summary { cursor:default; }
+
+  /* Show the stamped footer. */
+  .cu-print-footer { display:block; margin-top:22px; padding-top:12px;
+    border-top:1px solid var(--c-grey-mid); font-size:10.5px; color:var(--c-stone); }
+}
+
+  </style>
+</head>
+<body>
+  <div class="preview-wrap">
+    <h1 class="preview-h">Claude Usage — Dashboard Preview</h1>
+    <p class="preview-sub">Design preview rendered from synthetic sample data (a made-up agency).</p>
+    <div class="preview-note">
+      <strong>Preview only.</strong> This shows the look and layout using invented data so it is
+      safe to share. In Phase&nbsp;2 this exact dashboard mounts inside
+      <em>Agency Oversight &rarr; Claude Usage</em>, scoped so an agency admin only sees their own
+      agency, with real figures loaded securely. Month-over-month deltas activate once a second
+      monthly export exists.
+    </div>
+    <div id="cuMount"></div>
+  </div>
+
+  <script>
+/* ===== js/claude-usage.js (inlined) ===== */
+/* =============================================================
+   MIROMA AI HUB — Claude Usage dashboard renderer
+   -------------------------------------------------------------
+   Pure rendering: renderClaudeUsage(container, data, opts) takes a
+   dashboard_data.json object (as produced by scripts/usage/analyze_usage.py)
+   and paints the per-agency Claude usage view.
+
+   No data fetching here. Phase 1 feeds it a local sample (usage-preview.html);
+   Phase 2 will feed it a Firestore doc from /claude_usage/{agencyKey}, mounted
+   inside the Agency Oversight admin panel behind canAccessAgency().
+
+   `opts.previous` (optional) is the prior month's data object — when present,
+   KPI cards show month-over-month deltas. Without it, cards show a "baseline"
+   badge (first reporting month).
+   ============================================================= */
+(function (global) {
+  'use strict';
+
+  // Shared chart palette — keeps colour meaning consistent across the dashboard.
+  // Greens form one intensity ramp (darkest = strongest use / most recent); amber
+  // is reserved for the single "needs attention" state (lapsed); neutral grey =
+  // none / not-yet-active; ink is for plain single-series volume bars.
+  var PALETTE = {
+    ink: '#1A1A18',
+    green1: '#0F6E56', green2: '#1D9E75', green3: '#8FCBB4',
+    amber: '#E0A23C', neutral: '#E6E3D9', mute: '#6B6A64'
+  };
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function fmtMonth(period) {
+    // "2026-05" -> "May 2026"
+    if (!period || period.length < 7) return esc(period || '');
+    var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    var y = period.slice(0, 4), m = parseInt(period.slice(5, 7), 10);
+    return months[m - 1] + ' ' + y;
+  }
+
+  function deltaHTML(curr, prev, suffix) {
+    if (prev == null || prev === undefined) {
+      return '<span class="cu-kpi__delta cu-kpi__delta--flat">— baseline month</span>';
+    }
+    var diff = curr - prev;
+    if (diff === 0) return '<span class="cu-kpi__delta cu-kpi__delta--flat">no change</span>';
+    var up = diff > 0;
+    var pct = prev ? Math.round(Math.abs(diff) / prev * 100) : null;
+    var cls = up ? 'cu-kpi__delta--up' : 'cu-kpi__delta--down';
+    var arrow = up ? '▲' : '▼';
+    var mag = pct != null ? pct + '%' : Math.abs(diff);
+    return '<span class="cu-kpi__delta ' + cls + '">' + arrow + ' ' + mag + ' ' + (suffix || 'vs last month') + '</span>';
+  }
+
+  function kpiCard(label, value, sub, deltaHtml) {
+    return '<div class="cu-kpi">' +
+      '<div class="cu-kpi__label">' + esc(label) + '</div>' +
+      '<div class="cu-kpi__value">' + value + '</div>' +
+      (sub ? '<div class="cu-kpi__sub">' + sub + '</div>' : '') +
+      (deltaHtml || '') +
+    '</div>';
+  }
+
+  function trendChart(weekly) {
+    if (!weekly || !weekly.length) return '<p class="cu-card__sub">No weekly data.</p>';
+    // Show conversations PER ACTIVE USER each week — normalised so a big agency and
+    // a small one are comparable, and so one heavy user can't masquerade as a whole
+    // engaged team. Each bar's height is the per-user rate; the active-user count
+    // for that week rides underneath. Older snapshots have no per-week active_users,
+    // so we fall back to raw weekly conversations (the previous behaviour).
+    var perUserMode = weekly.some(function (w) { return w.active_users != null; });
+    function rate(w) {
+      if (!perUserMode) return w.conversations;
+      return (w.active_users > 0) ? w.conversations / w.active_users : 0;
+    }
+    // Fixed proportional coordinate space (kept near the container's real aspect
+    // ratio) with uniform scaling, so text and bars never distort. A little extra
+    // bottom padding in per-user mode for the "N active" sub-label.
+    var W = 720, H = 162, n = weekly.length;
+    var padT = 22, padB = perUserMode ? 34 : 20;
+    var max = Math.max.apply(null, weekly.map(rate)) || 1;
+    var slot = W / n, bw = Math.min(slot * 0.5, 90), gap = (slot - bw) / 2;
+    var bars = weekly.map(function (w, i) {
+      var r = rate(w);
+      var h = (r / max) * (H - padT - padB);
+      var x = i * slot + gap, y = H - h - padB;
+      var cx = x + bw / 2;
+      var label = w.week.slice(5).replace('-', '/');
+      var valTxt = perUserMode ? r.toFixed(1) : w.conversations;
+      var title = perUserMode
+        ? esc(w.week) + ': ' + w.conversations + ' conversations across ' +
+          (w.active_users || 0) + ' active user' + ((w.active_users || 0) !== 1 ? 's' : '') +
+          ' (~' + r.toFixed(1) + ' each)'
+        : esc(w.week) + ': ' + w.conversations + ' conversations';
+      var sub = perUserMode
+        ? '<text class="cu-trend__xlabel" x="' + cx.toFixed(1) + '" y="' + (H - 5) +
+          '" text-anchor="middle" style="opacity:.7">' + (w.active_users || 0) + ' active</text>'
+        : '';
+      var xlabelY = perUserMode ? (H - 19) : (H - 5);
+      return '<rect class="cu-trend__bar" x="' + x.toFixed(1) + '" y="' + y.toFixed(1) +
+        '" width="' + bw.toFixed(1) + '" height="' + Math.max(h, 2).toFixed(1) + '" rx="3"><title>' +
+        title + '</title></rect>' +
+        '<text class="cu-trend__val" x="' + cx.toFixed(1) + '" y="' + (y - 6).toFixed(1) + '" text-anchor="middle">' + valTxt + '</text>' +
+        '<text class="cu-trend__xlabel" x="' + cx.toFixed(1) + '" y="' + xlabelY + '" text-anchor="middle">' + esc(label) + '</text>' +
+        sub;
+    }).join('');
+    return '<svg class="cu-trend__svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet">' + bars + '</svg>';
+  }
+
+  function themesBlock(themes) {
+    if (!themes || !themes.length) return '';
+    var SMALL = 4; // workflows below this fold into one "Smaller volumes" row
+    var list = themes.slice().sort(function (a, b) { return b.conversations - a.conversations; });
+    var max = Math.max.apply(null, list.map(function (t) { return t.conversations; })) || 1;
+
+    // Split into individually-shown bars vs a collapsed long tail. Only collapse
+    // if it actually tidies up (2+ in the tail), else show everything.
+    var shown = list.filter(function (t) { return t.conversations >= SMALL; });
+    var tail = list.filter(function (t) { return t.conversations < SMALL; });
+    if (tail.length < 2) { shown = list; tail = []; }
+
+    function hoverTitle(t) {
+      var ex = (t.examples && t.examples.length) ? ' — ' + t.examples.slice(0, 3).join(' · ') : '';
+      return esc(t.conversations + ' chats · ~' + t.hours_low + '–' + t.hours_high + ' h' + ex);
+    }
+    function barRow(label, count, pct, muted, title) {
+      var fill = muted ? '#B8B6AD' : '#1A1A18';
+      var col = muted ? 'var(--c-stone)' : 'inherit';
+      return '<div title="' + (title || '') + '" style="display:grid;grid-template-columns:168px 1fr 46px;' +
+        'align-items:center;gap:10px;padding:5px 0">' +
+        '<span style="font-size:13px;line-height:1.3;color:' + col + '">' + esc(label) + '</span>' +
+        '<span style="background:#E9E6DE;border-radius:3px;height:14px;overflow:hidden">' +
+        '<span style="display:block;height:14px;width:' + pct.toFixed(1) + '%;background:' + fill + ';border-radius:3px"></span></span>' +
+        '<span style="font-size:13px;font-weight:600;text-align:right;color:' + col + '">' + count + '</span></div>';
+    }
+
+    var rows = shown.map(function (t) {
+      var mut = t.key === 'misc' || t.key === 'other';
+      return barRow(t.label, t.conversations, t.conversations / max * 100, mut, hoverTitle(t));
+    }).join('');
+
+    if (tail.length) {
+      var tailTotal = tail.reduce(function (a, t) { return a + t.conversations; }, 0);
+      var tailTitle = esc(tail.map(function (t) { return t.label + ' (' + t.conversations + ')'; }).join(' · '));
+      rows += barRow('Smaller volumes (' + tail.length + ' workflows)', tailTotal, tailTotal / max * 100, true, tailTitle);
+    }
+
+    // Static "top three" examples strip — screenshot-safe (hover covers the rest).
+    var top3 = shown.filter(function (t) {
+      return t.key !== 'misc' && t.key !== 'other' && t.examples && t.examples.length;
+    }).slice(0, 3);
+    var strip = top3.length
+      ? '<div style="margin-top:16px;border-top:1px solid var(--c-grey-mid);padding-top:14px">' +
+        '<div style="font-size:12px;color:var(--c-stone);margin-bottom:8px">What the top ' +
+        (top3.length === 3 ? 'three' : top3.length) + ' look like</div>' +
+        top3.map(function (t) {
+          return '<div style="font-size:13px;line-height:1.45;margin-bottom:6px"><b>' + esc(t.label) +
+            '</b> <span style="color:var(--c-stone)">— ' + esc(t.examples.slice(0, 3).join(' · ')) + '</span></div>';
+        }).join('') + '</div>'
+      : '';
+
+    return rows + strip +
+      '<div style="margin-top:12px;font-size:12px;color:var(--c-stone)">Hover any bar for its hours-saved range and examples.</div>';
+  }
+
+  function funnelBlock(summary, licences) {
+    var active = summary.active_users || 0;
+    var db = summary.depth_breakdown || {};
+    var dormant = Math.max(summary.dormant_licences || 0, 0);
+    // Power-user count (the one "top user" concept): advanced use + 15+ conversations
+    // + active on 6+ days. Prefer the summary field; fall back to the licence roster
+    // for snapshots taken before that field existed. Power users are a strict subset
+    // of "advanced" users, so the ladder below reconciles to the full roster:
+    //   Power user · Regular (rest of advanced + intermediate) · Light (basic) · Not yet active
+    var power = summary.power_users != null
+      ? summary.power_users
+      : (licences || []).filter(function (l) { return l.power_user; }).length;
+    var adv = db.advanced || 0, inter = db.intermediate || 0, basic = db.basic || 0;
+    var segs = [
+      { lab: 'Power user', val: power, col: PALETTE.green1, on: '#fff' },
+      { lab: 'Regular', val: Math.max(adv - power, 0) + inter, col: PALETTE.green2, on: '#fff' },
+      { lab: 'Light', val: basic, col: PALETTE.green3, on: PALETTE.ink },
+      { lab: 'Not yet active', val: dormant, col: PALETTE.neutral, on: PALETTE.mute }
+    ];
+    var total = segs.reduce(function (a, s) { return a + s.val; }, 0) || 1;
+    var bar = segs.filter(function (s) { return s.val > 0; }).map(function (s) {
+      var w = s.val / total * 100;
+      var inside = w >= 9 ? '<span style="color:' + s.on + ';font-size:13px;font-weight:600">' + s.val + '</span>' : '';
+      return '<div title="' + esc(s.lab) + ': ' + s.val + '" style="width:' + w.toFixed(1) +
+        '%;background:' + s.col + ';display:flex;align-items:center;justify-content:center">' + inside + '</div>';
+    }).join('');
+    var legend = segs.map(function (s) {
+      return '<span style="display:inline-flex;align-items:center;gap:6px;margin:0 16px 0 0;font-size:12px;color:var(--c-stone)">' +
+        '<span style="width:10px;height:10px;border-radius:2px;background:' + s.col + ';border:1px solid rgba(0,0,0,.08)"></span>' +
+        esc(s.lab) + ' ' + s.val + '</span>';
+    }).join('');
+    var barHtml =
+      '<div style="display:flex;height:30px;border-radius:var(--radius-sm);overflow:hidden;margin:2px 0 12px">' + bar + '</div>' +
+      '<div style="display:flex;flex-wrap:wrap;row-gap:6px">' + legend + '</div>';
+
+    // Power users: anonymised — a count and guidance, never names (GDPR). The bar
+    // is described from the data's power_user_rule when present (so the explainer
+    // always matches the figures), with a sensible fallback for older snapshots.
+    var rule = summary.power_user_rule || null;
+    var ruleText = rule
+      ? 'they average <strong>' + rule.min_convos_per_week + '+ conversations a week</strong> ' +
+        '(' + rule.min_convos + '+ across the period), and they were active in <strong>most weeks</strong> ' +
+        '(' + rule.min_active_weeks + ' of the ' + rule.reporting_weeks + ')'
+      : 'they use Claude with real, recurring volume and keep coming back week after week';
+    var powerBlock = power > 0
+      ? '<div class="cu-callout cu-callout--ok"><strong>' + power + ' power user' + (power !== 1 ? 's' : '') +
+        '</strong><div style="margin-top:4px">Your go-to people — the handful who have genuinely embedded ' +
+        'Claude into their day-to-day (' +
+        Math.round(power / Math.max(active, 1) * 100) + '% of active licences). ' +
+        'Identify them in your Claude admin console and lean on them for peer training.</div></div>'
+      : '<div class="cu-callout">No power users yet — nobody has reached sustained, near-daily deep use. ' +
+        'That’s normal early on; it comes as the habit builds.</div>';
+
+    // Onboarding: count-based, no names.
+    var onboarding = dormant > 0
+      ? '<div class="cu-callout">' + dormant + ' licence' + (dormant !== 1 ? 's' : '') +
+        ' not yet active — the clearest onboarding opportunity.</div>'
+      : '<div class="cu-callout cu-callout--ok">Every licence has been active — strong adoption.</div>';
+
+    // ONE definitions disclosure covering all four bar tiers, in the same order and
+    // wording as the bar/legend (Power user · Regular · Light · Not yet active). The
+    // power-user rule is read from the data when present so it matches the figures;
+    // the "not yet active" line folds in the honest note about what the export can't
+    // tell us (no sign-in/invitation status).
+    var tierDefs = '<details class="cu-explain"><summary>What do these tiers mean?</summary>' +
+      '<div class="cu-explain__body">Every licence falls into one tier, so the bar covers your whole team.' +
+      '<ul style="margin:8px 0 0;padding-left:18px;line-height:1.6">' +
+        '<li><strong>Power user</strong> — the genuinely embedded few: sustained, near-daily, deep use. ' +
+        'Their conversations lean on Claude’s tools (web search, code, file and data analysis, connected ' +
+        'apps) and step-by-step thinking rather than plain Q&amp;A; ' + ruleText + '.</li>' +
+        '<li><strong>Regular</strong> — active and using Claude with some depth (regular tool use or ' +
+        'multi-step work), but not yet at the power-user bar.</li>' +
+        '<li><strong>Light</strong> — active but mostly standard chat: quick questions and one-off tasks, ' +
+        'with little tool use.</li>' +
+        '<li><strong>Not yet active</strong> — holds a licence but has had no conversations at all. The ' +
+        'Claude export only tells us about conversations — it carries no sign-in or invitation status — so ' +
+        'this covers everyone from “invited but never signed in” to “signed in but hasn’t tried it yet”; ' +
+        'we can’t separate those here.</li>' +
+      '</ul></div></details>';
+
+    return barHtml + powerBlock + onboarding + tierDefs;
+  }
+
+  // ── Shared ranked-bar row (one scale across a chart) ───────
+  // Same visual idiom as themesBlock, factored out for the new charts.
+  function cuBarRow(label, countLabel, pct, muted, title) {
+    var fill = muted ? '#B8B6AD' : '#1A1A18';
+    var col = muted ? 'var(--c-stone)' : 'inherit';
+    return '<div title="' + (title || '') + '" style="display:grid;grid-template-columns:150px 1fr 54px;' +
+      'align-items:center;gap:10px;padding:5px 0">' +
+      '<span style="font-size:13px;line-height:1.3;color:' + col + '">' + esc(label) + '</span>' +
+      '<span style="background:#E9E6DE;border-radius:3px;height:14px;overflow:hidden">' +
+      '<span style="display:block;height:14px;width:' + pct.toFixed(1) + '%;background:' + fill + ';border-radius:3px"></span></span>' +
+      '<span style="font-size:13px;font-weight:600;text-align:right;color:' + col + '">' + countLabel + '</span></div>';
+  }
+
+  // Tool-use by category — turns a flat tool count into a sophistication story.
+  function toolUseBlock(map) {
+    var entries = Object.keys(map || {}).map(function (k) { return { label: k, val: map[k] }; })
+      .filter(function (e) { return e.val > 0; })
+      .sort(function (a, b) { return b.val - a.val; });
+    if (!entries.length) return '<p class="cu-card__sub" style="margin:0">No tool use recorded this period.</p>';
+    var total = entries.reduce(function (a, e) { return a + e.val; }, 0);
+    var max = entries[0].val || 1;
+    var rows = entries.map(function (e) {
+      var mut = e.label === 'Other tools';
+      var pct = Math.round(e.val / total * 100);
+      return cuBarRow(e.label, e.val, e.val / max * 100, mut, esc(e.label + ': ' + e.val + ' tool uses (' + pct + '%)'));
+    }).join('');
+    return rows + '<div style="margin-top:12px;font-size:12px;color:var(--c-stone)">' +
+      total + ' tool actions in total — the <em>kind</em> of work Claude is doing, not just the volume.</div>';
+  }
+
+  // Raw file extensions mean nothing to an agency lead, so group them into
+  // plain-English kinds of work. Unknown/blank extensions fall to "Other files".
+  var FILE_GROUPS = {
+    'Images': ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'heic', 'bmp', 'tif', 'tiff', 'avif'],
+    'Documents': ['doc', 'docx', 'txt', 'md', 'rtf', 'odt', 'pages'],
+    'Spreadsheets': ['xls', 'xlsx', 'csv', 'tsv', 'ods', 'numbers'],
+    'Presentations': ['ppt', 'pptx', 'key'],
+    'PDFs': ['pdf'],
+    'Code & technical': ['cs', 'js', 'ts', 'jsx', 'tsx', 'py', 'json', 'html', 'htm', 'css', 'scss',
+      'sql', 'xml', 'yaml', 'yml', 'sh', 'java', 'cpp', 'go', 'rb', 'php', 'ipynb', 'log'],
+    'Design files': ['psd', 'ai', 'indd', 'idml', 'eps', 'fig', 'sketch', 'xd', 'otf', 'ttf', 'woff', 'woff2'],
+    'Audio & video': ['mp4', 'mov', 'avi', 'mkv', 'webm', 'mp3', 'wav', 'm4a', 'aac']
+  };
+  var EXT_TO_GROUP = (function () {
+    var m = {};
+    Object.keys(FILE_GROUPS).forEach(function (g) {
+      FILE_GROUPS[g].forEach(function (ext) { m[ext] = g; });
+    });
+    return m;
+  })();
+
+  // File mix grouped into plain-English kinds — a rough proxy for the kind of work.
+  function fileTypeBlock(map) {
+    var groups = {};   // group -> total
+    var detail = {};   // group -> [{ext,val}] for the hover breakdown
+    Object.keys(map || {}).forEach(function (k) {
+      var v = map[k];
+      if (!v) return;
+      var g = EXT_TO_GROUP[(k || '').toLowerCase()] || 'Other files';
+      groups[g] = (groups[g] || 0) + v;
+      (detail[g] = detail[g] || []).push({ ext: k || 'unknown', val: v });
+    });
+    var entries = Object.keys(groups).map(function (g) { return { label: g, val: groups[g] }; })
+      .filter(function (e) { return e.val > 0; })
+      .sort(function (a, b) { return b.val - a.val; });
+    if (!entries.length) return '<p class="cu-card__sub" style="margin:0">No files uploaded this period.</p>';
+    // Keep "Other files" at the bottom regardless of size (stable sort).
+    entries.sort(function (a, b) { return (a.label === 'Other files') - (b.label === 'Other files'); });
+    var max = Math.max.apply(null, entries.map(function (e) { return e.val; })) || 1;
+    var rows = entries.map(function (e) {
+      var mut = e.label === 'Other files';
+      var parts = (detail[e.label] || []).sort(function (a, b) { return b.val - a.val; })
+        .map(function (d) { return '.' + d.ext + ' (' + d.val + ')'; }).join(' · ');
+      return cuBarRow(e.label, e.val, e.val / max * 100, mut, esc(e.label + ' — ' + parts));
+    }).join('');
+    return rows + '<div style="margin-top:12px;font-size:12px;color:var(--c-stone)">' +
+      'Grouped by kind of file — a rough proxy for the work. Hover a bar to see the file types within it.</div>';
+  }
+
+  // Prompting quality — uses real scored data when available (produced by the
+  // classification step), otherwise falls back to three observable proxy signals.
+  function promptQualityBlock(s, pq) {
+    if (pq && pq.scored_count > 0) {
+      return promptQualityFromScores(pq);
+    }
+    return promptQualityFromProxies(s);
+  }
+
+  // ── Real prompt quality: scored by Claude during classification ────────────
+  function promptQualityFromScores(pq) {
+    var avg = pq.avg_score || 0;
+    var dist = pq.distribution || {};
+    var total = pq.scored_count || 1;
+
+    // Score label and colour
+    var scoreLabel = avg >= 4 ? 'Good' : avg >= 3 ? 'Developing' : avg >= 2 ? 'Needs work' : 'Basic';
+    var scoreColour = avg >= 4 ? PALETTE.green1 : avg >= 3 ? PALETTE.green3 : avg >= 2 ? PALETTE.amber : PALETTE.neutral;
+    var scoreTextCol = avg >= 4 ? '#0F6E56' : avg >= 3 ? '#1a6b52' : avg >= 2 ? '#9a6200' : 'var(--c-stone)';
+
+    // Distribution bar — 5 segments, left to right
+    var SCORE_COLS = ['#E6E3D9', '#C8C4B8', PALETTE.green3, PALETTE.green2, PALETTE.green1];
+    var barSegs = [1,2,3,4,5].map(function(i) {
+      var count = dist[String(i)] || 0;
+      var w = count / total * 100;
+      return w > 0
+        ? '<div title="Score ' + i + ': ' + count + ' prompts" style="width:' + w.toFixed(1) +
+          '%;background:' + SCORE_COLS[i-1] + ';height:100%"></div>'
+        : '';
+    }).join('');
+
+    var distHtml =
+      '<div style="margin:14px 0 6px">' +
+        '<div style="display:flex;height:16px;border-radius:var(--radius-sm);overflow:hidden;gap:2px">' +
+          barSegs +
+        '</div>' +
+        '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--c-stone);margin-top:5px">' +
+          '<span>1 — Minimal</span><span>2 — Vague</span><span>3 — Adequate</span><span>4 — Good</span><span>5 — Excellent</span>' +
+        '</div>' +
+      '</div>';
+
+    // Top issues
+    var issuesHtml = (pq.top_issues && pq.top_issues.length)
+      ? '<div style="margin-top:14px">' +
+          '<div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--c-stone);margin-bottom:8px">Most common gaps</div>' +
+          pq.top_issues.map(function(iss) {
+            var pct = Math.round(iss.count / total * 100);
+            return '<div style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--c-grey-light)">' +
+              '<span style="flex:1;font-size:13px;color:var(--c-black)">' + esc(iss.label) + '</span>' +
+              '<span style="font-size:12px;color:var(--c-stone);white-space:nowrap">' + iss.count + ' prompts (' + pct + '%)</span>' +
+            '</div>';
+          }).join('') +
+        '</div>'
+      : '';
+
+    // Tips
+    var tipsHtml = (pq.tips && pq.tips.length)
+      ? '<div style="margin-top:16px">' +
+          '<div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--c-stone);margin-bottom:8px">How to improve</div>' +
+          pq.tips.map(function(tip) {
+            return '<div style="display:flex;gap:8px;padding:7px 0;border-bottom:1px solid var(--c-grey-light);font-size:13px;line-height:1.5;color:var(--c-black)">' +
+              '<span style="flex:none;color:var(--c-stone);font-size:11px;margin-top:3px">→</span>' +
+              esc(tip) +
+            '</div>';
+          }).join('') +
+        '</div>'
+      : '';
+
+    return '<div style="display:flex;align-items:baseline;gap:12px;margin-bottom:4px">' +
+        '<span style="font-size:28px;font-weight:500;color:' + scoreTextCol + '">' + avg.toFixed(1) + '</span>' +
+        '<span style="font-size:13px;color:' + scoreTextCol + ';font-weight:600">' + esc(scoreLabel) + '</span>' +
+        '<span style="font-size:12px;color:var(--c-stone)">(out of 5 · ' + pq.scored_count + ' prompts scored)</span>' +
+      '</div>' +
+      distHtml +
+      issuesHtml +
+      tipsHtml +
+      '<div style="margin-top:14px;font-size:12px;color:var(--c-stone);line-height:1.5">' +
+        'Prompts are scored by Claude during the monthly classification step. ' +
+        'Only conversations with a first prompt are included. Prompt text is never stored after scoring.' +
+      '</div>';
+  }
+
+  // ── Fallback: proxy signals when no classification scores exist ─────────────
+  function promptQualityFromProxies(s) {
+    var convos = s.total_conversations || 1;
+    var filesPerConvo   = Math.round(((s.total_files_uploaded  || 0) / convos) * 10) / 10;
+    var toolsPerConvo   = Math.round(((s.total_tool_uses       || 0) / convos) * 10) / 10;
+    var thinkingPct     = s.thinking_usage_pct != null ? s.thinking_usage_pct : null;
+    var realProjects    = s.real_projects || 0;
+    var wellConfigured  = s.well_configured_projects || 0;
+
+    function signal(label, value, note, level) {
+      // level: 'good' | 'mid' | 'low'
+      var dot = level === 'good' ? PALETTE.green2 : level === 'mid' ? PALETTE.amber : PALETTE.neutral;
+      var textCol = level === 'good' ? '#0F6E56' : level === 'mid' ? '#9a6200' : 'var(--c-stone)';
+      return '<div style="display:flex;align-items:baseline;gap:12px;padding:10px 0;' +
+        'border-bottom:1px solid var(--c-grey-light)">' +
+        '<span style="flex:none;width:8px;height:8px;border-radius:50%;background:' + dot +
+          ';margin-top:5px;flex-shrink:0"></span>' +
+        '<div style="flex:1">' +
+          '<span style="font-size:13px;font-weight:600;color:var(--c-black)">' + esc(label) + '</span>' +
+          '<span style="font-size:13px;color:' + textCol + ';margin-left:8px">' + esc(value) + '</span>' +
+          '<div style="font-size:12px;color:var(--c-stone);margin-top:3px;line-height:1.5">' + esc(note) + '</div>' +
+        '</div></div>';
+    }
+
+    // Context loading
+    var contextLevel = filesPerConvo >= 0.5 ? 'good' : filesPerConvo >= 0.2 ? 'mid' : 'low';
+    var contextNote  = filesPerConvo >= 0.5
+      ? 'Most conversations include an uploaded document or file — strong context-loading habit.'
+      : filesPerConvo >= 0.2
+        ? 'Some conversations include files. Encourage uploading briefs, reports, or notes rather than re-describing them in text.'
+        : 'Rarely attaching files. The team is mostly prompting from scratch rather than giving Claude real content to work with.';
+
+    // Capability use
+    var toolLevel = toolsPerConvo >= 2 ? 'good' : toolsPerConvo >= 0.5 ? 'mid' : 'low';
+    var toolNote  = toolsPerConvo >= 2
+      ? 'Prompts regularly trigger web search, code execution, or file analysis — strong capability use.'
+      : toolsPerConvo >= 0.5
+        ? 'Some tool use across conversations. Encourage exploring web search and file analysis for research and data tasks.'
+        : 'Minimal tool use — conversations are mostly plain Q&A. Prompts that ask Claude to search, analyse, or compute will get higher-quality outputs.';
+
+    // Extended thinking
+    var thinkingSignal = thinkingPct != null
+      ? signal(
+          'Extended thinking',
+          thinkingPct + '% of conversations',
+          thinkingPct >= 20
+            ? 'A healthy share of prompts are complex enough to trigger Claude\'s step-by-step reasoning — a sign of substantive, high-value tasks.'
+            : thinkingPct >= 5
+              ? 'Some use of extended reasoning. For analysis, strategy, or problem-solving prompts, explicitly asking Claude to "think step by step" or "reason carefully" can unlock deeper outputs.'
+              : 'Very few prompts trigger extended reasoning. Worth trying on complex tasks — strategy briefs, analysis, or multi-step problems.',
+          thinkingPct >= 20 ? 'good' : thinkingPct >= 5 ? 'mid' : 'low'
+        )
+      : '';
+
+    // Project setup
+    var projectSignal = realProjects > 0
+      ? signal(
+          'Project context quality',
+          wellConfigured + ' of ' + realProjects + ' projects well-configured',
+          wellConfigured === realProjects
+            ? 'All projects have a title and description — good foundations for context-rich prompting.'
+            : wellConfigured > 0
+              ? (realProjects - wellConfigured) + ' project' + (realProjects - wellConfigured > 1 ? 's are' : ' is') + ' missing a description. A clear project description means every conversation in that project starts with context already loaded.'
+              : 'No projects have descriptions set. Adding a description to each project pre-loads Claude with client or campaign context, reducing the need to re-explain it in every prompt.',
+          wellConfigured === realProjects ? 'good' : wellConfigured > 0 ? 'mid' : 'low'
+        )
+      : '';
+
+    var rows = signal('Context loading', filesPerConvo + ' files per conversation', contextNote, contextLevel) +
+      signal('Capability use', toolsPerConvo + ' tool uses per conversation', toolNote, toolLevel) +
+      thinkingSignal +
+      projectSignal;
+
+    return rows +
+      '<div style="margin-top:12px;font-size:12px;color:var(--c-stone);line-height:1.5">' +
+        'Prompt text is never stored or shared. These signals are inferred from conversation behaviour — ' +
+        'what Claude was asked to do, not what was typed.' +
+      '</div>';
+  }
+
+  // Adoption status by recency — finds people who started then drifted (lapsed),
+  // the best re-engagement targets. Reconciles to the full licence base.
+  function statusBlock(s, asOf) {
+    var recent = s.recently_active_users || 0;
+    var lapsed = Math.max(s.lapsed_licences || 0, 0);
+    var dormant = Math.max(s.dormant_licences || 0, 0);
+    var active = s.active_users || 0;
+    var ongoing = Math.max(active - recent - lapsed, 0); // active this month, not last 7d
+    var segs = [
+      { lab: 'Active this week', val: recent, col: PALETTE.green1, on: '#fff' },
+      { lab: 'Active this month', val: ongoing, col: PALETTE.green2, on: '#fff' },
+      { lab: 'Lapsed (30+ days quiet)', val: lapsed, col: PALETTE.amber, on: '#fff' },
+      { lab: 'Not yet active', val: dormant, col: PALETTE.neutral, on: PALETTE.mute }
+    ];
+    var total = segs.reduce(function (a, x) { return a + x.val; }, 0) || 1;
+    var bar = segs.filter(function (x) { return x.val > 0; }).map(function (x) {
+      var w = x.val / total * 100;
+      var inside = w >= 9 ? '<span style="color:' + x.on + ';font-size:13px;font-weight:600">' + x.val + '</span>' : '';
+      return '<div title="' + esc(x.lab) + ': ' + x.val + '" style="width:' + w.toFixed(1) +
+        '%;background:' + x.col + ';display:flex;align-items:center;justify-content:center">' + inside + '</div>';
+    }).join('');
+    var legend = segs.map(function (x) {
+      return '<span style="display:inline-flex;align-items:center;gap:6px;margin:0 16px 0 0;font-size:12px;color:var(--c-stone)">' +
+        '<span style="width:10px;height:10px;border-radius:2px;background:' + x.col + ';border:1px solid rgba(0,0,0,.08)"></span>' +
+        esc(x.lab) + ' ' + x.val + '</span>';
+    }).join('');
+    var barHtml =
+      '<div style="display:flex;height:30px;border-radius:var(--radius-sm);overflow:hidden;margin:2px 0 12px">' + bar + '</div>' +
+      '<div style="display:flex;flex-wrap:wrap;row-gap:6px">' + legend + '</div>';
+    var callout;
+    if (lapsed > 0) {
+      callout = '<div class="cu-callout"><strong>' + lapsed + ' licence' + (lapsed !== 1 ? 's have' : ' has') +
+        ' gone quiet (30+ days)</strong><div style="margin-top:4px">These people started then drifted — usually the easiest ' +
+        'adoption win. A quick check-in or a relevant use case often brings them back.</div></div>';
+    } else if (dormant > 0) {
+      callout = '<div class="cu-callout">Nobody has lapsed — but ' + dormant + ' licence' +
+        (dormant !== 1 ? 's have' : ' has') + ' never been used. Start them with one concrete use case.</div>';
+    } else {
+      callout = '<div class="cu-callout cu-callout--ok">Everyone is active and nobody has lapsed — adoption is sticking.</div>';
+    }
+    var anchor = asOf
+      ? '<div style="margin-top:10px;font-size:12px;color:var(--c-stone)">Recency measured as of ' + esc(asOf) +
+        ' (the latest activity in the export).</div>'
+      : '';
+    return barHtml + callout + anchor;
+  }
+
+  // Project hygiene — separates real reusable assets from starter templates.
+  function hygieneStrip(s) {
+    if (!s) return '';
+    var real = s.real_projects, well = s.well_configured_projects, starter = s.starter_projects;
+    if (real == null && well == null && starter == null) return '';
+    var parts = [];
+    if (real != null) parts.push('<div class="cu-stat"><div class="cu-stat__num">' + real +
+      '</div><div class="cu-stat__lab">working projects</div></div>');
+    if (well != null) parts.push('<div class="cu-stat"><div class="cu-stat__num">' + well +
+      '</div><div class="cu-stat__lab">well-configured<br>(instructions + docs)</div></div>');
+    if (starter) parts.push('<div class="cu-stat"><div class="cu-stat__num">' + starter +
+      '</div><div class="cu-stat__lab">starter templates<br>(excluded)</div></div>');
+    return '<div class="cu-stat-strip cu-stat-strip--row">' + parts.join('') + '</div>';
+  }
+
+  function projectsTable(projects) {
+    if (!projects || !projects.length) return '<p class="cu-card__sub">No projects created.</p>';
+    var rows = projects.map(function (p) {
+      var shared = !p.is_private;
+      // "Last updated" = when the project was last edited. NOT a usage signal —
+      // a project can be used daily without being edited, and the export has no
+      // per-project usage count. Shown as a neutral fact, no abandonment flag.
+      var last = p.last_updated || p.updated_at || '';
+      var desc = (p.description || '').trim();
+      // Name expands to reveal the project's description (where one exists);
+      // plain text otherwise so there's no empty dropdown to click.
+      var nameCell = desc
+        ? '<details class="cu-proj"><summary><strong>' + esc(p.name || 'Untitled') + '</strong></summary>' +
+          '<div class="cu-proj__desc">' + esc(desc) + '</div></details>'
+        : '<strong>' + esc(p.name || 'Untitled') + '</strong>';
+      return '<tr>' +
+        '<td>' + nameCell + '</td>' +
+        '<td class="cu-td-date">' + esc(p.created_at || '—') + '</td>' +
+        '<td class="cu-td-date">' + esc(last || '—') + '</td>' +
+        '<td><span class="cu-pill ' + (shared ? 'cu-pill--shared">Shared' : 'cu-pill--private">Private') + '</span></td>' +
+      '</tr>';
+    }).join('');
+    return '<div class="cu-table-wrap"><table class="cu-table"><thead><tr>' +
+      '<th>Project</th><th>Created</th><th>Last updated</th><th>Visibility</th>' +
+      '</tr></thead><tbody>' + rows + '</tbody></table></div>' +
+      '<p class="cu-card__sub" style="margin:10px 0 0">Click a project name to read its description. "Last updated" is when the project was last edited — the export doesn\'t capture how often a project is used in chats.</p>';
+  }
+
+  function methodBlock(workflows, timeSaved, totalLow, totalHigh) {
+    var rows = workflows.map(function (t) {
+      return '<tr><td>' + esc(t.label) + '</td>' +
+        '<td>' + t.qualifying + ' conversations × ' + t.minutes_band[0] + '–' + t.minutes_band[1] + ' min each</td>' +
+        '<td style="text-align:right;white-space:nowrap">' + t.hours_low + '–' + t.hours_high + ' h</td></tr>';
+    }).join('');
+    var totalRow = '<tr class="cu-method__total"><td><strong>Total</strong></td><td></td>' +
+      '<td style="text-align:right;white-space:nowrap"><strong>' + totalLow + '–' + totalHigh + ' h</strong></td></tr>';
+    return '<details class="cu-method"><summary>How time saved is estimated</summary>' +
+      '<p style="margin:8px 0">' + esc(timeSaved.method || '') + '</p>' +
+      '<table><tbody>' + rows + totalRow + '</tbody></table></details>';
+  }
+
+  function winsBlock(wins, workflows) {
+    if (!wins || !wins.length) return '';
+    var labelByKey = {};
+    (workflows || []).forEach(function (w) { labelByKey[w.key] = w.label; });
+    var items = wins.map(function (w) {
+      var tag = labelByKey[w.workflow] || '';
+      return '<li class="cu-win">' +
+        (tag ? '<span class="cu-win__tag">' + esc(tag) + '</span>' : '') +
+        '<span class="cu-win__text">' + esc(w.text) + '</span></li>';
+    }).join('');
+    return '<div class="cu-card cu-wins-card" style="margin-bottom:28px">' +
+      '<div class="cu-card__title">Standout wins this month</div>' +
+      '<div class="cu-card__sub">The most valuable uses this period, in plain English</div>' +
+      '<ul class="cu-wins">' + items + '</ul></div>';
+  }
+
+  // ── Gamified adoption hero ──────────────────────────────────
+  // A TEAM-level adoption "level" + progress + milestones. Deliberately never
+  // ranks or scores named individuals (that would re-introduce the per-person
+  // monitoring we anonymised). The level rubric is intentionally simple and
+  // tunable — adjust the thresholds here if the bands feel off for an agency.
+  var LEVELS = ['Exploring', 'Adopting', 'Embedded', 'Leading'];
+
+  // Adoption level — a deliberately HIGH bar (raised Jun 2026). The old rule
+  // called an agency "Embedded" on 80% having *ever* chatted + 25% deep use,
+  // which over-rated agencies still mid-onboarding. The principle now:
+  //   "Embedded" = everyone is onboarded AND using Claude continuously and deeply.
+  // So the hard gate for Embedded+ is ZERO not-yet-active licences — any agency
+  // still onboarding seats caps at "Adopting", however keen its active users are.
+  // On top of that: sustained recent use (a habit, not a one-off), genuine depth,
+  // and at least one true power user. "Leading" adds near-universal weekly use,
+  // multiple power users and shared team assets.
+  function levelFor(s, power) {
+    var lic = s.licensed_users || 0, act = s.active_users || 0;
+    var activeRatio = lic ? act / lic : 0;
+    var recentRatio = lic ? (s.recently_active_users || 0) / lic : 0;
+    var deep = s.agentic_usage_pct || 0;
+    var pu = power != null ? power : (s.power_users || 0);
+    var noDormant = (s.dormant_licences || 0) === 0 && lic > 0;
+    var shared = (s.shared_projects || 0) > 0;
+    // Leading — the whole team, deeply and continuously, with shared assets.
+    if (noDormant && (s.lapsed_licences || 0) === 0 &&
+        recentRatio >= 0.8 && deep >= 50 && pu >= 2 && shared) return 4;
+    // Embedded — everyone onboarded, a real recurring habit, genuine depth.
+    if (noDormant && recentRatio >= 0.6 && deep >= 40 && pu >= 1) return 3;
+    // Adopting — uptake building, but not everyone is on board yet.
+    if (activeRatio >= 0.5) return 2;
+    return 1; // Exploring
+  }
+
+  // ── Summary bullet helpers ──────────────────────────────────
+  // Both read from the summary object and return arrays of strings.
+  // They're kept separate so they can evolve independently.
+
+  // Friendly hours range for a single workflow, e.g. "45–100 hours" / "8 hours".
+  // Returns '' when there's no meaningful figure so the caller can omit it.
+  function roundHours(lo, hi) {
+    var l = Math.round(lo || 0), h = Math.round(hi || 0);
+    if (h < 1) return '';
+    if (l === h || l < 1) return h + ' hour' + (h === 1 ? '' : 's');
+    return l + '–' + h + ' hours';
+  }
+
+  // Real, value-generating workflows ranked by volume — excludes the "misc"/
+  // "other" catch-alls and "enablement" (learning-Claude chats), which aren't a
+  // win to celebrate as a team's headline use.
+  function rankedWorkflows(wfs) {
+    return (wfs || [])
+      .filter(function (w) {
+        return (w.conversations || 0) > 0 &&
+          w.key !== 'misc' && w.key !== 'other' && w.key !== 'enablement';
+      })
+      .sort(function (a, b) { return b.conversations - a.conversations; });
+  }
+
+  function goingWellBullets(s, wfs, power) {
+    // Anchored to the team's OWN data: lead with their biggest real win (a named
+    // workflow + hours saved), then habit/depth expressed in head-counts (not
+    // percentages), each with a short "keep doing this" steer.
+    var bullets = [];
+    var lic = s.licensed_users || 0;
+    var act = s.active_users || 0;
+    var dormant = s.dormant_licences || 0;
+    var recent = s.recently_active_users || 0;
+    var deep = Math.round(s.agentic_usage_pct || 0);
+    var ranked = rankedWorkflows(wfs);
+    var wfCount = (wfs || []).filter(function (w) { return (w.conversations || 0) > 0 && w.key !== 'misc'; }).length;
+
+    // 1) Biggest win — the top workflow, with volume and hours saved.
+    var top = ranked[0];
+    if (top && top.conversations >= 5) {
+      var hrs = roundHours(top.hours_low, top.hours_high);
+      bullets.push(top.label + ' is your team’s biggest win — ' + top.conversations +
+        ' conversations this period' + (hrs ? ', around ' + hrs + ' of work saved' : '') +
+        '. Keep feeding it real briefs and live work.');
+    }
+
+    // 2) Second embedded workflow — proves breadth is real, not a one-off.
+    var second = ranked[1];
+    if (second && second.conversations >= 10) {
+      bullets.push(second.label + ' is becoming a second habit — ' + second.conversations +
+        ' conversations. Two kinds of work now run through Claude, not just one.');
+    }
+
+    // 3) Habit — in people, not percentages.
+    if (lic > 0 && recent >= Math.max(Math.round(lic * 0.8), 1)) {
+      bullets.push(recent + ' of ' + lic + ' licences used Claude in the past week — a genuine recurring habit across the team.');
+    } else if (lic > 0 && recent >= Math.round(lic * 0.5)) {
+      bullets.push(recent + ' of ' + lic + ' licences were active this past week — steady, regular use.');
+    }
+
+    // 4) Full onboarding — only notable once everyone is in.
+    if (dormant === 0 && lic > 0) bullets.push('Every one of your ' + lic + ' licences has been used — nobody was left behind in onboarding.');
+
+    // 5) Power users — the team's in-house coaches.
+    if (power >= 2) bullets.push(power + ' people have built a near-daily deep habit — your in-house coaches for everyone else.');
+    else if (power === 1) bullets.push('1 person has built a near-daily deep habit — a natural go-to for peer training.');
+
+    // 6) Depth.
+    if (deep >= 50) bullets.push(deep + '% of active users go well beyond quick questions — using Claude’s tools and step-by-step reasoning on real work.');
+
+    // 7) Breadth.
+    if (wfCount >= 5) bullets.push('Claude is being used across ' + wfCount + ' different kinds of work — broad adoption, not one narrow use.');
+
+    // 8) Shared projects.
+    if ((s.shared_projects || 0) > 0) bullets.push((s.shared_projects) + ' shared project' + (s.shared_projects > 1 ? 's' : '') + ' — the team is building on the same context, not working in silos.');
+
+    return bullets.slice(0, 4); // cap at 4 so the card stays readable
+  }
+
+  function toNextLevelBullets(s, lvl, wfs, power) {
+    // Each bullet maps to ONE gate in levelFor() that the team is currently
+    // failing — expressed as a head-count, with a time-boxed first move and the
+    // unlock it earns. The gates here MUST mirror levelFor()'s thresholds:
+    //   Adopting→Embedded: 0 dormant · ≥60% weekly · ≥40% deep · ≥1 power user
+    //   Embedded→Leading:  0 lapsed · ≥80% weekly · ≥50% deep · ≥2 power · shared
+    // At Leading (4) we give concrete maintenance nudges instead.
+    var lic = s.licensed_users || 0;
+    var act = s.active_users || 0;
+    var dormant = s.dormant_licences || 0;
+    var lapsed = s.lapsed_licences || 0;
+    var recent = s.recently_active_users || 0;
+    var recentRatio = lic ? recent / lic : 0;
+    var deep = Math.round(s.agentic_usage_pct || 0);
+    var shared = s.shared_projects || 0;
+    var nextName = LEVELS[lvl]; // LEVELS is 0-indexed; lvl is 1-indexed → next level
+    var topWf = rankedWorkflows(wfs)[0];
+    var topWfLabel = topWf ? topWf.label.toLowerCase() : 'a recurring task';
+
+    if (lvl === 4) {
+      // Already Leading — keep it there, concretely.
+      var m = [];
+      if (lapsed > 0) m.push(lapsed + ' active user' + (lapsed > 1 ? 's have' : ' has') +
+        ' gone quiet for 30+ days — send a tailored prompt suggestion this week before the habit fades.');
+      m.push('Write up two or three of your strongest workflows and share them with another Miroma agency — you’re the model the group should copy.');
+      m.push('Run a monthly show-and-tell so new wins spread and habits stay current as clients and campaigns change.');
+      m.push('Review your shared Projects each month — keep descriptions and shared instructions accurate so the team’s context never goes stale.');
+      return m.slice(0, 4);
+    }
+
+    // Exploring → Adopting: the single gate is getting half the team active.
+    if (lvl === 1) {
+      var half = Math.ceil(0.5 * lic);
+      var need = Math.max(half - act, 1);
+      return [
+        'Only ' + act + ' of ' + lic + ' licences have been used so far. Getting ' + need +
+          ' more ' + (need === 1 ? 'person' : 'people') + ' started this fortnight — a 15-minute first task each — moves you to Adopting.',
+        'Pick one everyday job (notes from a meeting, a first-draft email) and do it with Claude in front of the team. Seeing it on their own work is the unlock.'
+      ];
+    }
+
+    var bullets = [];
+    var recentTarget = lvl === 2 ? 0.6 : 0.8; // weekly-use gate for the next level
+    var deepTarget = lvl === 2 ? 40 : 50;     // depth gate
+    var powerTarget = lvl === 2 ? 1 : 2;      // power-user gate
+
+    // Gate: every licence active (hard gate — caps the level until cleared).
+    if (dormant > 0) bullets.push(dormant + ' of your ' + lic + ' licences ' + (dormant > 1 ? 'have' : 'has') +
+      ' never been used. Book 15 minutes with each over the next fortnight for a guided first task — this is the hard gate for ' + nextName + ': until everyone has started, the team can’t move up.');
+
+    // Gate (Leading): nobody lapsed.
+    if (lvl === 3 && lapsed > 0) bullets.push(lapsed + ' licence' + (lapsed > 1 ? 's have' : ' has') +
+      ' lapsed (used Claude before, quiet 30+ days now). Reach out this week with a prompt idea tailored to their work — re-engaging them is part of the ' + nextName + ' bar.');
+
+    // Gate: a power user (or a second one for Leading).
+    if (power < powerTarget) {
+      if (power === 0) bullets.push('No power user has emerged yet. Give your highest-volume user one advanced workflow to own — a Project or a repeatable prompt sequence — so a near-daily deep habit can form.');
+      else bullets.push('You have ' + power + ' power user' + (power > 1 ? 's' : '') + '; ' + nextName + ' needs ' + powerTarget +
+        '. Pair your most engaged user with a keen colleague so the deep habit spreads to a second person.');
+    }
+
+    // Gate: depth — in people, with a concrete first move tied to their own work.
+    if (deep < deepTarget) {
+      var notDeep = Math.max(act - Math.round(deep / 100 * act), 1);
+      bullets.push(notDeep + ' of your ' + act + ' active users still mostly ask quick questions. Take one recurring task — ' + topWfLabel +
+        ' — and run it as a shared Project this month, uploading the real documents. That’s the jump from using Claude to building with it.');
+    }
+
+    // Gate: weekly habit — how many more people, to hit the threshold.
+    if (recentRatio < recentTarget) {
+      var needPeople = Math.max(Math.ceil(recentTarget * lic) - recent, 1);
+      bullets.push('Weekly use sits at ' + recent + ' of ' + lic + ' licences — ' + needPeople + ' more ' +
+        (needPeople === 1 ? 'person using' : 'people using') + ' Claude in a typical week reaches the ' + Math.round(recentTarget * 100) +
+        '% mark. Try a two-week challenge: one Claude task per person per day.');
+    }
+
+    // Gate (Leading): a shared Project.
+    if (lvl === 3 && shared === 0) bullets.push('No shared Projects yet. Create one for a live client or campaign so the whole team works from the same context — shared assets are part of the ' + nextName + ' bar.');
+
+    return bullets.slice(0, 4);
+  }
+
+  // ── Maturity-stage card — the GENERAL playbook for each level ──────────────
+  // Deliberately NOT tactical: it explains what this stage looks like and the
+  // conceptual leap ahead. The team's specific, numbered, this-period actions
+  // live in the hero's "To reach X" list (toNextLevelBullets) — this card points
+  // there, so the two never repeat each other.
+  function nextStepsCard(lvl, s, wfs, power) {
+    var GUIDE = [
+      { // Level 1 — Exploring
+        who: 'The team is treating Claude like a faster search engine: quick questions, fresh sessions every time, output copied with little adaptation.',
+        behaviours: ['Single-turn questions with no follow-up or refinement', 'Searches for facts, definitions, or quick summaries', 'Starts a fresh session every time — no context carried forward', 'Unlikely to share what they\'re doing with colleagues'],
+        progression: 'The shift to Adopting happens when people stop asking Claude about the world and start asking it about their specific work — uploading one real work document before their next session.'
+      },
+      { // Level 2 — Adopting
+        who: 'The team has started uploading documents and extracting from them — briefs, transcripts, research. But the output stays close to the source; they\'re summarising rather than creating.',
+        behaviours: ['Uploads briefs, transcripts, or research as context', 'Asks "what does this say about X?" rather than "what should we do?"', 'Comfortable with one document at a time; doesn\'t yet layer multiple sources', 'Starts to notice when Claude gets something wrong'],
+        progression: 'The shift to Embedded is from extraction to creation: asking Claude to produce a new output — a recommendation, a plan, a draft — based on what it has read, rather than just surfacing what\'s already there.'
+      },
+      { // Level 3 — Embedded
+        who: 'The team uses Claude to produce real work: multi-turn sessions, iterative feedback, first-draft partnerships. Some individuals have developed strong habits; the challenge is spreading them.',
+        behaviours: ['Runs multi-turn sessions with clear iterative direction', 'Gives specific feedback: "make this more direct", "remove the third point"', 'Combines uploaded documents with their own written instructions', 'Output requires editing but is meaningfully faster than starting from scratch'],
+        progression: 'The shift to Leading is from individual skill to team system — shared projects, prompt libraries, and peer coaching becoming a normal part of how the team works, not just what a few people do.'
+      },
+      { // Level 4 — Leading
+        who: 'The team has systemised AI use: shared prompt templates, context packs, repeatable workflows. They think about Claude at the process level, not just the task level.',
+        behaviours: ['Maintains a shared library of prompt templates for recurring tasks', 'Has standard context packs ready for major clients or project types', 'Chains tasks deliberately: research → synthesis → outline → draft → critique', 'Actively coaches colleagues and shares what works'],
+        progression: 'This team is a model for the group. The focus now is on deepening impact and helping other agencies get here faster.'
+      }
+    ];
+
+    var g = GUIDE[Math.min(lvl - 1, 3)];
+    var nextName = lvl < 4 ? LEVELS[lvl] : null; // LEVELS is 0-indexed; lvl is 1-indexed
+
+    var behavioursHtml = g.behaviours.map(function (b) { return '<li>' + esc(b) + '</li>'; }).join('');
+    var shiftHeading = nextName ? 'The shift to ' + esc(nextName) : 'Staying at the front';
+    var pointerName = nextName || 'and maintain Leading';
+
+    return '<div class="cu-card cu-next-steps" style="margin-bottom:28px">' +
+      '<div class="cu-card__title">The ' + esc(LEVELS[lvl - 1]) + ' stage — what it looks like</div>' +
+      '<div class="cu-card__sub">' + esc(g.who) + '</div>' +
+      '<div class="cu-nsgrid">' +
+        '<div>' +
+          '<div class="cu-ns__heading">Observable behaviours at this stage</div>' +
+          '<ul class="cu-ns__list">' + behavioursHtml + '</ul>' +
+        '</div>' +
+        '<div>' +
+          '<div class="cu-ns__heading">' + shiftHeading + '</div>' +
+          '<p class="cu-ns__shift">' + esc(g.progression) + '</p>' +
+        '</div>' +
+      '</div>' +
+      '<div class="cu-ns__progress">Your team’s specific next steps — with numbers and timeframes — are under ' +
+        '<strong>“To reach ' + esc(pointerName) + '”</strong> at the top of this report.</div>' +
+    '</div>';
+  }
+
+  function gamifiedHero(s, wfs, narrative, power) {
+    var lvl = levelFor(s, power);
+    var act = s.active_users || 0;
+    var wfCount = (wfs || []).filter(function (w) { return (w.conversations || 0) > 0 && w.key !== 'misc'; }).length;
+    var milestones = [
+      { label: 'Every licence active', done: (s.dormant_licences || 0) === 0 && (s.licensed_users || 0) > 0 },
+      { label: 'Power users emerged', done: (power || 0) > 0 },
+      { label: 'Projects shared', done: (s.shared_projects || 0) > 0 },
+      { label: 'Breadth of use', done: wfCount >= 5 },
+      { label: 'Regular habit', done: (s.recently_active_users || 0) >= Math.max(Math.round(act * 0.8), 1) }
+    ];
+    var next = milestones.filter(function (m) { return !m.done; })[0];
+    var nextLine = next
+      ? 'Next milestone: <strong>' + esc(next.label.toLowerCase()) + '</strong>.'
+      : 'Every milestone reached — outstanding adoption.';
+
+    var steps = LEVELS.map(function (_, i) {
+      return '<div class="cu-step' + (i < lvl ? ' cu-step--on' : '') + '"></div>';
+    }).join('');
+    var stepLabels = LEVELS.map(function (name, i) {
+      return '<span' + (i + 1 === lvl ? ' class="cu-step__here"' : '') + '>' + name + '</span>';
+    }).join('');
+    var msHtml = milestones.map(function (m) {
+      return '<div class="cu-ms ' + (m.done ? 'cu-ms--done' : 'cu-ms--todo') + '">' +
+        '<span class="cu-ms__mark">' + (m.done ? '✓' : '○') + '</span>' + esc(m.label) + '</div>';
+    }).join('');
+
+    // Stage definitions — exactly the rules in levelFor(), in plain English, so a
+    // lead can see what earns each level (and what to push for next). Keep these in
+    // step with levelFor() if the thresholds are ever retuned.
+    var levelDefs =
+      '<details class="cu-explain"><summary>How are these levels worked out?</summary>' +
+      '<div class="cu-explain__body">A deliberately high bar, and each level builds on the one ' +
+      'before — so the team only reaches <strong>Embedded</strong> once Claude is genuinely woven ' +
+      'into everyday work, not just switched on. Levels are recalculated from this period’s ' +
+      'figures each time the report is generated.' +
+      '<ul style="margin:8px 0 0;padding-left:18px;line-height:1.6">' +
+        '<li><strong>Exploring</strong> — the starting point: fewer than half the team’s ' +
+        'licences have been used yet.</li>' +
+        '<li><strong>Adopting</strong> — uptake is building: at least half the licences are ' +
+        'active, but not everyone is on board yet (some are still not active).</li>' +
+        '<li><strong>Embedded</strong> — everyone onboarded and using Claude properly: ' +
+        '<em>every</em> licence active, at least 60% used Claude in the past week, 40%+ of active ' +
+        'users work with it deeply (its tools and step-by-step reasoning, not just quick questions), ' +
+        'and at least one power user has emerged.</li>' +
+        '<li><strong>Leading</strong> — the whole team, deeply and consistently: every licence ' +
+        'active and none lapsed, 80%+ active in the past week, 50%+ of active users working deeply, ' +
+        'two or more power users, and projects shared with colleagues.</li>' +
+      '</ul></div></details>';
+
+    var wellBullets = goingWellBullets(s, wfs, power);
+    var nextBullets = toNextLevelBullets(s, lvl, wfs, power);
+
+    var wellHtml = wellBullets.length
+      ? '<div class="cu-blist cu-blist--good"><div class="cu-blist__label">What\'s going well</div><ul>' +
+          wellBullets.map(function (b) { return '<li>' + esc(b) + '</li>'; }).join('') +
+        '</ul></div>'
+      : '';
+    // Motivating closer: name the payoff for clearing the list above.
+    var closer = lvl < 4
+      ? 'Tackle these and <strong>' + esc(LEVELS[lvl]) + '</strong> is within reach.'
+      : 'Keep these up and your team holds its place at <strong>Leading</strong>.';
+    // "Looking further" horizon — a glimpse of what lies beyond the next rung, so
+    // the ladder never feels like it ends. Shown for teams already at Leading and
+    // for near-perfect teams with a short gap list (≤2), where the plain next-step
+    // list alone would feel thin. Index by current level (1–4); static copy.
+    var HORIZON = ['',
+      'the real prize is moving from pulling facts out of documents to having Claude draft, plan and recommend.',
+      'the strongest teams turn one person’s habits into shared Projects and prompt libraries the whole team reuses.',
+      'the best teams become the group’s model — their workflows get adopted by other Miroma agencies.',
+      'the frontier is pioneering brand-new workflows — chaining brief → strategy → creative — and helping other agencies reach Leading.'];
+    var horizonHtml = (lvl === 4 || nextBullets.length <= 2)
+      ? '<div class="cu-blist__horizon"><span class="cu-blist__horizon-label">Looking further</span> ' + HORIZON[lvl] + '</div>'
+      : '';
+    var nextBulletHtml = nextBullets.length
+      ? '<div class="cu-blist"><div class="cu-blist__label">To reach ' + esc(lvl < 4 ? LEVELS[lvl] : 'and maintain Leading') + '</div><ul>' +
+          nextBullets.map(function (b) { return '<li><span class="cu-blist__mark">→</span> ' + esc(b) + '</li>'; }).join('') +
+        '</ul><div class="cu-blist__close">' + closer + '</div>' + horizonHtml + '</div>'
+      : '';
+    var bulletsHtml = (wellHtml || nextBulletHtml)
+      ? '<div class="cu-hero__bullets">' + wellHtml + nextBulletHtml + '</div>'
+      : '';
+
+    return '<div class="cu-hero">' +
+      '<div class="cu-hero__top">' +
+        '<div><div class="cu-hero__eyebrow">Your team\'s Claude adoption</div>' +
+          '<div class="cu-hero__level">Level ' + lvl + ' · ' + LEVELS[lvl - 1] + '</div></div>' +
+        '<div class="cu-hero__chip">' + (s.active_users || 0) + ' of ' + (s.licensed_users || 0) + ' active</div>' +
+      '</div>' +
+      '<div class="cu-steps">' + steps + '</div>' +
+      '<div class="cu-steps__labels">' + stepLabels + '</div>' +
+      '<div class="cu-hero__line">' + esc(narrative || '') + '</div>' +
+      bulletsHtml +
+      '<div class="cu-hero__next" style="margin-top:14px">' + nextLine + '</div>' +
+      '<div class="cu-ms-grid">' + msHtml + '</div>' +
+      levelDefs +
+    '</div>';
+  }
+
+  function scopeNote(scope) {
+    if (!scope) return '';
+    return '<p class="cu-scope"><strong>What this covers:</strong> ' + esc(scope.source) +
+      ' — ' + esc(scope.includes) +
+      ' <span class="cu-scope__excl">Excludes ' + esc(scope.excludes) + '</span></p>';
+  }
+
+  function renderClaudeUsage(container, data, opts) {
+    opts = opts || {};
+    var prev = opts.previous ? opts.previous.summary : null;
+    var prevTime = opts.previous ? opts.previous.time_saved : null;
+    var s = data.summary;
+    var wfs = data.workflows || data.themes || [];
+    var ts = data.time_saved || {};
+    // Single "top user" concept = power user. Prefer the summary field; fall back
+    // to the licence roster for snapshots taken before that field existed.
+    var power = s.power_users != null
+      ? s.power_users
+      : (data.licences || []).filter(function (l) { return l.power_user; }).length;
+    // Derive the headline total by SUMMING the per-workflow rows shown in the
+    // breakdown, so the headline can never disagree with the dropdown (and we
+    // don't rely on a separately-stored total that could drift).
+    var tsLow = Math.round(wfs.reduce(function (a, w) { return a + (w.hours_low || 0); }, 0));
+    var tsHigh = Math.round(wfs.reduce(function (a, w) { return a + (w.hours_high || 0); }, 0));
+
+    var html =
+      '<div class="cu">' +
+        '<div class="cu-head">' +
+          '<div><p class="cu-card__sub" style="margin:0">Claude adoption · ' + esc(data.agency) + '</p>' +
+          '<p class="cu-head__period">' + fmtMonth(data.period) + '</p></div>' +
+          '<div class="cu-head__actions">' +
+            (opts.previous ? '' : '<span class="cu-badge">First reporting month</span>') +
+            // Export-as-PDF uses the browser's native print → "Save as PDF". No
+            // library/canvas, so text stays selectable and fonts stay sharp; the
+            // print stylesheet (claude-usage.css @media print) isolates this report
+            // from the surrounding admin chrome. Wired below via addEventListener
+            // (not inline onclick) to stay within the hub's CSP.
+            '<button type="button" class="cu-print" aria-label="Export this report as a PDF to email to the agency">' +
+              '<span aria-hidden="true">⤓</span> Export as PDF</button>' +
+          '</div>' +
+        '</div>' +
+
+        gamifiedHero(s, wfs, data.narrative, power) +
+
+        nextStepsCard(levelFor(s, power), s, wfs, power) +
+
+        '<div class="cu-kpis">' +
+          kpiCard('Active licences', s.active_users + ' / ' + s.licensed_users,
+            s.agentic_usage_pct + '% using Claude deeply',
+            deltaHTML(s.active_users, prev ? prev.active_users : null, 'active vs last month')) +
+          kpiCard('Conversations', s.total_conversations,
+            // Total plus a per-active-licence rate, so the headline volume is
+            // comparable across agencies of different sizes (and you can see
+            // whether it's a whole team or a few heavy users driving it).
+            (s.active_users
+              ? '<strong>' + (s.total_conversations / s.active_users).toFixed(1) + '</strong> per active licence'
+              : ''),
+            deltaHTML(s.total_conversations, prev ? prev.total_conversations : null)) +
+          kpiCard('Projects', s.total_projects,
+            s.shared_projects + ' shared with the team',
+            deltaHTML(s.total_projects, prev ? prev.total_projects : null)) +
+          kpiCard('Time saved to date', '~' + tsLow + '–' + tsHigh + ' h',
+            'cumulative · conservative estimate',
+            deltaHTML(tsLow, prevTime ? prevTime.hours_low : null, 'low-end vs last month')) +
+        '</div>' +
+
+        winsBlock(data.wins, wfs) +
+
+        '<div class="cu-card" style="margin-bottom:28px">' +
+          '<div class="cu-card__title">Adoption trend</div>' +
+          '<div class="cu-card__sub">Conversations per active user each week — normalised for team ' +
+          'size, so it reflects how intensively the team uses Claude, not just how big it is</div>' +
+          trendChart(data.weekly_activity) +
+        '</div>' +
+
+        '<div class="cu-grid">' +
+          '<div class="cu-card">' +
+            '<div class="cu-card__title">What the team uses Claude for</div>' +
+            '<div class="cu-card__sub">Conversations by workflow, with top examples</div>' +
+            themesBlock(data.workflows || data.themes) +
+          '</div>' +
+          '<div class="cu-card">' +
+            '<div class="cu-card__title">Adoption depth</div>' +
+            '<div class="cu-card__sub">How deeply your licences use Claude</div>' +
+            funnelBlock(s, data.licences) +
+          '</div>' +
+        '</div>' +
+
+        // ── Recency + sophistication (progressive — each card renders only
+        //    when its data is present, so older snapshots degrade gracefully) ──
+        ((s.recently_active_users != null || s.lapsed_licences != null) || data.tool_use_by_category
+          ? '<div class="cu-grid">' +
+              ((s.recently_active_users != null || s.lapsed_licences != null)
+                ? '<div class="cu-card">' +
+                    '<div class="cu-card__title">Who\'s active, who\'s drifting</div>' +
+                    '<div class="cu-card__sub">Recency of use across every licence — and your re-engagement targets</div>' +
+                    statusBlock(s, data.as_of) +
+                  '</div>' : '') +
+              (data.tool_use_by_category
+                ? '<div class="cu-card">' +
+                    '<div class="cu-card__title">How the team uses Claude\'s tools</div>' +
+                    '<div class="cu-card__sub">"Tools" are when Claude goes beyond chat — searching the web, ' +
+                    'writing or running code, analysing files and data, or using a connected app</div>' +
+                    toolUseBlock(data.tool_use_by_category) +
+                  '</div>' : '') +
+            '</div>' : '') +
+
+        '<div class="cu-grid">' +
+          '<div class="cu-card">' +
+            '<div class="cu-card__title">Prompting quality</div>' +
+            (data.prompt_quality
+              ? '<div class="cu-card__sub">Scored by Claude during the monthly classification — based on the first prompt of each conversation</div>'
+              : '<div class="cu-card__sub">Observable signals of how well the team is prompting — context loaded, capabilities used, and reasoning triggered</div>') +
+            promptQualityBlock(s, data.prompt_quality) +
+          '</div>' +
+          (data.file_type_mix
+            ? '<div class="cu-card">' +
+                '<div class="cu-card__title">What they\'re working on</div>' +
+                '<div class="cu-card__sub">File types uploaded — a rough proxy for the kind of work</div>' +
+                fileTypeBlock(data.file_type_mix) +
+              '</div>' : '') +
+        '</div>' +
+
+        '<div class="cu-card" style="margin-bottom:28px">' +
+          '<div class="cu-card__title">Projects created</div>' +
+          '<div class="cu-card__sub">What the team is building, and whether it is shared with colleagues</div>' +
+          hygieneStrip(s) +
+          projectsTable(data.projects) +
+        '</div>' +
+
+        '<div class="cu-card">' +
+          '<div class="cu-card__title">Estimated time saved to date · ~' + tsLow + '–' + tsHigh + ' hours</div>' +
+          '<div class="cu-card__sub">Cumulative since rollout — a deliberately conservative figure you can defend in the room</div>' +
+          methodBlock(wfs, ts, tsLow, tsHigh) +
+        '</div>' +
+
+        scopeNote(data.scope) +
+
+        // Print-only footer: names the report and stamps the data-handling note so
+        // an emailed PDF carries its own context. Hidden on screen (see CSS).
+        '<div class="cu-print-footer">' + esc(data.agency) + ' · Claude usage · ' +
+          fmtMonth(data.period) + ' — Internal. Figures are anonymised; handle per ' +
+          'Miroma\'s Claude usage-data policy.</div>' +
+      '</div>';
+
+    container.innerHTML = html;
+
+    // Wire the Export-as-PDF button. Setting document.title gives the browser's
+    // "Save as PDF" a sensible default filename (e.g. "Maker-Lab-Claude-Usage-June-2026"),
+    // restored afterwards so the admin's tab title isn't left changed.
+    var printBtn = container.querySelector('.cu-print');
+    if (printBtn) {
+      printBtn.addEventListener('click', function () {
+        var original = document.title;
+        var fname = (data.agency + ' Claude Usage ' + fmtMonth(data.period))
+          .replace(/[^\w \-]+/g, '').trim().replace(/\s+/g, '-');
+        document.title = fname;
+        // Expand any collapsed disclosures (time-saved method, project
+        // descriptions) so they appear in the PDF, then restore them after —
+        // doing this in JS is more reliable across browsers than CSS alone.
+        var reopened = [];
+        container.querySelectorAll('details:not([open])').forEach(function (d) {
+          d.open = true; reopened.push(d);
+        });
+        var restore = function () {
+          document.title = original;
+          reopened.forEach(function (d) { d.open = false; });
+          window.removeEventListener('afterprint', restore);
+        };
+        window.addEventListener('afterprint', restore);
+        window.print();
+      });
+    }
+  }
+
+  global.renderClaudeUsage = renderClaudeUsage;
+})(window);
+
+  </script>
+  <script>
+    var SAMPLE = {
+  "agency": "Northwind Creative (sample)",
+  "period": "2026-05",
+  "generated_at": "2026-05-01",
+  "_note": "SYNTHETIC demo data \u2014 invented agency, no real people or clients. Used to render the self-contained design preview.",
+  "summary": {
+    "licensed_users": 12,
+    "active_users": 9,
+    "total_conversations": 214,
+    "total_human_turns": 690,
+    "avg_turns_per_convo": 3.2,
+    "total_files_uploaded": 132,
+    "total_tool_uses": 410,
+    "total_projects": 11,
+    "shared_projects": 6,
+    "agentic_usage_pct": 44.4,
+    "depth_breakdown": {
+      "advanced": 4,
+      "intermediate": 3,
+      "basic": 2
+    },
+    "power_users": 2,
+    "dormant_licences": 3,
+    "recently_active_users": 6,
+    "lapsed_licences": 2,
+    "thinking_conversations": 38,
+    "thinking_usage_pct": 17.8,
+    "starter_projects": 1,
+    "real_projects": 10,
+    "well_configured_projects": 4
+  },
+  "as_of": "2026-05-31",
+  "tool_use_by_category": {
+    "Code & files": 180,
+    "Web research": 96,
+    "Data & visualisation": 72,
+    "Connected apps": 44,
+    "Other tools": 18
+  },
+  "file_type_mix": {
+    "pdf": 38,
+    "png": 27,
+    "xlsx": 22,
+    "docx": 18,
+    "jpg": 14,
+    "csv": 7,
+    "pptx": 4,
+    "txt": 2
+  },
+  "length_distribution": [
+    {
+      "bucket": "1 (abandoned)",
+      "conversations": 18
+    },
+    {
+      "bucket": "2\u20135 (quick)",
+      "conversations": 96
+    },
+    {
+      "bucket": "6\u201315 (working)",
+      "conversations": 62
+    },
+    {
+      "bucket": "16\u201350 (deep)",
+      "conversations": 33
+    },
+    {
+      "bucket": "51+ (extended)",
+      "conversations": 5
+    }
+  ],
+  "weekly_activity": [
+    {
+      "week": "2026-04-27",
+      "conversations": 31
+    },
+    {
+      "week": "2026-05-04",
+      "conversations": 44
+    },
+    {
+      "week": "2026-05-11",
+      "conversations": 52
+    },
+    {
+      "week": "2026-05-18",
+      "conversations": 61
+    },
+    {
+      "week": "2026-05-25",
+      "conversations": 26
+    }
+  ],
+  "workflows": [
+    {
+      "key": "creative",
+      "label": "Generate & iterate creative",
+      "conversations": 58,
+      "qualifying": 50,
+      "examples": [
+        "Resizing a hero banner for 6 placements",
+        "Headline variations for spring campaign",
+        "Storyboard from a rough script"
+      ],
+      "minutes_band": [
+        15,
+        45
+      ],
+      "hours_low": 12.5,
+      "hours_high": 37.5
+    },
+    {
+      "key": "campaigns",
+      "label": "Plan & set up campaigns / media",
+      "conversations": 47,
+      "qualifying": 41,
+      "examples": [
+        "Building a paid social plan",
+        "PPC keyword shortlist",
+        "Creating an insertion order"
+      ],
+      "minutes_band": [
+        20,
+        45
+      ],
+      "hours_low": 13.7,
+      "hours_high": 30.8
+    },
+    {
+      "key": "meetings",
+      "label": "Summarise meetings & calls",
+      "conversations": 31,
+      "qualifying": 28,
+      "examples": [
+        "Client call action points",
+        "Fireflies transcript to next steps"
+      ],
+      "minutes_band": [
+        10,
+        20
+      ],
+      "hours_low": 4.7,
+      "hours_high": 9.3
+    },
+    {
+      "key": "reporting",
+      "label": "Analyse performance & report",
+      "conversations": 24,
+      "qualifying": 20,
+      "examples": [
+        "Monthly client performance deck",
+        "Channel performance table"
+      ],
+      "minutes_band": [
+        15,
+        35
+      ],
+      "hours_low": 5.0,
+      "hours_high": 11.7
+    },
+    {
+      "key": "comms",
+      "label": "Draft & polish comms (email, docs)",
+      "conversations": 19,
+      "qualifying": 16,
+      "examples": [
+        "Weekly status email",
+        "Tidy up a proposal draft"
+      ],
+      "minutes_band": [
+        8,
+        20
+      ],
+      "hours_low": 2.1,
+      "hours_high": 5.3
+    },
+    {
+      "key": "process",
+      "label": "Map processes & build diagrams",
+      "conversations": 18,
+      "qualifying": 15,
+      "examples": [
+        "Approval workflow diagram",
+        "Onboarding flow for a new client"
+      ],
+      "minutes_band": [
+        20,
+        40
+      ],
+      "hours_low": 5.0,
+      "hours_high": 10.0
+    },
+    {
+      "key": "roi",
+      "label": "Measure ROI & build business cases",
+      "conversations": 11,
+      "qualifying": 9,
+      "examples": [
+        "Time-saved estimate for the board",
+        "Business case for more licences"
+      ],
+      "minutes_band": [
+        20,
+        40
+      ],
+      "hours_low": 3.0,
+      "hours_high": 6.0
+    },
+    {
+      "key": "enablement",
+      "label": "Enablement, onboarding & prompting",
+      "conversations": 16,
+      "qualifying": 12,
+      "examples": [
+        "Setting up a team project",
+        "Prompting best practice"
+      ],
+      "minutes_band": [
+        10,
+        25
+      ],
+      "hours_low": 2.0,
+      "hours_high": 5.0
+    },
+    {
+      "key": "misc",
+      "label": "Experimentation & misc",
+      "conversations": 12,
+      "qualifying": 7,
+      "examples": [
+        "Quick brainstorm",
+        "Trying out a new idea"
+      ],
+      "minutes_band": [
+        0,
+        0
+      ],
+      "hours_low": 0.0,
+      "hours_high": 0.0
+    }
+  ],
+  "time_saved": {
+    "hours_low": 48,
+    "hours_high": 116,
+    "method": "Conservative estimate. Each conversation with at least 2 of your messages earns a modest per-workflow time saving (the manual time the task would otherwise take \u2014 see bands below), scaled up when the conversation was long and involved, since a deep working session replaces more manual effort than a quick exchange. Abandoned or single-message chats, and pure experimentation, earn nothing. Shown as a low\u2013high range, not a single figure.",
+    "min_turns": 2
+  },
+  "narrative": "9 of 12 licences have been active to date, with most activity in generate & iterate creative and plan & set up campaigns / media. Weekly usage climbed steadily through the month. 3 licences not yet active \u2014 the clearest onboarding opportunity. Estimated time saved to date is roughly 48\u2013116 hours.",
+  "scope": {
+    "source": "Claude.ai \u2014 web & desktop apps",
+    "includes": "All chats, projects and design work for licensed users \u2014 including when Claude writes code, builds files or runs analysis inside a chat.",
+    "excludes": "Direct Claude API / Console usage and other AI tools (LTX, Fireflies, etc.)."
+  },
+  "licences": [
+    {
+      "name": "Jordan Blake",
+      "email": "jordan.blake@northwind.example",
+      "conversations": 0,
+      "active_days": 0,
+      "last_active": null,
+      "status": "dormant",
+      "depth": "basic",
+      "power_user": false
+    },
+    {
+      "name": "Priya Shah",
+      "email": "priya.shah@northwind.example",
+      "conversations": 0,
+      "active_days": 0,
+      "last_active": null,
+      "status": "dormant",
+      "depth": "basic",
+      "power_user": false
+    },
+    {
+      "name": "Sam Okafor",
+      "email": "sam.okafor@northwind.example",
+      "conversations": 0,
+      "active_days": 0,
+      "last_active": null,
+      "status": "dormant",
+      "depth": "basic",
+      "power_user": false
+    },
+    {
+      "name": "Alex Rivera",
+      "email": "alex.rivera@northwind.example",
+      "conversations": 41,
+      "active_days": 14,
+      "last_active": "2026-05-28",
+      "status": "active",
+      "depth": "advanced",
+      "power_user": true
+    },
+    {
+      "name": "Mia Chen",
+      "email": "mia.chen@northwind.example",
+      "conversations": 33,
+      "active_days": 12,
+      "last_active": "2026-05-27",
+      "status": "active",
+      "depth": "advanced",
+      "power_user": true
+    }
+  ],
+  "projects": [
+    {
+      "name": "Spring Campaign \u2014 Social",
+      "description": "Working space for the spring paid-social push: shared brief, tone-of-voice notes and a library of approved headline and caption variations the team can pull from.",
+      "created_at": "2026-05-21",
+      "updated_at": "2026-05-28",
+      "is_private": false,
+      "has_system_prompt": true,
+      "docs_count": 3,
+      "last_updated": "2026-05-28"
+    },
+    {
+      "name": "Legacy Brand Audit",
+      "created_at": "2026-02-09",
+      "updated_at": "2026-02-20",
+      "is_private": true,
+      "has_system_prompt": false,
+      "docs_count": 2,
+      "last_updated": "2026-02-20"
+    },
+    {
+      "name": "Client Reporting Templates",
+      "description": "Reusable monthly-reporting scaffolds \u2014 performance summary structure, commentary prompts and a standard set of charts, so each client deck starts from the same baseline.",
+      "created_at": "2026-05-14",
+      "updated_at": "2026-05-27",
+      "is_private": false,
+      "has_system_prompt": true,
+      "docs_count": 5
+    },
+    {
+      "name": "PPC Research",
+      "created_at": "2026-05-12",
+      "updated_at": "2026-05-19",
+      "is_private": true,
+      "has_system_prompt": false,
+      "docs_count": 1
+    },
+    {
+      "name": "Brand Tone of Voice",
+      "description": "The agency's house style: do's and don'ts, example rewrites and a system prompt so drafts come back on-brand without re-explaining the voice each time.",
+      "created_at": "2026-05-06",
+      "updated_at": "2026-05-22",
+      "is_private": false,
+      "has_system_prompt": true,
+      "docs_count": 2
+    },
+    {
+      "name": "New Business Pitch",
+      "created_at": "2026-05-05",
+      "updated_at": "2026-05-05",
+      "is_private": true,
+      "has_system_prompt": false,
+      "docs_count": 0
+    },
+    {
+      "name": "Studio Resourcing",
+      "created_at": "2026-04-29",
+      "updated_at": "2026-05-10",
+      "is_private": true,
+      "has_system_prompt": false,
+      "docs_count": 1
+    }
+  ],
+  "wins": [
+    {
+      "text": "Resized a single hero creative into 6 placement formats in minutes",
+      "workflow": "creative"
+    },
+    {
+      "text": "Turned a rough brief into a complete paid-social plan ready for client sign-off",
+      "workflow": "campaigns"
+    },
+    {
+      "text": "Converted a messy client call recording into clear, shareable action points same-day",
+      "workflow": "meetings"
+    },
+    {
+      "text": "Built a monthly client performance deck straight from raw channel data",
+      "workflow": "reporting"
+    },
+    {
+      "text": "Mapped a new client onboarding process into a clean diagram for the team",
+      "workflow": "process"
+    }
+  ],
+  "prompt_quality": {
+    "scored_count": 164,
+    "avg_score": 2.7,
+    "distribution": {
+      "1": 18,
+      "2": 52,
+      "3": 61,
+      "4": 28,
+      "5": 5
+    },
+    "top_issues": [
+      {
+        "tag": "no_context",
+        "label": "No background context given",
+        "count": 58
+      },
+      {
+        "tag": "vague_task",
+        "label": "Task description too vague",
+        "count": 41
+      },
+      {
+        "tag": "no_format",
+        "label": "Output format not specified",
+        "count": 29
+      }
+    ],
+    "tips": [
+      "Before asking Claude to draft anything, paste in the brief, previous examples, or relevant background. Claude writes to what it knows \u2014 without it, the output is generic.",
+      "Be specific about the output format: \"A 200-word email in a direct, professional tone\" gets a better first draft than \"write an email about this\".",
+      "If you are asking Claude to do something strategic \u2014 analyse options, review a proposal, assess a brief \u2014 tell it your role and who the audience is first.",
+      "For recurring tasks, set up a Claude Project with a description of the client, their tone, and their constraints. Every conversation in that project then starts with that context already loaded."
+    ]
+  }
+};
+    renderClaudeUsage(document.getElementById('cuMount'), SAMPLE);
+  </script>
+</body>
+</html>

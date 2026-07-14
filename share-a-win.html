@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Share a Win — Miroma AI Hub</title>
+  <meta name="description" content="Tell us how AI made a commercial difference. We're building a picture of real business impact across the group.">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" integrity="sha384-sEVIly94UBRLKWdkYoPpSG7GD/e79YHMrxVyZaOk712Ga7+EAw6w1EFi+xBzBdd+" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js" integrity="sha384-EkqK+ezBWJuvO3hfrSx2iVqr3YQbhmnzn8kPhOpBZ+0GMVU5oGSgptwIu8D84HjE" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js" integrity="sha384-M481iNZJtbpypKgvlvZ+78Giq0BsewFLk5r2k+MOcGXlwKCc27DQRZ+WCV/zpmpC" crossorigin="anonymous"></script>
+  <script src="js/auth.js"></script>
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__logo">
+        <div class="nav__monogram"><img src="assets/logos/monogram.png" alt=""></div>
+        <span class="nav__brand">MIROMA · AI HUB</span>
+      </a>
+      <ul class="nav__links">
+        <li><a href="index.html"><span class="nav__num">01</span> Hub</a></li>
+        <li><a href="learning.html"><span class="nav__num">02</span> Learning Pathway</a></li>
+        <li><a href="use-cases.html"><span class="nav__num">03</span> Use Cases</a></li>
+        <li><a href="policy.html"><span class="nav__num">04</span> Policy &amp; Guidelines</a></li>
+        <li><a href="whats-new.html"><span class="nav__num">05</span> What's New</a></li>
+        <li id="nav-admin-item" style="display:none"><a href="admin.html"><span class="nav__num">06</span> Agency Oversight</a></li>
+      </ul>
+      <div class="nav__contact"><a href="https://miromabrandhub.com/" target="_blank" rel="noopener noreferrer" class="nav__brand-hub-btn">Brand Hub ↗</a><span class="nav__divider"></span><button class="nav__signout-btn">Sign out</button></div>
+      <button class="nav__toggle" id="navToggle" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html">Hub</a>
+    <a href="learning.html">Learning Pathway</a>
+    <a href="use-cases.html">Use Cases</a>
+    <a href="policy.html">Policy &amp; Guidelines</a>
+    <a href="whats-new.html">What's New</a>
+    <a id="mob-admin-link" href="admin.html" style="display:none">Agency Oversight</a>
+    <a href="https://miromabrandhub.com/" target="_blank" rel="noopener noreferrer">Brand Hub ↗</a>
+    <button class="mob-signout-btn">Sign out</button>
+  </div>
+
+  <!-- PAGE HEADER -->
+  <section class="section section--white" style="padding-top: calc(var(--nav-height) + 48px); padding-bottom: 40px;">
+    <div class="container">
+      <p class="section-header__label">AI Impact · Miroma Group</p>
+      <h1 class="section-header__title" style="margin-top: 8px;">Has AI made a difference at your agency?</h1>
+      <p class="section-header__body" style="max-width: 600px;">
+        We're building a picture of real business impact across the group — not just efficiency gains, but commercial outcomes.
+      </p>
+    </div>
+  </section>
+
+  <!-- FORM -->
+  <section class="section section--white">
+    <div class="container">
+
+      <div class="submit-box">
+
+        <!-- Success state -->
+        <div id="sawSuccess" style="display:none" class="saw-success">
+          <div class="saw-success__icon">✓</div>
+          <h2 class="saw-success__title">Thanks for sharing.</h2>
+          <p class="saw-success__body">We'll review your submission and be in touch if we'd like to feature your story or invite you to present at the AI Summit.</p>
+          <a href="index.html" class="btn btn--outline-inv">Back to the Hub</a>
+        </div>
+
+        <form id="sawForm" novalidate>
+          <div class="submit-box__header">
+            <p class="submit-box__label">Share a Win</p>
+            <h2 class="submit-box__title">Tell us about the impact</h2>
+            </div>
+
+          <!-- About you -->
+          <div class="saw-section-label">About you</div>
+          <div class="submit-form">
+            <div class="form-field">
+              <label for="saw-name">Your name</label>
+              <input type="text" id="saw-name" name="name" placeholder="e.g. Jamie Smith" maxlength="120" required>
+            </div>
+            <div class="form-field">
+              <label for="saw-agency">Agency</label>
+              <input type="text" id="saw-agency" name="agency" placeholder="e.g. Spot Co" maxlength="80" required>
+            </div>
+            <div class="form-field">
+              <label for="saw-role">Your role <span class="form-field__optional">(optional)</span></label>
+              <input type="text" id="saw-role" name="role" placeholder="e.g. Senior Strategist, Creative Director" maxlength="120">
+            </div>
+          </div>
+
+          <!-- The project -->
+          <div class="saw-section-label">The project</div>
+          <div class="submit-form">
+            <div class="form-field form-field--full">
+              <label for="saw-title">Title <span class="form-field__hint">8 words or fewer — e.g. "Won a £500k pitch in 48 hours"</span></label>
+              <input type="text" id="saw-title" name="title" placeholder="e.g. Condensed 3-month research into 4 weeks to win the business" maxlength="200" required>
+            </div>
+            <div class="form-field">
+              <label for="saw-client">Client</label>
+              <input type="text" id="saw-client" name="client" placeholder="e.g. Nike (or 'New business — confidential')" maxlength="120" required>
+            </div>
+            <div class="form-field">
+              <label for="saw-business-area">Business area</label>
+              <select id="saw-business-area" name="businessArea" required>
+                <option value="" disabled selected>Select one</option>
+                <option value="Strategy">Strategy</option>
+                <option value="Creative">Creative</option>
+                <option value="Media / Planning">Media / Planning</option>
+                <option value="PR & Comms">PR &amp; Comms</option>
+                <option value="Account Management">Account Management</option>
+                <option value="Production">Production</option>
+                <option value="New Business / Pitch">New Business / Pitch</option>
+                <option value="Operations">Operations</option>
+                <option value="Data & Insights">Data &amp; Insights</option>
+                <option value="Finance">Finance</option>
+                <option value="Legal">Legal</option>
+                <option value="Technology & Development">Technology &amp; Development</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="form-field form-field--full">
+              <label for="saw-goal">What were you trying to achieve?</label>
+              <textarea id="saw-goal" name="goal" placeholder="e.g. Win a competitive pitch for a campaign rebrand. We had 48 hours and were up against three other agencies." maxlength="1000" required></textarea>
+            </div>
+          </div>
+
+          <!-- Tools -->
+          <div class="saw-section-label">AI tools involved</div>
+          <div class="form-field form-field--full">
+            <label>Select all that apply</label>
+            <div class="form-checks-grid">
+              <label class="form-check"><input type="checkbox" name="tools" value="Claude"> Claude</label>
+              <label class="form-check"><input type="checkbox" name="tools" value="LTX Studio"> LTX Studio</label>
+              <label class="form-check"><input type="checkbox" name="tools" value="Descript"> Descript</label>
+              <label class="form-check"><input type="checkbox" name="tools" value="Springboards"> Springboards</label>
+              <label class="form-check"><input type="checkbox" name="tools" value="Fireflies"> Fireflies</label>
+              <label class="form-check"><input type="checkbox" name="tools" value="Gemini"> Gemini</label>
+              <label class="form-check"><input type="checkbox" name="tools" value="Writer"> Writer</label>
+              <label class="form-check"><input type="checkbox" name="tools" value="Custom automation"> Custom automation</label>
+              <label class="form-check"><input type="checkbox" name="tools" value="Other"> Other</label>
+            </div>
+          </div>
+
+          <!-- Impact -->
+          <div class="saw-section-label">Commercial impact</div>
+          <div class="submit-form">
+            <div class="form-field form-field--full">
+              <label>Type of impact</label>
+              <div class="form-checks-grid">
+                <label class="form-check"><input type="checkbox" name="impactTypes" value="New business won"> New business won</label>
+                <label class="form-check"><input type="checkbox" name="impactTypes" value="Account retained"> Account retained</label>
+                <label class="form-check"><input type="checkbox" name="impactTypes" value="Pitch advantage / competitive edge"> Pitch advantage / competitive edge</label>
+                <label class="form-check"><input type="checkbox" name="impactTypes" value="Production cost reduced"> Production cost reduced</label>
+                <label class="form-check"><input type="checkbox" name="impactTypes" value="Faster turnaround"> Faster turnaround</label>
+                <label class="form-check"><input type="checkbox" name="impactTypes" value="Expanded scope (more work, same team)"> Expanded scope (more work, same team)</label>
+                <label class="form-check"><input type="checkbox" name="impactTypes" value="Creative quality improved"> Creative quality improved</label>
+                <label class="form-check"><input type="checkbox" name="impactTypes" value="Team time saved"> Team time saved</label>
+              </div>
+            </div>
+            <div class="form-field">
+              <label for="saw-value">Rough commercial value</label>
+              <input type="text" id="saw-value" name="commercialValue" placeholder="e.g. £120k contract, £30k saved in production costs" maxlength="300">
+            </div>
+            <div class="form-field">
+              <label for="saw-time-saved">Estimated time saved</label>
+              <input type="text" id="saw-time-saved" name="timeSaved" placeholder="e.g. 2 days, 6 hours, 3 weeks" maxlength="100">
+            </div>
+            <div class="form-field">
+              <label for="saw-without-ai">Would this have happened without AI?</label>
+              <select id="saw-without-ai" name="withoutAI">
+                <option value="" disabled selected>Select one</option>
+                <option value="impossible">Wouldn't have been possible — AI unlocked a new capability</option>
+                <option value="not-viable">Wouldn't have been viable — too expensive or time-intensive without AI</option>
+                <option value="slower">Would have happened, but taken significantly longer</option>
+                <option value="lower-quality">Would have happened, but at lower quality</option>
+                <option value="same">Would have happened roughly the same way</option>
+              </select>
+            </div>
+            <div class="form-field form-field--full">
+              <label for="saw-detail">Tell us the story</label>
+              <textarea id="saw-detail" name="detail" placeholder="Walk us through what happened. Which tool did what? What was the client reaction? What would the alternative have looked like?" maxlength="5000" required style="min-height:160px;"></textarea>
+            </div>
+            <div class="form-field form-field--full">
+              <label for="saw-quote">Client or stakeholder quote <span class="form-field__optional">(optional)</span></label>
+              <textarea id="saw-quote" name="clientQuote" placeholder="e.g. 'This is the best pitch deck we've seen in years.' — if you have a reaction worth capturing, add it here." maxlength="2000" style="min-height:80px;"></textarea>
+            </div>
+            <div class="form-field form-field--full">
+              <label for="saw-link">Supporting material <span class="form-field__optional">(optional)</span></label>
+              <input type="url" id="saw-link" name="supportingLink" placeholder="Paste a link — Google Drive, Dropbox, etc." maxlength="2000">
+            </div>
+            <div class="form-field form-field--full">
+              <label class="saw-toggle-label">
+                <input type="checkbox" id="saw-shareable" name="shareable" value="yes" checked>
+                <span class="saw-toggle-text">
+                  <strong class="saw-toggle-text__label">Happy to share this impact story</strong>
+                  <span class="saw-toggle-text__hint">Tick to allow other Miroma agencies to learn from this story. Unticked, it stays visible only to your agency admins and the AI team.</span>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-footer">
+            <button type="submit" class="btn btn--outline-inv" id="sawSubmitBtn">Submit story →</button>
+            <p id="sawError" class="form-error" style="display:none"></p>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="section--sm">
+    <div class="container">
+      <div class="callout callout--dark">
+        <span class="callout__icon">✉</span>
+        <div>
+          <p class="callout__title">Questions about AI impact?</p>
+          <p class="callout__text">Reach out to the AI team at <a href="mailto:aiteam@miroma.com">aiteam@miroma.com</a></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer__inner">
+      <div class="footer__top">
+        <div>
+          <a href="index.html" class="footer__logo"><img src="assets/logos/logo-white.png" alt="Miroma Group"></a>
+          <p class="footer__tagline">The central hub for all things AI at Miroma Group. Tools, training, use cases and policy — all in one place.</p>
+        </div>
+        <div>
+          <p class="footer__col-label">Quick Links</p>
+          <ul class="footer__links">
+            <li><a href="tools.html">AI Tools</a></li>
+            <li><a href="learning.html">Learning Pathway</a></li>
+            <li><a href="use-cases.html">Use Cases</a></li>
+            <li><a href="policy.html">Policy &amp; Guidelines</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="footer__col-label">AI Team</p>
+          <a href="mailto:aiteam@miroma.com" class="footer__email">aiteam@miroma.com</a>
+          <p class="footer__email-note">Questions, ideas, or feedback? Get in touch with the AI team.</p>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p class="footer__copy">© 2025 Miroma Group. All rights reserved.</p>
+        <p class="footer__copy">AI Hub — Internal Resource</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/requests.js"></script>
+  <script src="js/admin-nav.js?v=3"></script>
+  <!-- Form submission + agency pre-fill moved to js/share-a-win.js (S-6 Part B). -->
+  <script src="js/share-a-win.js"></script>
+</body>
+</html>

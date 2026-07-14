@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Miroma AI Hub</title>
+  <meta name="description" content="Everything you need to use AI at Miroma. The tools, the how-tos, and the policy — all here.">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" integrity="sha384-sEVIly94UBRLKWdkYoPpSG7GD/e79YHMrxVyZaOk712Ga7+EAw6w1EFi+xBzBdd+" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js" integrity="sha384-EkqK+ezBWJuvO3hfrSx2iVqr3YQbhmnzn8kPhOpBZ+0GMVU5oGSgptwIu8D84HjE" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js" integrity="sha384-M481iNZJtbpypKgvlvZ+78Giq0BsewFLk5r2k+MOcGXlwKCc27DQRZ+WCV/zpmpC" crossorigin="anonymous"></script>
+  <script src="js/auth.js"></script>
+  <!-- Google Analytics (config moved to js/analytics.js — S-6 Part B) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-L7H3N34BG1"></script>
+  <script src="js/analytics.js"></script>
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__logo">
+        <div class="nav__monogram"><img src="assets/logos/monogram.png" alt=""></div>
+        <span class="nav__brand">MIROMA · AI HUB</span>
+      </a>
+      <ul class="nav__links">
+        <li><a href="index.html"><span class="nav__num">01</span> Hub</a></li>
+        <li><a href="learning.html"><span class="nav__num">02</span> Learning Pathway</a></li>
+        <li><a href="use-cases.html"><span class="nav__num">03</span> Use Cases</a></li>
+        <li><a href="policy.html"><span class="nav__num">04</span> Policy &amp; Guidelines</a></li>
+        <li><a href="whats-new.html"><span class="nav__num">05</span> What's New</a></li>
+        <li id="nav-admin-item" style="display:none"><a href="admin.html"><span class="nav__num">06</span> Agency Oversight</a></li>
+      </ul>
+      <div class="nav__contact"><a href="https://miromabrandhub.com/" target="_blank" rel="noopener noreferrer" class="nav__brand-hub-btn">Brand Hub ↗</a><span class="nav__divider"></span><button class="nav__signout-btn">Sign out</button></div>
+      <button class="nav__toggle" id="navToggle" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html">Hub</a>
+    <a href="learning.html">Learning Pathway</a>
+    <a href="use-cases.html">Use Cases</a>
+    <a href="policy.html">Policy &amp; Guidelines</a>
+    <a href="whats-new.html">What's New</a>
+    <a id="mob-admin-link" href="admin.html" style="display:none">Agency Oversight</a>
+    <a href="https://miromabrandhub.com/" target="_blank" rel="noopener noreferrer">Brand Hub ↗</a>
+    <button class="mob-signout-btn">Sign out</button>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero__orbs" aria-hidden="true"><span></span><span></span></div>
+    <div class="hero__ripples" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div class="hero__spotlight" aria-hidden="true"></div>
+    <div class="hero__inner">
+      <div class="hero__meta">
+        <span>00 / Internal · Miroma Group</span>
+        <span class="hero__meta-right">The AI Hub</span>
+      </div>
+      <!-- Personalised greeting for signed-in users; filled by js/home-greeting.js.
+           Hidden by default so the static hero is unchanged when signed out / no data. -->
+      <div class="hero__welcome" id="heroWelcome" hidden></div>
+      <h1 class="hero__title">
+        <span class="reveal-line"><span class="reveal-line__inner">Everything you need</span></span>
+        <span class="reveal-line"><span class="reveal-line__inner">to use AI at Miroma.<span class="cursor"></span></span></span>
+      </h1>
+      <p class="hero__body">
+        One hub for every tool, use case, and guideline across the group. No hunting around. No starting from scratch.
+      </p>
+      <div class="hero__cta">
+        <a href="tools.html" class="btn btn--primary">Explore the Tools</a>
+        <a href="learning.html" class="btn btn--outline">Start Learning</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- TOOLS -->
+  <section class="section section--white">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-header__label">01 — The Tools</p>
+        <h2 class="section-header__title">Your AI Toolkit</h2>
+        <p class="section-header__body">Miroma's approved AI toolkit. These are the only platforms cleared for use across the group — any tool not listed requires explicit sign-off before use.</p>
+      </div>
+      <div class="tools-grid">
+        <a href="https://claude.ai/" target="_blank" rel="noopener noreferrer" class="tool-card-sm">
+          <span class="tool-card-sm__num">01</span>
+          <span class="tool-card-sm__name">Claude</span>
+          <span class="tool-card-sm__desc">An AI assistant that helps teams draft documents, analyse data, answer questions, summarise information, write and review code, and automate repetitive tasks.</span>
+          <span class="tool-card-sm__arrow">→</span>
+        </a>
+        <a href="https://app.ltx.studio/" target="_blank" rel="noopener noreferrer" class="tool-card-sm">
+          <span class="tool-card-sm__num">02</span>
+          <span class="tool-card-sm__name">LTX Studio</span>
+          <span class="tool-card-sm__desc">Generate images, videos, animations, and storyboards. Explore creative concepts, produce detailed mockups, and deliver tailored assets efficiently.</span>
+          <span class="tool-card-sm__arrow">→</span>
+        </a>
+        <a href="https://web.descript.com/" target="_blank" rel="noopener noreferrer" class="tool-card-sm">
+          <span class="tool-card-sm__num">03</span>
+          <span class="tool-card-sm__name">Descript</span>
+          <span class="tool-card-sm__desc">Fast, efficient audio and video editing with script-based editing, video translation, footage search, and rapid scene extraction.</span>
+          <span class="tool-card-sm__arrow">→</span>
+        </a>
+        <a href="https://springboards.ai/" target="_blank" rel="noopener noreferrer" class="tool-card-sm">
+          <span class="tool-card-sm__num">04</span>
+          <span class="tool-card-sm__name">Springboards</span>
+          <span class="tool-card-sm__desc">An AI platform for advertising and marketing teams who want better ideas, not just faster answers.</span>
+          <span class="tool-card-sm__arrow">→</span>
+        </a>
+        <a href="https://app.fireflies.ai/" target="_blank" rel="noopener noreferrer" class="tool-card-sm">
+          <span class="tool-card-sm__num">05</span>
+          <span class="tool-card-sm__name">Fireflies</span>
+          <span class="tool-card-sm__desc">An AI meeting assistant that records, transcribes, and summarises conversations so teams can revisit key moments, search discussions, extract insights, and share action points.</span>
+          <span class="tool-card-sm__arrow">→</span>
+        </a>
+      </div>
+      <div class="flex-end mt-sm">
+        <a href="tools.html" class="btn-arrow">View all tools <span>→</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXPLORE -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-header__label">02 — Explore</p>
+        <h2 class="section-header__title">Everything in One Place</h2>
+      </div>
+      <div class="explore-grid">
+        <a href="learning.html" class="explore-card">
+          <span class="explore-card__num">01 — Learn</span>
+          <h3 class="explore-card__title">Learning Pathway</h3>
+          <p class="explore-card__body">Watch curated training videos for every tool. Build your AI skills at your own pace, from first steps to advanced workflows.</p>
+          <span class="explore-card__cta">Start Learning <span>→</span></span>
+        </a>
+        <a href="use-cases.html" class="explore-card">
+          <span class="explore-card__num">02 — Inspire</span>
+          <h3 class="explore-card__title">Use Cases</h3>
+          <p class="explore-card__body">Explore how AI is transforming real workflows across Miroma. Get inspired — then submit your own use case to the team.</p>
+          <span class="explore-card__cta">Get Inspired <span>→</span></span>
+        </a>
+        <a href="policy.html" class="explore-card">
+          <span class="explore-card__num">03 — Govern</span>
+          <h3 class="explore-card__title">Policy &amp; Guidelines</h3>
+          <p class="explore-card__body">Access our AI policy, usage guidelines and data handling documentation. Use AI tools confidently and compliantly.</p>
+          <span class="explore-card__cta">Read the Policy <span>→</span></span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHAT'S NEW -->
+  <section class="section section--white">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-header__label">03 — What's New</p>
+        <h2 class="section-header__title">Latest Updates</h2>
+        <p class="section-header__body">The newest tips, product updates and announcements from across the Miroma AI toolkit.</p>
+      </div>
+      <div class="wn-grid" id="homeNewsFeed"></div>
+      <div class="flex-end mt-sm">
+        <a href="whats-new.html" class="btn-arrow">View all updates <span>→</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- SHARE A WIN -->
+  <section class="section section--white">
+    <div class="container">
+      <div class="win-banner">
+        <div class="win-banner__content">
+          <h2 class="win-banner__title">Has AI made a difference at your agency?</h2>
+          <p class="win-banner__body">We're building a picture of real business impact across the group — new wins, retained accounts, pitches where AI gave you the edge. If AI played a meaningful role in a project, we want to hear about it.</p>
+          <a href="share-a-win.html" class="btn btn--primary">Share a Win →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GET INVOLVED -->
+  <section class="section section--white">
+    <div class="container">
+      <div class="submit-box">
+        <div class="submit-box__header">
+          <p class="submit-box__label">Get Involved</p>
+          <h2 class="submit-box__title">Work with the AI team</h2>
+          <p class="submit-box__body">Share what you've built, request a custom solution, book a training session, or set up tool access for a new starter.</p>
+        </div>
+
+        <div class="action-switcher" role="tablist" aria-label="Action type">
+          <button class="action-switcher__btn is-active" role="tab" data-panel="panel-usecase" aria-selected="true">Share a use case</button>
+          <button class="action-switcher__btn" role="tab" data-panel="panel-build" aria-selected="false">Request a build / connector</button>
+          <button class="action-switcher__btn" role="tab" data-panel="panel-training" aria-selected="false">Request training</button>
+          <button class="action-switcher__btn" role="tab" data-panel="panel-onboarding" aria-selected="false">New starter access</button>
+        </div>
+
+        <!-- PANEL 1: Share a use case -->
+        <div class="action-panel is-active" id="panel-usecase" role="tabpanel">
+          <form class="submit-form" id="hubUseCaseForm" novalidate>
+            <div class="form-field">
+              <label for="huc-name">Your Name</label>
+              <input type="text" id="huc-name" name="name" placeholder="e.g. Jamie Smith" required>
+            </div>
+            <div class="form-field">
+              <label for="huc-team">Team / Agency</label>
+              <input type="text" id="huc-team" name="team" placeholder="e.g. Digital Team at Spot Co" required>
+            </div>
+            <div class="form-field form-field--full">
+              <label for="huc-title">Use Case Title</label>
+              <input type="text" id="huc-title" name="title" placeholder="e.g. Using Claude to draft client briefs" required>
+            </div>
+            <div class="form-field">
+              <label for="huc-tool">AI Tool Used</label>
+              <select id="huc-tool" name="tool" required>
+                <option value="" disabled selected>Select a tool</option>
+                <option>Claude</option>
+                <option>LTX Studio</option>
+                <option>Descript</option>
+                <option>Springboards</option>
+                <option>Fireflies</option>
+                <option>Multiple Tools</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="huc-category">Category</label>
+              <select id="huc-category" name="category" required>
+                <option value="" disabled selected>Select a category</option>
+                <option>Strategy</option>
+                <option>Social Media</option>
+                <option>Account Management</option>
+                <option>Media Planning &amp; Buying</option>
+                <option>Finance</option>
+                <option>Creative &amp; Production</option>
+                <option>PR &amp; Communications</option>
+                <option>Technology &amp; Development</option>
+              </select>
+            </div>
+            <div class="form-field form-field--full">
+              <label for="huc-desc">Describe the Use Case</label>
+              <textarea id="huc-desc" name="description" placeholder="What problem were you solving? How did you use the tool? What was the process?"></textarea>
+            </div>
+            <div class="form-field form-field--full">
+              <label for="huc-outcome">Outcome / Result</label>
+              <textarea id="huc-outcome" name="outcome" placeholder="What was the result? Time saved, quality improvement, client reaction?" style="min-height:90px;"></textarea>
+            </div>
+            <div class="form-footer">
+              <button type="submit" class="btn btn--outline-inv">Submit Use Case →</button>
+              <p class="form-note">Sent directly to <a href="mailto:aiteam@miroma.com" style="color:rgba(255,255,255,0.4);text-decoration:underline;">aiteam@miroma.com</a></p>
+            </div>
+          </form>
+        </div>
+
+        <!-- PANEL 2: Request a custom build -->
+        <div class="action-panel" id="panel-build" role="tabpanel">
+          <form class="submit-form" id="hubBuildForm" novalidate>
+            <div class="form-field">
+              <label for="hb-name">Your Name</label>
+              <input type="text" id="hb-name" name="name" placeholder="e.g. Jamie Smith" required>
+            </div>
+            <div class="form-field">
+              <label for="hb-team">Team / Agency</label>
+              <input type="text" id="hb-team" name="team" placeholder="e.g. Digital Team at Spot Co" required>
+            </div>
+            <div class="form-field form-field--full">
+              <label for="hb-problem">What problem are you trying to solve?</label>
+              <textarea id="hb-problem" name="problem" placeholder="Describe the workflow, task, or challenge you'd like AI to help with…" required></textarea>
+            </div>
+            <div class="form-field form-field--full">
+              <label for="hb-context">Which tools or workflows are involved? <span style="color:rgba(255,255,255,0.22);font-weight:400;">(optional)</span></label>
+              <textarea id="hb-context" name="context" placeholder="e.g. We currently use Salesforce and export to Excel before manual reporting…" style="min-height:90px;"></textarea>
+            </div>
+            <div class="form-field form-field--full">
+              <label for="hb-success">What does success look like?</label>
+              <textarea id="hb-success" name="success" placeholder="What would the ideal solution do? How would you measure it working?" style="min-height:90px;" required></textarea>
+            </div>
+            <div class="form-field">
+              <label for="hb-urgency">Urgency / Timeline</label>
+              <select id="hb-urgency" name="urgency">
+                <option value="" disabled selected>Select a timeline</option>
+                <option>ASAP — we have a live need</option>
+                <option>Within the next month</option>
+                <option>No rush — planning ahead</option>
+                <option>Just exploring the idea</option>
+              </select>
+            </div>
+            <div class="form-footer">
+              <button type="submit" class="btn btn--outline-inv">Submit Request →</button>
+              <p class="form-note">Sent directly to <a href="mailto:aiteam@miroma.com" style="color:rgba(255,255,255,0.4);text-decoration:underline;">aiteam@miroma.com</a></p>
+            </div>
+          </form>
+        </div>
+
+        <!-- PANEL 3: Request training -->
+        <div class="action-panel" id="panel-training" role="tabpanel">
+          <form class="submit-form" id="hubTrainingForm" novalidate>
+            <div class="form-field">
+              <label for="ht-name">Your Name</label>
+              <input type="text" id="ht-name" name="name" placeholder="e.g. Jamie Smith" required>
+            </div>
+            <div class="form-field">
+              <label for="ht-team">Team / Agency</label>
+              <input type="text" id="ht-team" name="team" placeholder="e.g. Digital Team at Spot Co" required>
+            </div>
+            <div class="form-field">
+              <label for="ht-tool">Tool you'd like training on</label>
+              <select id="ht-tool" name="tool" required>
+                <option value="" disabled selected>Select a tool</option>
+                <option>Claude</option>
+                <option>LTX Studio</option>
+                <option>Descript</option>
+                <option>Springboards</option>
+                <option>Fireflies</option>
+                <option>Multiple / General AI</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="ht-size">Group size</label>
+              <select id="ht-size" name="size">
+                <option value="" disabled selected>Select group size</option>
+                <option>Just me</option>
+                <option>2–5 people</option>
+                <option>6–15 people</option>
+                <option>16+ people</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="ht-level">Current experience level</label>
+              <select id="ht-level" name="level">
+                <option value="" disabled selected>Select a level</option>
+                <option>Complete beginner — haven't used it yet</option>
+                <option>Some experience — used it a few times</option>
+                <option>Intermediate — use it regularly</option>
+                <option>Advanced — want to go deeper</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="ht-dates">Preferred dates <span style="color:rgba(255,255,255,0.22);font-weight:400;">(optional)</span></label>
+              <input type="text" id="ht-dates" name="dates" placeholder="e.g. Any Thursday afternoon, or w/c 12 May">
+            </div>
+            <div class="form-field form-field--full">
+              <label for="ht-goal">What do you want to be able to do after the session?</label>
+              <textarea id="ht-goal" name="goal" placeholder="e.g. Use Claude to draft campaign briefs and synthesise research without starting from scratch each time…" required></textarea>
+            </div>
+            <div class="form-footer">
+              <button type="submit" class="btn btn--outline-inv">Request Training →</button>
+              <p class="form-note">Sent directly to <a href="mailto:aiteam@miroma.com" style="color:rgba(255,255,255,0.4);text-decoration:underline;">aiteam@miroma.com</a></p>
+            </div>
+          </form>
+        </div>
+
+        <!-- PANEL 4: New starter tool access -->
+        <div class="action-panel" id="panel-onboarding" role="tabpanel">
+          <form class="submit-form" id="hubOnboardingForm" novalidate>
+            <div class="form-field">
+              <label for="ho-name">New Starter's Name</label>
+              <input type="text" id="ho-name" name="name" placeholder="e.g. Jamie Smith" required>
+            </div>
+            <div class="form-field">
+              <label for="ho-role">Job Title / Role</label>
+              <input type="text" id="ho-role" name="role" placeholder="e.g. Account Manager" required>
+            </div>
+            <div class="form-field">
+              <label for="ho-agency">Agency</label>
+              <select id="ho-agency" name="agency" required>
+                <option value="" disabled selected>Select an agency</option>
+                <option>Spot Co</option>
+                <option>Multiple</option>
+                <option>StoryHouse</option>
+                <option>Maker Lab</option>
+                <option>Sold Out</option>
+                <option>Buzz16</option>
+                <option>MX UK</option>
+                <option>MX US</option>
+                <option>Attentive</option>
+                <option>Dewynters</option>
+                <option>MFN</option>
+                <option>Miroma Group (central)</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="ho-start">Start Date</label>
+              <input type="text" id="ho-start" name="startDate" placeholder="e.g. 5 May 2025">
+            </div>
+            <div class="form-field form-field--full form-field--checks">
+              <label>Tools Needed <span style="color:rgba(255,255,255,0.3);font-weight:400;">(select all that apply)</span></label>
+              <div class="form-checks">
+                <label class="form-check">
+                  <input type="checkbox" name="tools" value="Claude">
+                  <span class="form-check__label">Claude</span>
+                </label>
+                <label class="form-check">
+                  <input type="checkbox" name="tools" value="LTX Studio">
+                  <span class="form-check__label">LTX Studio</span>
+                </label>
+                <label class="form-check">
+                  <input type="checkbox" name="tools" value="Descript">
+                  <span class="form-check__label">Descript</span>
+                </label>
+                <label class="form-check">
+                  <input type="checkbox" name="tools" value="Springboards">
+                  <span class="form-check__label">Springboards</span>
+                </label>
+                <label class="form-check">
+                  <input type="checkbox" name="tools" value="Fireflies">
+                  <span class="form-check__label">Fireflies</span>
+                </label>
+              </div>
+            </div>
+            <div class="form-field form-field--full">
+              <label for="ho-approver">Cost Approver Email <span style="color:rgba(255,255,255,0.3);font-weight:400;">(your line manager or agency lead)</span></label>
+              <input type="email" id="ho-approver" name="approverEmail" placeholder="e.g. manager@agency.com">
+            </div>
+            <div class="form-field form-field--full">
+              <label for="ho-notes">Additional Notes <span style="color:rgba(255,255,255,0.3);font-weight:400;">(optional)</span></label>
+              <textarea id="ho-notes" name="notes" placeholder="Anything else the AI team should know — e.g. specific use cases, urgency, or existing accounts to transfer." style="min-height:90px;"></textarea>
+            </div>
+            <div class="form-footer">
+              <button type="submit" class="btn btn--outline-inv">Submit Access Request →</button>
+            </div>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="section--sm">
+    <div class="container">
+      <div class="callout callout--dark">
+        <span class="callout__icon">✉</span>
+        <div>
+          <p class="callout__title">Questions about AI at Miroma?</p>
+          <p class="callout__text">Reach out to the AI team at <a href="mailto:aiteam@miroma.com">aiteam@miroma.com</a> — we're here to help.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer__inner">
+      <div class="footer__top">
+        <div>
+          <a href="index.html" class="footer__logo"><img src="assets/logos/logo-white.png" alt="Miroma Group"></a>
+          <p class="footer__tagline">The central hub for all things AI at Miroma Group. Tools, training, use cases and policy — all in one place.</p>
+        </div>
+        <div>
+          <p class="footer__col-label">Quick Links</p>
+          <ul class="footer__links">
+            <li><a href="tools.html">AI Tools</a></li>
+            <li><a href="learning.html">Learning Pathway</a></li>
+            <li><a href="use-cases.html">Use Cases</a></li>
+            <li><a href="policy.html">Policy &amp; Guidelines</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="footer__col-label">AI Team</p>
+          <a href="mailto:aiteam@miroma.com" class="footer__email">aiteam@miroma.com</a>
+          <p class="footer__email-note">Questions, ideas, or feedback? Get in touch with the AI team.</p>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p class="footer__copy">© 2025 Miroma Group. All rights reserved.</p>
+        <p class="footer__copy">AI Hub — Internal Resource</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/news-data.js"></script>
+  <script src="js/home-news.js"></script>
+  <script src="js/home-greeting.js"></script>
+  <script src="js/requests.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/admin-nav.js?v=3"></script>
+</body>
+</html>

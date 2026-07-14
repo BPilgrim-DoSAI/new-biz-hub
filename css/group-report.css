@@ -1,0 +1,124 @@
+/* ── Group AI Progress — live admin-tab equivalent of the CEO one-pager ──
+   Same design tokens/classes as the one-pager's own light-print theme
+   (Miroma/ai-usage-reporting/Group Reports/<period>/onepager.template.html),
+   ported to a `.gr-` prefix and a fluid, browser-admin layout instead of a
+   fixed A4 print sheet. Values match css/claude-usage.css's `.cu--light`
+   tokens (#111/#6B6A64/#C9A21A/#fafafa/#EDECE6…) since that's the same
+   palette already used elsewhere in the Hub. */
+
+.gr-root {
+  --gr-bg: #fff; --gr-surface: #fafafa; --gr-surface2: #f5f5f2;
+  --gr-border: rgba(0,0,0,0.12); --gr-divider: rgba(0,0,0,0.08);
+  --gr-text: #111; --gr-muted: #6B6A64; --gr-sub: #6B6A64;
+  --gr-track: #EDECE6; --gr-bar: #111; --gr-bar-mut: #9C9A90; --gr-accent: #C9A21A;
+  font-family: 'PPNeueMontreal', 'Lato', system-ui, sans-serif;
+  color: var(--gr-text);
+  max-width: 1200px;
+}
+
+.gr-root h2, .gr-root h3 { margin: 0; }
+
+/* ── header ── */
+.gr-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 8px; }
+.gr-eyebrow { font-size: 11px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--gr-muted); margin-bottom: 4px; }
+.gr-h1 { font-size: 24px; font-weight: 500; letter-spacing: -0.01em; }
+.gr-badge { display: inline-block; font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase;
+            padding: 5px 10px; background: var(--gr-surface2); border: 1px solid var(--gr-border); color: var(--gr-muted); border-radius: 4px; }
+
+/* ── KPI cards ── */
+.gr-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.gr-kpi { background: var(--gr-surface); border: 1px solid var(--gr-border); border-top: 3px solid rgba(0,0,0,0.2);
+          border-radius: 8px; padding: 12px 14px; }
+.gr-kpi--hl { border-top-color: var(--gr-accent); }
+.gr-kpi__lbl { font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--gr-muted); margin-bottom: 6px; }
+.gr-kpi__val { font-size: 22px; font-weight: 500; letter-spacing: -0.02em; line-height: 1; font-variant-numeric: tabular-nums; }
+.gr-kpi__val small { font-size: 13px; color: var(--gr-muted); font-weight: 400; }
+.gr-kpi__sub { font-size: 11px; color: var(--gr-sub); margin-top: 6px; line-height: 1.4; }
+
+/* ── generic card ── */
+.gr-card { background: var(--gr-surface); border: 1px solid var(--gr-border); border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+.gr-card h3 { font-size: 15px; font-weight: 500; margin-bottom: 2px; }
+.gr-csub { font-size: 11px; color: var(--gr-sub); margin-bottom: 12px; }
+.gr-flag { display: inline-block; font-size: 10px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase;
+           color: #8a6d00; border: 1px solid #E3CD66; background: #FFFBE8; padding: 2px 8px; margin-left: 8px; border-radius: 3px; vertical-align: 2px; }
+
+/* ── charts row ── */
+.gr-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.gr-chart-note { font-size: 10.5px; color: var(--gr-sub); margin-top: 8px; }
+
+.gr-trend { display: flex; align-items: flex-end; gap: 4px; height: 120px; margin-top: 8px; }
+.gr-trend__col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; cursor: default; }
+.gr-trend__bar { width: 100%; background: var(--gr-bar); border-radius: 2px 2px 0 0; min-height: 3px; }
+.gr-trend__bar--partial { background: var(--gr-bar-mut); }
+.gr-trend__lab { font-size: 9px; color: var(--gr-sub); margin-top: 4px; white-space: nowrap; }
+
+.gr-hbar { margin-bottom: 10px; }
+.gr-hbar:last-child { margin-bottom: 0; }
+.gr-hbar__top { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 3px; }
+.gr-hbar__top span:last-child { color: var(--gr-muted); font-variant-numeric: tabular-nums; }
+.gr-hbar__track { height: 6px; background: var(--gr-track); border-radius: 3px; overflow: hidden; }
+.gr-hbar__fill { height: 100%; background: var(--gr-bar); }
+.gr-hbar__fill--mut { background: var(--gr-bar-mut); }
+.gr-hbar__fill--gold { background: var(--gr-accent); }
+
+/* ── middle band: licence matrix + adoption curve ── */
+.gr-mid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 16px; margin-bottom: 16px; }
+@media (max-width: 900px) { .gr-mid, .gr-charts { grid-template-columns: 1fr; } }
+
+.gr-mtx { width: 100%; border-collapse: collapse; font-size: 12px; }
+.gr-mtx th { text-align: right; font-size: 10px; font-weight: 500; letter-spacing: .05em; text-transform: uppercase;
+             color: var(--gr-muted); padding: 4px 8px; border-bottom: 1px solid var(--gr-border); }
+.gr-mtx th:first-child { text-align: left; padding-left: 0; }
+.gr-mtx td { padding: 4px 8px; border-bottom: 1px solid var(--gr-divider); text-align: right; font-variant-numeric: tabular-nums; }
+.gr-mtx td:first-child { text-align: left; font-weight: 500; padding-left: 0; }
+.gr-mtx__z { color: rgba(0,0,0,0.2); }
+.gr-mtx__tot { font-weight: 700; }
+.gr-mtx__totrow td { border-top: 2px solid var(--gr-text); border-bottom: none; font-weight: 700; padding-top: 6px; }
+.gr-mtx__agcount td { border-bottom: none; color: var(--gr-muted); font-size: 11px; font-weight: 400; padding-top: 2px; }
+
+/* ── adoption curve ── */
+.gr-stage { display: grid; grid-template-columns: 22px 1fr; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--gr-divider); }
+.gr-stage:last-child { border-bottom: none; }
+.gr-stage__num { font-size: 15px; font-weight: 500; color: var(--gr-accent); }
+.gr-stage__name { font-size: 13px; font-weight: 500; }
+.gr-stage__name span { font-weight: 400; font-size: 11px; color: var(--gr-sub); }
+.gr-stage__barrow { display: flex; align-items: center; gap: 8px; margin-top: 5px; }
+.gr-stage__track { flex: 1; height: 8px; background: var(--gr-track); border-radius: 3px; overflow: hidden; }
+.gr-stage__fill { height: 100%; background: var(--gr-bar); border-radius: 3px; }
+.gr-stage__count { font-size: 12px; font-weight: 500; color: var(--gr-text); font-variant-numeric: tabular-nums; min-width: 14px; text-align: right; }
+.gr-stage__note { font-size: 11.5px; color: var(--gr-sub); margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--gr-divider); line-height: 1.4; }
+.gr-stage__note b { color: var(--gr-text); font-weight: 500; }
+.gr-stage__who { font-size: 11.5px; color: var(--gr-sub); margin-top: 5px; line-height: 1.4; }
+.gr-stage__who b { color: var(--gr-text); font-weight: 500; }
+
+/* ── what we've built (automations) ── */
+.gr-builds { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.gr-build { background: var(--gr-surface2); border: 1px solid var(--gr-border); border-top: 3px solid var(--gr-accent); border-radius: 8px; padding: 12px 14px; }
+.gr-build__name { font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--gr-muted); margin-bottom: 6px; }
+.gr-build__val { font-size: 22px; font-weight: 500; letter-spacing: -0.02em; line-height: 1; font-variant-numeric: tabular-nums; }
+.gr-build__val small { font-size: 13px; color: var(--gr-muted); font-weight: 400; }
+.gr-build__meta { font-size: 11px; color: var(--gr-sub); margin-top: 6px; line-height: 1.4; }
+.gr-build__saved { font-size: 11px; color: var(--gr-text); font-weight: 500; margin-top: 3px; }
+
+/* ── bottom band: time efficiencies + next steps ── */
+.gr-bot { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 16px; margin-bottom: 16px; }
+@media (max-width: 900px) { .gr-bot { grid-template-columns: 1fr; } }
+
+.gr-eff { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 12px; }
+.gr-eff__n { font-size: 16px; font-weight: 500; }
+.gr-eff__n b { color: var(--gr-accent); font-weight: 500; font-size: 12px; }
+.gr-eff__days { font-size: 11px; color: var(--gr-muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
+.gr-eff__l { font-size: 11px; color: var(--gr-sub); margin-top: 4px; line-height: 1.35; }
+.gr-callout { padding: 10px 12px; border-radius: 6px; background: #FFFBE8; border: 1px solid #F1E4A6; font-size: 11px; line-height: 1.4; color: #5a4a00; }
+.gr-callout b { font-weight: 700; }
+
+/* ── next steps ── */
+.gr-ns { list-style: none; }
+.gr-ns li { font-size: 12px; line-height: 1.4; padding: 7px 0; border-bottom: 1px solid var(--gr-divider); color: #333; }
+.gr-ns li:last-child { border-bottom: none; }
+.gr-ns li::before { content: '→  '; color: var(--gr-accent); }
+.gr-ns li b { color: var(--gr-text); font-weight: 700; }
+
+/* ── footer ── */
+.gr-foot { margin-top: 16px; border-top: 1px solid var(--gr-border); padding-top: 10px; font-size: 10.5px; color: var(--gr-sub); line-height: 1.5; }
+.gr-foot b { color: var(--gr-text); }

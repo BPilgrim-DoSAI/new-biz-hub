@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>What's New — Miroma AI Hub</title>
+  <meta name="description" content="The latest product updates, tips and news from across the Miroma AI toolkit.">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" integrity="sha384-sEVIly94UBRLKWdkYoPpSG7GD/e79YHMrxVyZaOk712Ga7+EAw6w1EFi+xBzBdd+" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js" integrity="sha384-EkqK+ezBWJuvO3hfrSx2iVqr3YQbhmnzn8kPhOpBZ+0GMVU5oGSgptwIu8D84HjE" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js" integrity="sha384-M481iNZJtbpypKgvlvZ+78Giq0BsewFLk5r2k+MOcGXlwKCc27DQRZ+WCV/zpmpC" crossorigin="anonymous"></script>
+  <script src="js/auth.js"></script>
+  <!-- Google Analytics (config moved to js/analytics.js — S-6 Part B) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-L7H3N34BG1"></script>
+  <script src="js/analytics.js"></script>
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__logo">
+        <div class="nav__monogram"><img src="assets/logos/monogram.png" alt=""></div>
+        <span class="nav__brand">MIROMA · AI HUB</span>
+      </a>
+      <ul class="nav__links">
+        <li><a href="index.html"><span class="nav__num">01</span> Hub</a></li>
+        <li><a href="learning.html"><span class="nav__num">02</span> Learning Pathway</a></li>
+        <li><a href="use-cases.html"><span class="nav__num">03</span> Use Cases</a></li>
+        <li><a href="policy.html"><span class="nav__num">04</span> Policy &amp; Guidelines</a></li>
+        <li><a href="whats-new.html"><span class="nav__num">05</span> What's New</a></li>
+        <li id="nav-admin-item" style="display:none"><a href="admin.html"><span class="nav__num">06</span> Agency Oversight</a></li>
+      </ul>
+      <div class="nav__contact"><a href="https://miromabrandhub.com/" target="_blank" rel="noopener noreferrer" class="nav__brand-hub-btn">Brand Hub ↗</a><span class="nav__divider"></span><button class="nav__signout-btn">Sign out</button></div>
+      <button class="nav__toggle" id="navToggle" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html">Hub</a>
+    <a href="learning.html">Learning Pathway</a>
+    <a href="use-cases.html">Use Cases</a>
+    <a href="policy.html">Policy &amp; Guidelines</a>
+    <a href="whats-new.html">What's New</a>
+    <a id="mob-admin-link" href="admin.html" style="display:none">Agency Oversight</a>
+    <a href="https://miromabrandhub.com/" target="_blank" rel="noopener noreferrer">Brand Hub ↗</a>
+    <button class="mob-signout-btn">Sign out</button>
+  </div>
+
+  <!-- PAGE HEADER -->
+  <section class="section section--white" style="padding-top: calc(var(--nav-height) + 48px); padding-bottom: 40px;">
+    <div class="container">
+      <p class="section-header__label">05 — What's New</p>
+      <h1 class="section-header__title" style="margin-top: 8px;">Updates &amp; Tips</h1>
+      <p class="section-header__body" style="max-width: 560px;">
+        Live product updates pulled directly from each tool's blog, alongside tips and picks from the Miroma AI team — sorted newest first.
+      </p>
+    </div>
+  </section>
+
+  <!-- FILTER BAR -->
+  <div class="wn-filter-bar">
+    <div class="container">
+      <div class="wn-filters" role="tablist" aria-label="Filter by tool">
+        <button class="wn-filter-btn is-active" data-filter="all" role="tab" aria-selected="true">All</button>
+        <button class="wn-filter-btn" data-filter="Claude" role="tab" aria-selected="false">Claude</button>
+        <button class="wn-filter-btn" data-filter="LTX Studio" role="tab" aria-selected="false">LTX Studio</button>
+        <button class="wn-filter-btn" data-filter="Descript" role="tab" aria-selected="false">Descript</button>
+        <button class="wn-filter-btn" data-filter="Springboards" role="tab" aria-selected="false">Springboards</button>
+        <button class="wn-filter-btn" data-filter="Fireflies" role="tab" aria-selected="false">Fireflies</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOG LINKS -->
+  <div class="wn-blogs-bar">
+    <div class="container">
+      <p class="wn-blogs-bar__label">Official update pages</p>
+      <div class="wn-blog-links" id="wnBlogLinks">
+        <!-- Populated by whats-new.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- FEED -->
+  <section class="section" style="padding-top: 32px;">
+    <div class="container">
+
+      <div class="wn-grid" id="whatsNewFeed">
+        <!-- Populated by whats-new.js -->
+      </div>
+
+      <div id="wnLoadMoreWrap" hidden style="text-align: center; margin-top: 40px;">
+        <button class="btn btn--outline" id="wnLoadMore">Show more →</button>
+      </div>
+
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer__inner">
+      <div class="footer__top">
+        <div>
+          <div class="footer__logo">
+            <img src="assets/logos/monogram.png" alt="Miroma">
+            <span>MIROMA · AI HUB</span>
+          </div>
+          <p class="footer__tagline">The central hub for all things AI at Miroma Group.</p>
+        </div>
+        <div>
+          <p class="footer__col-label">Quick Links</p>
+          <ul class="footer__links">
+            <li><a href="tools.html">AI Tools</a></li>
+            <li><a href="learning.html">Learning Pathway</a></li>
+            <li><a href="use-cases.html">Use Cases</a></li>
+            <li><a href="policy.html">Policy &amp; Guidelines</a></li>
+            <li><a href="whats-new.html">What's New</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="footer__col-label">AI Team</p>
+          <a href="mailto:aiteam@miroma.com" class="footer__email">aiteam@miroma.com</a>
+          <p class="footer__email-note">Questions or ideas? Get in touch with the AI team.</p>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p class="footer__copy">© 2025 Miroma Group. All rights reserved.</p>
+        <p class="footer__copy">AI Hub — Internal Resource</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/news-data.js"></script>
+  <script src="js/requests.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/whats-new.js"></script>
+  <script src="js/admin-nav.js?v=3"></script>
+</body>
+</html>

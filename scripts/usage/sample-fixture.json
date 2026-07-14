@@ -1,0 +1,425 @@
+{
+  "agency": "Northwind Creative (sample)",
+  "period": "2026-05",
+  "generated_at": "2026-05-01",
+  "_note": "SYNTHETIC demo data \u2014 invented agency, no real people or clients. Used to render the self-contained design preview.",
+  "summary": {
+    "licensed_users": 12,
+    "active_users": 9,
+    "total_conversations": 214,
+    "total_human_turns": 690,
+    "avg_turns_per_convo": 3.2,
+    "total_files_uploaded": 132,
+    "total_tool_uses": 410,
+    "total_projects": 11,
+    "shared_projects": 6,
+    "agentic_usage_pct": 44.4,
+    "depth_breakdown": {
+      "advanced": 4,
+      "intermediate": 3,
+      "basic": 2
+    },
+    "power_users": 2,
+    "dormant_licences": 3,
+    "recently_active_users": 6,
+    "lapsed_licences": 2,
+    "thinking_conversations": 38,
+    "thinking_usage_pct": 17.8,
+    "starter_projects": 1,
+    "real_projects": 10,
+    "well_configured_projects": 4
+  },
+  "as_of": "2026-05-31",
+  "tool_use_by_category": {
+    "Code & files": 180,
+    "Web research": 96,
+    "Data & visualisation": 72,
+    "Connected apps": 44,
+    "Other tools": 18
+  },
+  "file_type_mix": {
+    "pdf": 38,
+    "png": 27,
+    "xlsx": 22,
+    "docx": 18,
+    "jpg": 14,
+    "csv": 7,
+    "pptx": 4,
+    "txt": 2
+  },
+  "length_distribution": [
+    {
+      "bucket": "1 (abandoned)",
+      "conversations": 18
+    },
+    {
+      "bucket": "2\u20135 (quick)",
+      "conversations": 96
+    },
+    {
+      "bucket": "6\u201315 (working)",
+      "conversations": 62
+    },
+    {
+      "bucket": "16\u201350 (deep)",
+      "conversations": 33
+    },
+    {
+      "bucket": "51+ (extended)",
+      "conversations": 5
+    }
+  ],
+  "weekly_activity": [
+    {
+      "week": "2026-04-27",
+      "conversations": 31
+    },
+    {
+      "week": "2026-05-04",
+      "conversations": 44
+    },
+    {
+      "week": "2026-05-11",
+      "conversations": 52
+    },
+    {
+      "week": "2026-05-18",
+      "conversations": 61
+    },
+    {
+      "week": "2026-05-25",
+      "conversations": 26
+    }
+  ],
+  "workflows": [
+    {
+      "key": "creative",
+      "label": "Generate & iterate creative",
+      "conversations": 58,
+      "qualifying": 50,
+      "examples": [
+        "Resizing a hero banner for 6 placements",
+        "Headline variations for spring campaign",
+        "Storyboard from a rough script"
+      ],
+      "minutes_band": [
+        15,
+        45
+      ],
+      "hours_low": 12.5,
+      "hours_high": 37.5
+    },
+    {
+      "key": "campaigns",
+      "label": "Plan & set up campaigns / media",
+      "conversations": 47,
+      "qualifying": 41,
+      "examples": [
+        "Building a paid social plan",
+        "PPC keyword shortlist",
+        "Creating an insertion order"
+      ],
+      "minutes_band": [
+        20,
+        45
+      ],
+      "hours_low": 13.7,
+      "hours_high": 30.8
+    },
+    {
+      "key": "meetings",
+      "label": "Summarise meetings & calls",
+      "conversations": 31,
+      "qualifying": 28,
+      "examples": [
+        "Client call action points",
+        "Fireflies transcript to next steps"
+      ],
+      "minutes_band": [
+        10,
+        20
+      ],
+      "hours_low": 4.7,
+      "hours_high": 9.3
+    },
+    {
+      "key": "reporting",
+      "label": "Analyse performance & report",
+      "conversations": 24,
+      "qualifying": 20,
+      "examples": [
+        "Monthly client performance deck",
+        "Channel performance table"
+      ],
+      "minutes_band": [
+        15,
+        35
+      ],
+      "hours_low": 5.0,
+      "hours_high": 11.7
+    },
+    {
+      "key": "comms",
+      "label": "Draft & polish comms (email, docs)",
+      "conversations": 19,
+      "qualifying": 16,
+      "examples": [
+        "Weekly status email",
+        "Tidy up a proposal draft"
+      ],
+      "minutes_band": [
+        8,
+        20
+      ],
+      "hours_low": 2.1,
+      "hours_high": 5.3
+    },
+    {
+      "key": "process",
+      "label": "Map processes & build diagrams",
+      "conversations": 18,
+      "qualifying": 15,
+      "examples": [
+        "Approval workflow diagram",
+        "Onboarding flow for a new client"
+      ],
+      "minutes_band": [
+        20,
+        40
+      ],
+      "hours_low": 5.0,
+      "hours_high": 10.0
+    },
+    {
+      "key": "roi",
+      "label": "Measure ROI & build business cases",
+      "conversations": 11,
+      "qualifying": 9,
+      "examples": [
+        "Time-saved estimate for the board",
+        "Business case for more licences"
+      ],
+      "minutes_band": [
+        20,
+        40
+      ],
+      "hours_low": 3.0,
+      "hours_high": 6.0
+    },
+    {
+      "key": "enablement",
+      "label": "Enablement, onboarding & prompting",
+      "conversations": 16,
+      "qualifying": 12,
+      "examples": [
+        "Setting up a team project",
+        "Prompting best practice"
+      ],
+      "minutes_band": [
+        10,
+        25
+      ],
+      "hours_low": 2.0,
+      "hours_high": 5.0
+    },
+    {
+      "key": "misc",
+      "label": "Experimentation & misc",
+      "conversations": 12,
+      "qualifying": 7,
+      "examples": [
+        "Quick brainstorm",
+        "Trying out a new idea"
+      ],
+      "minutes_band": [
+        0,
+        0
+      ],
+      "hours_low": 0.0,
+      "hours_high": 0.0
+    }
+  ],
+  "time_saved": {
+    "hours_low": 48,
+    "hours_high": 116,
+    "method": "Conservative estimate. Each conversation with at least 2 of your messages earns a modest per-workflow time saving (the manual time the task would otherwise take \u2014 see bands below), scaled up when the conversation was long and involved, since a deep working session replaces more manual effort than a quick exchange. Abandoned or single-message chats, and pure experimentation, earn nothing. Shown as a low\u2013high range, not a single figure.",
+    "min_turns": 2
+  },
+  "narrative": "9 of 12 licences have been active to date, with most activity in generate & iterate creative and plan & set up campaigns / media. Weekly usage climbed steadily through the month. 3 licences not yet active \u2014 the clearest onboarding opportunity. Estimated time saved to date is roughly 48\u2013116 hours.",
+  "scope": {
+    "source": "Claude.ai \u2014 web & desktop apps",
+    "includes": "All chats, projects and design work for licensed users \u2014 including when Claude writes code, builds files or runs analysis inside a chat.",
+    "excludes": "Direct Claude API / Console usage and other AI tools (LTX, Fireflies, etc.)."
+  },
+  "licences": [
+    {
+      "name": "Jordan Blake",
+      "email": "jordan.blake@northwind.example",
+      "conversations": 0,
+      "active_days": 0,
+      "last_active": null,
+      "status": "dormant",
+      "depth": "basic",
+      "power_user": false
+    },
+    {
+      "name": "Priya Shah",
+      "email": "priya.shah@northwind.example",
+      "conversations": 0,
+      "active_days": 0,
+      "last_active": null,
+      "status": "dormant",
+      "depth": "basic",
+      "power_user": false
+    },
+    {
+      "name": "Sam Okafor",
+      "email": "sam.okafor@northwind.example",
+      "conversations": 0,
+      "active_days": 0,
+      "last_active": null,
+      "status": "dormant",
+      "depth": "basic",
+      "power_user": false
+    },
+    {
+      "name": "Alex Rivera",
+      "email": "alex.rivera@northwind.example",
+      "conversations": 41,
+      "active_days": 14,
+      "last_active": "2026-05-28",
+      "status": "active",
+      "depth": "advanced",
+      "power_user": true
+    },
+    {
+      "name": "Mia Chen",
+      "email": "mia.chen@northwind.example",
+      "conversations": 33,
+      "active_days": 12,
+      "last_active": "2026-05-27",
+      "status": "active",
+      "depth": "advanced",
+      "power_user": true
+    }
+  ],
+  "projects": [
+    {
+      "name": "Spring Campaign \u2014 Social",
+      "description": "Working space for the spring paid-social push: shared brief, tone-of-voice notes and a library of approved headline and caption variations the team can pull from.",
+      "created_at": "2026-05-21",
+      "updated_at": "2026-05-28",
+      "is_private": false,
+      "has_system_prompt": true,
+      "docs_count": 3,
+      "last_updated": "2026-05-28"
+    },
+    {
+      "name": "Legacy Brand Audit",
+      "created_at": "2026-02-09",
+      "updated_at": "2026-02-20",
+      "is_private": true,
+      "has_system_prompt": false,
+      "docs_count": 2,
+      "last_updated": "2026-02-20"
+    },
+    {
+      "name": "Client Reporting Templates",
+      "description": "Reusable monthly-reporting scaffolds \u2014 performance summary structure, commentary prompts and a standard set of charts, so each client deck starts from the same baseline.",
+      "created_at": "2026-05-14",
+      "updated_at": "2026-05-27",
+      "is_private": false,
+      "has_system_prompt": true,
+      "docs_count": 5
+    },
+    {
+      "name": "PPC Research",
+      "created_at": "2026-05-12",
+      "updated_at": "2026-05-19",
+      "is_private": true,
+      "has_system_prompt": false,
+      "docs_count": 1
+    },
+    {
+      "name": "Brand Tone of Voice",
+      "description": "The agency's house style: do's and don'ts, example rewrites and a system prompt so drafts come back on-brand without re-explaining the voice each time.",
+      "created_at": "2026-05-06",
+      "updated_at": "2026-05-22",
+      "is_private": false,
+      "has_system_prompt": true,
+      "docs_count": 2
+    },
+    {
+      "name": "New Business Pitch",
+      "created_at": "2026-05-05",
+      "updated_at": "2026-05-05",
+      "is_private": true,
+      "has_system_prompt": false,
+      "docs_count": 0
+    },
+    {
+      "name": "Studio Resourcing",
+      "created_at": "2026-04-29",
+      "updated_at": "2026-05-10",
+      "is_private": true,
+      "has_system_prompt": false,
+      "docs_count": 1
+    }
+  ],
+  "wins": [
+    {
+      "text": "Resized a single hero creative into 6 placement formats in minutes",
+      "workflow": "creative"
+    },
+    {
+      "text": "Turned a rough brief into a complete paid-social plan ready for client sign-off",
+      "workflow": "campaigns"
+    },
+    {
+      "text": "Converted a messy client call recording into clear, shareable action points same-day",
+      "workflow": "meetings"
+    },
+    {
+      "text": "Built a monthly client performance deck straight from raw channel data",
+      "workflow": "reporting"
+    },
+    {
+      "text": "Mapped a new client onboarding process into a clean diagram for the team",
+      "workflow": "process"
+    }
+  ],
+  "prompt_quality": {
+    "scored_count": 164,
+    "avg_score": 2.7,
+    "distribution": {
+      "1": 18,
+      "2": 52,
+      "3": 61,
+      "4": 28,
+      "5": 5
+    },
+    "top_issues": [
+      {
+        "tag": "no_context",
+        "label": "No background context given",
+        "count": 58
+      },
+      {
+        "tag": "vague_task",
+        "label": "Task description too vague",
+        "count": 41
+      },
+      {
+        "tag": "no_format",
+        "label": "Output format not specified",
+        "count": 29
+      }
+    ],
+    "tips": [
+      "Before asking Claude to draft anything, paste in the brief, previous examples, or relevant background. Claude writes to what it knows \u2014 without it, the output is generic.",
+      "Be specific about the output format: \"A 200-word email in a direct, professional tone\" gets a better first draft than \"write an email about this\".",
+      "If you are asking Claude to do something strategic \u2014 analyse options, review a proposal, assess a brief \u2014 tell it your role and who the audience is first.",
+      "For recurring tasks, set up a Claude Project with a description of the client, their tone, and their constraints. Every conversation in that project then starts with that context already loaded."
+    ]
+  }
+}
