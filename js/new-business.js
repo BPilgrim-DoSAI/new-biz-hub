@@ -305,7 +305,31 @@
     phaseEl.innerHTML =
       '<div class="nb-workspace">' +
         '<p class="nb-workspace__title">P0 — Intake</p>' +
-        '<p class="nb-workspace__desc">Paste or type the raw client brief below. This is the starting point — the agent will refine it into a structured agency brief in P1.</p>' +
+        '<p class="nb-workspace__desc">Upload the client brief document or paste it below. The parser extracts every detail and flags coverage gaps so nothing is missed.</p>' +
+
+        // Upload zone
+        '<div class="nb-upload" id="nbUploadZone">' +
+          '<div class="nb-upload__inner">' +
+            '<div class="nb-upload__icon">' +
+              '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' +
+                '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>' +
+                '<polyline points="17 8 12 3 7 8"/>' +
+                '<line x1="12" y1="3" x2="12" y2="15"/>' +
+              '</svg>' +
+            '</div>' +
+            '<p class="nb-upload__label">Drop a client brief here, or <span class="nb-upload__browse">browse</span></p>' +
+            '<p class="nb-upload__hint">PDF, Word (.docx), or plain text — max 10 MB</p>' +
+            '<input type="file" id="nbFileInput" class="nb-upload__input" accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain">' +
+          '</div>' +
+        '</div>' +
+        '<div class="nb-upload__file-info" id="nbFileInfo" style="display:none">' +
+          '<span class="nb-upload__file-name" id="nbFileName"></span>' +
+          '<button class="nb-upload__file-remove" id="nbFileRemove">×</button>' +
+        '</div>' +
+        '<p class="nb-upload__status" id="nbUploadStatus"></p>' +
+
+        '<div class="nb-upload__divider"><span>or paste the brief directly</span></div>' +
+
         '<textarea class="nb-workspace__textarea" id="nbBriefText" placeholder="Paste the client brief here…">' + esc(existingBrief) + '</textarea>' +
         '<div class="nb-workspace__actions">' +
           '<button class="nb-workspace__save" id="nbSaveBrief">Save brief</button>' +
@@ -314,6 +338,101 @@
         '<p class="nb-workspace__status" id="nbBriefStatus"></p>' +
       '</div>';
 
+    // ── File upload handling ──
+    var uploadZone = document.getElementById('nbUploadZone');
+    var fileInput = document.getElementById('nbFileInput');
+    var fileInfo = document.getElementById('nbFileInfo');
+    var uploadStatus = document.getElementById('nbUploadStatus');
+
+    // Click-to-browse
+    uploadZone.addEventListener('click', function() { fileInput.click(); });
+
+    // Drag-and-drop
+    uploadZone.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      uploadZone.classList.add('nb-upload--dragover');
+    });
+    uploadZone.addEventListener('dragleave', function() {
+      uploadZone.classList.remove('nb-upload--dragover');
+    });
+    uploadZone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      uploadZone.classList.remove('nb-upload--dragover');
+      if (e.dataTransfer.files.length) handleFileUpload(e.dataTransfer.files[0]);
+    });
+
+    fileInput.addEventListener('change', function() {
+      if (fileInput.files.length) handleFileUpload(fileInput.files[0]);
+    });
+
+    // Remove uploaded file
+    document.getElementById('nbFileRemove').addEventListener('click', function() {
+      fileInfo.style.display = 'none';
+      uploadZone.style.display = '';
+      fileInput.value = '';
+      uploadStatus.textContent = '';
+    });
+
+    async function handleFileUpload(file) {
+      var maxSize = 10 * 1024 * 1024;
+      if (file.size > maxSize) {
+        uploadStatus.textContent = 'File too large — maximum 10 MB.';
+        uploadStatus.className = 'nb-upload__status nb-upload__status--error';
+        return;
+      }
+
+      var allowed = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
+      var nameAllowed = file.name.match(/\.(pdf|docx|txt)$/i);
+      if (!allowed.includes(file.type) && !nameAllowed) {
+        uploadStatus.textContent = 'Unsupported file type. Use PDF, DOCX, or TXT.';
+        uploadStatus.className = 'nb-upload__status nb-upload__status--error';
+        return;
+      }
+
+      // Show file info
+      document.getElementById('nbFileName').textContent = file.name + ' (' + (file.size / 1024).toFixed(0) + ' KB)';
+      fileInfo.style.display = '';
+      uploadZone.style.display = 'none';
+      uploadStatus.textContent = '';
+      uploadStatus.className = 'nb-upload__status';
+
+      // Read as base64 and send to parse function
+      uploadStatus.textContent = 'Parsing document…';
+      uploadStatus.className = 'nb-upload__status';
+
+      try {
+        var base64 = await readFileAsBase64(file);
+        var fn = firebase.functions();
+        var result = await fn.httpsCallable('parseClientBrief')({
+          oppId: oppId,
+          fileBase64: base64,
+          fileName: file.name,
+          mimeType: file.type,
+        });
+        var extracted = result.data.extractedText || '';
+        document.getElementById('nbBriefText').value = extracted;
+        uploadStatus.textContent = 'Document parsed — review the extracted brief below, then save.';
+        uploadStatus.className = 'nb-upload__status nb-upload__status--ok';
+      } catch (err) {
+        uploadStatus.textContent = 'Parse failed: ' + (err.message || 'Unknown error');
+        uploadStatus.className = 'nb-upload__status nb-upload__status--error';
+      }
+    }
+
+    function readFileAsBase64(file) {
+      return new Promise(function(resolve, reject) {
+        var reader = new FileReader();
+        reader.onload = function() {
+          var dataUrl = reader.result;
+          var base64 = dataUrl.split(',')[1] || '';
+          resolve(base64);
+        };
+        reader.onerror = function() { reject(new Error('Failed to read file')); };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // ── Save brief (existing logic) ──
     document.getElementById('nbSaveBrief').addEventListener('click', async function() {
       var text = document.getElementById('nbBriefText').value.trim();
       var status = document.getElementById('nbBriefStatus');
@@ -555,14 +674,19 @@
       var icon = categoryIcon[q.category] || '○';
       var cls = priorityClass[q.priority] || '';
       var answered = q.answer && q.answer.trim();
+      var gapTag = q.gap
+        ? '<span class="nb-q__gap" title="Brief coverage gap: ' + esc(q.gapArea || '') + '">GAP</span>'
+        : '';
       return '<div class="nb-q ' + cls + (answered ? ' nb-q--answered' : '') + '" data-idx="' + i + '">' +
         '<div class="nb-q__header">' +
           '<span class="nb-q__icon" title="' + esc(q.category) + '">' + icon + '</span>' +
+          gapTag +
           '<span class="nb-q__priority">' + esc(q.priority) + '</span>' +
           '<span class="nb-q__category">' + esc(q.category) + '</span>' +
           (answered ? '<span class="nb-q__check">✓</span>' : '') +
         '</div>' +
         '<p class="nb-q__text">' + esc(q.text) + '</p>' +
+        (q.gap && q.gapArea ? '<p class="nb-q__gap-area">Missing from brief: ' + esc(q.gapArea) + '</p>' : '') +
         '<p class="nb-q__reasoning">' + esc(q.reasoning) + '</p>' +
         '<div class="nb-q__answer-wrap">' +
           '<textarea class="nb-q__answer" rows="2" placeholder="Capture the answer here…" data-qi="' + i + '">' + esc(q.answer || '') + '</textarea>' +
@@ -572,13 +696,17 @@
     }).join('');
 
     var answeredCount = questions.filter(function(q) { return q.answer && q.answer.trim(); }).length;
+    var gapCount = questions.filter(function(q) { return q.gap; }).length;
 
     phaseEl.innerHTML =
       '<div class="nb-workspace">' +
         '<p class="nb-workspace__title">P2 — Question List</p>' +
-        '<p class="nb-workspace__desc">Review the questions below. Capture answers from the client or your own intelligence — answered questions feed into P3 positioning.</p>' +
+        '<p class="nb-workspace__desc">Review the questions below. ' +
+          (gapCount ? '<strong>' + gapCount + ' gap' + (gapCount === 1 ? '' : 's') + '</strong> identified from the brief — these fill missing information the pitch team needs. ' : '') +
+          'Capture answers from the client or your own intelligence — answered questions feed into P3 positioning.</p>' +
         '<div class="nb-q-summary">' +
           '<span>' + questions.length + ' questions</span>' +
+          (gapCount ? '<span class="nb-q-summary__gaps">' + gapCount + ' brief gaps</span>' : '') +
           '<span class="nb-q-summary__answered">' + answeredCount + ' answered</span>' +
         '</div>' +
         '<div class="nb-q-list">' + qListHtml + '</div>' +

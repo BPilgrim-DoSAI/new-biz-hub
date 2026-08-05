@@ -102,6 +102,12 @@
         }
       },
       {
+        "source": "/api/parseClientBrief",
+        "function": {
+          "functionId": "parseClientBrief"
+        }
+      },
+      {
         "source": "/api/runAgencyBrief",
         "function": {
           "functionId": "runAgencyBrief"

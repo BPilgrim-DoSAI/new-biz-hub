@@ -1,12 +1,14 @@
 import { initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { getStorage } from 'firebase-admin/storage';
 import {
   onCall,
   HttpsError,
 } from 'firebase-functions/v2/https';
 import { beforeUserSignedIn } from 'firebase-functions/v2/identity';
 import Anthropic from '@anthropic-ai/sdk';
+import pdfParse from 'pdf-parse';
 
 const app = initializeApp();
 const db = getFirestore(app);
@@ -543,11 +545,18 @@ Return ONLY valid JSON (no markdown fences) with this exact structure:
 
 const P2_SYSTEM = `You are a senior new business strategist. Given a structured agency brief, generate decisive questions that will sharpen the pitch. These should be questions that, if answered, would materially change the pitch strategy.
 
+GAP ANALYSIS — do this first, silently:
+Before generating questions, audit the brief for coverage gaps. A complete pitch brief typically covers: business context, competitive landscape, target audience depth, budget breakdown, decision-making process, success metrics, previous agency work, approval chain, pitch format preferences, timings/milestones, legal/regulatory constraints, brand guidelines, and data access. Identify which of these are missing, vague, or assumed rather than stated.
+
+Front-load questions that fill the most critical gaps — information the pitch team literally cannot proceed without. Then add sharpening questions that go beyond what the brief states to uncover the real strategic problem.
+
 Categorise each question as:
 - strategic: reveals the client's real problem beyond the brief's framing
 - commercial: clarifies budget, scope, decision-making, competitive situation
 - creative: unlocks creative latitude or identifies constraints
 - technical: specifications, measurements, delivery requirements
+
+Tag gap-filling questions with "gap": true so the UI can distinguish them from sharpening questions.
 
 Return ONLY valid JSON (no markdown fences):
 {
@@ -557,12 +566,14 @@ Return ONLY valid JSON (no markdown fences):
       "category": "strategic|commercial|creative|technical",
       "priority": "high|medium|low",
       "reasoning": "string — why this question matters for the pitch",
+      "gap": true or false,
+      "gapArea": "string — which brief area this fills (only if gap is true, e.g. 'decision criteria', 'success metrics')",
       "answer": ""
     }
   ]
 }
 
-Generate 8–12 questions. Front-load high-priority strategic and commercial questions.`;
+Generate 8–12 questions. Front-load high-priority gap-filling questions first, then strategic sharpening questions.`;
 
 const P3_SYSTEM = `You are a world-class brand strategist. Your job is to develop genuinely distinctive positioning territories for a pitch.
 
@@ -595,6 +606,122 @@ Return ONLY valid JSON (no markdown fences):
 }
 
 Generate exactly 3 territories. Make them genuinely divergent.`;
+
+// ── P0: Parse uploaded client brief ─────────────────────
+// Accepts a base64-encoded file (PDF, DOCX, or plain text),
+// extracts the text, optionally stores the original in Storage,
+// and uses Claude to produce a clean, structured extraction of
+// the brief's contents so nothing is lost in copy-paste.
+
+const PARSE_SYSTEM = `You are a document extraction specialist. Given the raw text extracted from a client brief document (PDF or Word), produce a clean, readable version of the brief that preserves ALL information.
+
+Your job:
+1. Fix OCR/extraction artefacts (broken line breaks, header/footer noise, page numbers, garbled tables).
+2. Preserve every piece of substantive content — do NOT summarise or omit.
+3. Organise into clear sections if the original has structure; otherwise present as flowing prose.
+4. Flag any sections that appear incomplete or cut off with [INCOMPLETE] markers.
+5. At the end, add a section called "BRIEF COVERAGE GAPS" that lists information a pitch team would typically need but that this brief does NOT provide (e.g. budget, timings, decision criteria, competitive context, measurement expectations). Be specific — "budget not stated" is useful; "more detail needed" is not.
+
+Return plain text only (no markdown fences, no JSON).`;
+
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024; // 10 MB
+
+export const parseClientBrief = onCall({ timeoutSeconds: 180 }, async (request) => {
+  const { oppId, fileBase64, fileName, mimeType } = request.data;
+  if (!oppId) throw new HttpsError('invalid-argument', 'oppId required');
+  if (!fileBase64) throw new HttpsError('invalid-argument', 'fileBase64 required');
+
+  const { callerEmail, agencyKey, opp } = await verifyOppAccess(request, oppId);
+
+  const buf = Buffer.from(fileBase64, 'base64');
+  if (buf.length > MAX_UPLOAD_BYTES) {
+    throw new HttpsError('invalid-argument', 'File too large (max 10 MB)');
+  }
+
+  // Extract raw text based on file type
+  let rawText = '';
+  const mime = (mimeType || '').toLowerCase();
+  const name = (fileName || '').toLowerCase();
+
+  if (mime === 'application/pdf' || name.endsWith('.pdf')) {
+    try {
+      const parsed = await pdfParse(buf);
+      rawText = parsed.text || '';
+    } catch (err) {
+      throw new HttpsError('invalid-argument', 'Could not parse PDF: ' + (err.message || ''));
+    }
+  } else if (
+    mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+    name.endsWith('.docx')
+  ) {
+    // DOCX: extract text from word/document.xml inside the zip
+    try {
+      const JSZip = (await import('jszip')).default;
+      const zip = await JSZip.loadAsync(buf);
+      const docXml = await zip.file('word/document.xml')?.async('string');
+      if (docXml) {
+        rawText = docXml
+          .replace(/<\/w:p>/g, '\n')
+          .replace(/<\/w:r>/g, ' ')
+          .replace(/<[^>]+>/g, '')
+          .replace(/&amp;/g, '&')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&quot;/g, '"')
+          .replace(/&#39;/g, "'")
+          .replace(/ +/g, ' ')
+          .trim();
+      }
+    } catch (err) {
+      throw new HttpsError('invalid-argument', 'Could not parse DOCX: ' + (err.message || ''));
+    }
+  } else if (mime === 'text/plain' || name.endsWith('.txt')) {
+    rawText = buf.toString('utf-8');
+  } else {
+    throw new HttpsError('invalid-argument', 'Unsupported file type. Upload a PDF, DOCX, or TXT file.');
+  }
+
+  if (!rawText.trim()) {
+    throw new HttpsError('invalid-argument', 'No text could be extracted from the file.');
+  }
+
+  // Store original file in Storage for audit trail
+  try {
+    const bucket = getStorage().bucket();
+    const storagePath = `opportunities/${agencyKey}/${oppId}/uploads/${fileName || 'client-brief'}`;
+    const file = bucket.file(storagePath);
+    await file.save(buf, { contentType: mimeType || 'application/octet-stream' });
+  } catch (err) {
+    // Non-fatal — the extraction still works even if storage fails
+    console.warn('Failed to store uploaded file:', err.message);
+  }
+
+  // Use Claude to clean up and structure the extracted text + identify gaps
+  const claude = getClaudeClient();
+
+  const msg = await claude.messages.create({
+    model: CLAUDE_MODEL,
+    max_tokens: 8192,
+    system: PARSE_SYSTEM,
+    messages: [{
+      role: 'user',
+      content: `Here is the raw text extracted from the client brief document "${fileName || 'unknown'}":\n\n${rawText.slice(0, 50000)}`,
+    }],
+  });
+
+  const cleanedText = msg.content[0]?.text || rawText;
+
+  await meterUsage(agencyKey, msg.usage.input_tokens, msg.usage.output_tokens, 'intake-parse', callerEmail);
+
+  await logContribution(oppId, {
+    author: callerEmail,
+    phase: 'intake',
+    type: 'file-upload',
+    summary: `Uploaded and parsed client brief: ${fileName || 'document'}`,
+  });
+
+  return { ok: true, extractedText: cleanedText, fileName: fileName || 'document' };
+});
 
 // ── P1: Agency Brief ────────────────────────────────────
 

@@ -3586,6 +3586,115 @@ details[open] .project-example__toggle::after { transform: rotate(180deg); }
 }
 
 /* =============================================
+   NEW BUSINESS HUB — P0 Upload Zone
+   ============================================= */
+.nb-upload {
+  border: 2px dashed var(--c-grey-mid);
+  border-radius: var(--radius-md);
+  padding: 36px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--t-fast), background var(--t-fast);
+  margin-bottom: 12px;
+}
+.nb-upload:hover {
+  border-color: var(--c-black);
+  background: var(--c-grey-light);
+}
+.nb-upload--dragover {
+  border-color: var(--c-black);
+  background: var(--c-grey-light);
+  border-style: solid;
+}
+.nb-upload__inner {
+  pointer-events: none;
+}
+.nb-upload__icon {
+  color: var(--c-stone);
+  margin-bottom: 10px;
+}
+.nb-upload__label {
+  font-size: 15px; font-weight: 500;
+  margin-bottom: 4px;
+}
+.nb-upload__browse {
+  color: var(--c-black); font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.nb-upload__hint {
+  font-size: 13px; color: var(--c-stone);
+}
+.nb-upload__input {
+  display: none;
+}
+.nb-upload__file-info {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px;
+  background: var(--c-grey-light);
+  border: 1px solid var(--c-grey-mid);
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+}
+.nb-upload__file-name {
+  font-size: 14px; font-weight: 500;
+  flex: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nb-upload__file-remove {
+  width: 24px; height: 24px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--c-grey-mid);
+  border-radius: var(--radius-sm);
+  background: none;
+  font-size: 14px; color: var(--c-stone);
+  cursor: pointer; flex-shrink: 0;
+}
+.nb-upload__file-remove:hover {
+  border-color: #c0392b; color: #c0392b;
+}
+.nb-upload__status {
+  font-size: 13px; color: var(--c-stone);
+  min-height: 20px;
+  margin-bottom: 8px;
+}
+.nb-upload__status--ok { color: #166534; }
+.nb-upload__status--error { color: #c0392b; }
+.nb-upload__divider {
+  display: flex; align-items: center; gap: 12px;
+  margin: 16px 0;
+  font-size: 12px; color: var(--c-stone);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  font-weight: 500;
+}
+.nb-upload__divider::before,
+.nb-upload__divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--c-grey-mid);
+}
+
+/* =============================================
+   NEW BUSINESS HUB — P2 Gap Indicators
+   ============================================= */
+.nb-q__gap {
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.04em;
+  padding: 1px 7px; border-radius: 8px;
+  background: #DBEAFE; color: #1E40AF;
+}
+.nb-q__gap-area {
+  font-size: 12px; font-weight: 500;
+  color: #1E40AF;
+  margin-bottom: 4px;
+}
+.nb-q-summary__gaps {
+  font-weight: 600; color: #1E40AF;
+}
+
+/* =============================================
    NEW BUSINESS HUB — M1 Phase Workspaces
    ============================================= */
 
