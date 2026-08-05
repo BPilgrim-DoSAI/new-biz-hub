@@ -6,10 +6,23 @@ import {
   HttpsError,
 } from 'firebase-functions/v2/https';
 import { beforeUserSignedIn } from 'firebase-functions/v2/identity';
+import Anthropic from '@anthropic-ai/sdk';
 
 const app = initializeApp();
 const db = getFirestore(app);
 const auth = getAuth(app);
+
+// ── Claude API client (lazy, central key) ───────────────
+let _claude = null;
+function getClaudeClient() {
+  if (_claude) return _claude;
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) throw new HttpsError('unavailable', 'Claude API not configured. Set ANTHROPIC_API_KEY.');
+  _claude = new Anthropic({ apiKey });
+  return _claude;
+}
+
+const CLAUDE_MODEL = 'claude-sonnet-4-20250514';
 
 // ── Domain → agencyKey map ──────────────────────────────
 // Mirrors DOMAIN_TO_AGENCY_KEY in js/requests.js. Any change
@@ -74,6 +87,82 @@ async function callerCanAccessAgency(callerEmail, agencyKey) {
     if (found) return profile;
   }
   throw new HttpsError('permission-denied', 'No access to this agency');
+}
+
+// ── Claude metering ─────────────────────────────────────
+// Tracks per-agency token usage for new-biz Claude API calls.
+// Increments atomically so concurrent calls don't lose counts.
+
+async function meterUsage(agencyKey, inputTokens, outputTokens, phase, callerEmail) {
+  const ref = db.collection('newbiz_usage').doc(agencyKey);
+  await db.runTransaction(async (t) => {
+    const doc = await t.get(ref);
+    const data = doc.exists ? doc.data() : {};
+    t.set(ref, {
+      inputTokens: (data.inputTokens || 0) + inputTokens,
+      outputTokens: (data.outputTokens || 0) + outputTokens,
+      calls: (data.calls || 0) + 1,
+      lastCallAt: FieldValue.serverTimestamp(),
+      lastPhase: phase,
+      lastCaller: callerEmail,
+    }, { merge: true });
+  });
+}
+
+// ── Newbiz access check (shared by all phase functions) ──
+
+async function verifyNewBizAccess(request) {
+  const callerEmail = request.auth?.token?.email?.toLowerCase();
+  if (!callerEmail) throw new HttpsError('unauthenticated', 'Sign in required');
+
+  const agencyKey = request.auth.token.agencyKey || agencyKeyFromEmail(callerEmail);
+  if (!agencyKey) throw new HttpsError('permission-denied', 'No agency association');
+
+  const hasAccess = request.auth.token.newbizAccess === true;
+  if (!hasAccess) {
+    const doc = await db.collection('newbiz_users').doc(agencyKey).get();
+    const emails = doc.exists ? (doc.data().emails || []) : [];
+    if (!emails.includes(callerEmail)) {
+      const adminDoc = await db.collection('admins').doc(callerEmail).get();
+      const isFullAccess = adminDoc.exists && ['all', 'finance'].includes(adminDoc.data().access);
+      if (!isFullAccess) {
+        throw new HttpsError('permission-denied', 'New Business access not granted');
+      }
+    }
+  }
+
+  return { callerEmail, agencyKey };
+}
+
+async function verifyOppAccess(request, oppId) {
+  const { callerEmail, agencyKey } = await verifyNewBizAccess(request);
+
+  const oppDoc = await db.collection('opportunities').doc(oppId).get();
+  if (!oppDoc.exists) throw new HttpsError('not-found', 'Opportunity not found');
+
+  const data = oppDoc.data();
+  if (data.agencyKey !== agencyKey) {
+    const adminDoc = await db.collection('admins').doc(callerEmail).get();
+    const isFullAccess = adminDoc.exists && ['all', 'finance'].includes(adminDoc.data().access);
+    if (!isFullAccess) {
+      throw new HttpsError('permission-denied', 'No access to this opportunity');
+    }
+  }
+
+  return { callerEmail, agencyKey, opp: { id: oppId, ...data } };
+}
+
+// ── Contribution logger ─────────────────────────────────
+
+async function logContribution(oppId, { author, phase, type, summary }) {
+  await db.collection('opportunities').doc(oppId)
+    .collection('contributions').add({
+      author,
+      phase,
+      type,
+      summary,
+      createdAt: FieldValue.serverTimestamp(),
+    });
 }
 
 // ── New Biz user nomination ─────────────────────────────
@@ -376,6 +465,417 @@ export const savePhaseOutput = onCall(async (request) => {
       updatedBy: callerEmail,
       updatedAt: FieldValue.serverTimestamp(),
     });
+
+  return { ok: true };
+});
+
+// ── Contributions ──────────────────────────────────────
+
+export const listContributions = onCall(async (request) => {
+  const { oppId } = request.data;
+  if (!oppId) throw new HttpsError('invalid-argument', 'oppId required');
+
+  await verifyOppAccess(request, oppId);
+
+  const snap = await db.collection('opportunities').doc(oppId)
+    .collection('contributions')
+    .orderBy('createdAt', 'desc')
+    .limit(50)
+    .get();
+
+  return {
+    contributions: snap.docs.map((d) => ({
+      id: d.id,
+      ...d.data(),
+      createdAt: d.data().createdAt?.toDate?.()?.toISOString() || null,
+    })),
+  };
+});
+
+export const editPhaseField = onCall(async (request) => {
+  const { oppId, phase, field, value } = request.data;
+  if (!oppId || !phase || !field) {
+    throw new HttpsError('invalid-argument', 'oppId, phase, field required');
+  }
+  if (!VALID_PHASES.includes(phase)) {
+    throw new HttpsError('invalid-argument', 'Invalid phase');
+  }
+
+  const { callerEmail } = await verifyOppAccess(request, oppId);
+
+  await db.collection('opportunities').doc(oppId)
+    .collection('phase_outputs').doc(phase).set({
+      [field]: typeof value === 'string' ? value.slice(0, 50000) : value,
+      updatedBy: callerEmail,
+      updatedAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+
+  await logContribution(oppId, {
+    author: callerEmail,
+    phase,
+    type: 'manual-edit',
+    summary: `Edited ${field} in ${phase}`,
+  });
+
+  return { ok: true };
+});
+
+// ── Phase prompts ──────────────────────────────────────
+
+const P1_SYSTEM = `You are a senior agency strategist helping refine a raw client brief into a structured agency brief. You must extract every available detail and fill gaps with informed placeholders marked [TBC].
+
+Return ONLY valid JSON (no markdown fences) with this exact structure:
+{
+  "clientName": "string",
+  "clientIndustry": "string",
+  "projectTitle": "string",
+  "projectDescription": "string",
+  "budget": "string — range or specific, or [TBC]",
+  "timings": "string — key dates, deadlines, pitch date",
+  "contacts": "string — client contacts with roles, or [TBC]",
+  "marketContext": "string — competitive landscape, market position, category dynamics",
+  "targetAudience": "string — who the work needs to reach",
+  "objectives": "string — what the client wants to achieve",
+  "deliverables": ["string array — explicit list of what needs to be produced"],
+  "constraints": "string — mandatories, restrictions, brand guidelines",
+  "additionalNotes": "string — anything else relevant"
+}`;
+
+const P2_SYSTEM = `You are a senior new business strategist. Given a structured agency brief, generate decisive questions that will sharpen the pitch. These should be questions that, if answered, would materially change the pitch strategy.
+
+Categorise each question as:
+- strategic: reveals the client's real problem beyond the brief's framing
+- commercial: clarifies budget, scope, decision-making, competitive situation
+- creative: unlocks creative latitude or identifies constraints
+- technical: specifications, measurements, delivery requirements
+
+Return ONLY valid JSON (no markdown fences):
+{
+  "questions": [
+    {
+      "text": "string — the question",
+      "category": "strategic|commercial|creative|technical",
+      "priority": "high|medium|low",
+      "reasoning": "string — why this question matters for the pitch",
+      "answer": ""
+    }
+  ]
+}
+
+Generate 8–12 questions. Front-load high-priority strategic and commercial questions.`;
+
+const P3_SYSTEM = `You are a world-class brand strategist. Your job is to develop genuinely distinctive positioning territories for a pitch.
+
+ANTI-REGRESSION-TO-THE-MEAN PROTOCOL — follow this exactly:
+
+1. REJECT THE OBVIOUS. Before generating territories, name the category-average answer — the safe, expected, "any agency could pitch this" position. State it explicitly and explain why it's inadequate.
+
+2. DIVERGE, DON'T VARY. Generate territories that are genuinely different from each other in kind, not variations on a theme. Each should come from a different strategic angle.
+
+3. RIVAL TEST. For each territory, ask: "Which competing agency could also pitch this?" If the answer is "most of them", the territory isn't distinctive enough — sharpen or replace it.
+
+4. GROUND IN SPECIFICS. Every territory must be anchored in THIS brand's specific truth and THIS market's specific dynamics. Never rely on generic category truisms like "consumers want authenticity" or "digital-first approach".
+
+Return ONLY valid JSON (no markdown fences):
+{
+  "rejectedMean": {
+    "territory": "string — the obvious, category-average position",
+    "reasoning": "string — why this is inadequate and predictable"
+  },
+  "territories": [
+    {
+      "name": "string — short, memorable territory name",
+      "headline": "string — one-sentence positioning statement",
+      "insight": "string — the specific human/market truth this is built on",
+      "expression": "string — how this would manifest in the work (tone, approach, key moves)",
+      "distinctiveness": "string — what makes this ownable by THIS agency for THIS client",
+      "rivalTest": "string — which rivals couldn't pitch this, and why"
+    }
+  ]
+}
+
+Generate exactly 3 territories. Make them genuinely divergent.`;
+
+// ── P1: Agency Brief ────────────────────────────────────
+
+export const runAgencyBrief = onCall({ timeoutSeconds: 120 }, async (request) => {
+  const { oppId } = request.data;
+  if (!oppId) throw new HttpsError('invalid-argument', 'oppId required');
+
+  const { callerEmail, agencyKey, opp } = await verifyOppAccess(request, oppId);
+
+  if (!opp.rawBrief) {
+    throw new HttpsError('failed-precondition', 'No raw brief found. Complete P0 Intake first.');
+  }
+
+  const claude = getClaudeClient();
+
+  const msg = await claude.messages.create({
+    model: CLAUDE_MODEL,
+    max_tokens: 4096,
+    system: P1_SYSTEM,
+    messages: [{
+      role: 'user',
+      content: `Here is the raw client brief to structure:\n\n${opp.rawBrief}`,
+    }],
+  });
+
+  const text = msg.content[0]?.text || '';
+  let structured;
+  try {
+    structured = JSON.parse(text);
+  } catch {
+    throw new HttpsError('internal', 'Failed to parse Claude response as JSON');
+  }
+
+  await meterUsage(agencyKey, msg.usage.input_tokens, msg.usage.output_tokens, 'agency-brief', callerEmail);
+
+  await db.collection('opportunities').doc(oppId)
+    .collection('phase_outputs').doc('agency-brief').set({
+      ...structured,
+      generatedBy: callerEmail,
+      updatedBy: callerEmail,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+
+  await logContribution(oppId, {
+    author: callerEmail,
+    phase: 'agency-brief',
+    type: 'claude-generation',
+    summary: 'Generated structured agency brief from raw brief',
+  });
+
+  return { ok: true, brief: structured };
+});
+
+// ── P2: Questions ───────────────────────────────────────
+
+export const runQuestions = onCall({ timeoutSeconds: 120 }, async (request) => {
+  const { oppId } = request.data;
+  if (!oppId) throw new HttpsError('invalid-argument', 'oppId required');
+
+  const { callerEmail, agencyKey, opp } = await verifyOppAccess(request, oppId);
+
+  const briefDoc = await db.collection('opportunities').doc(oppId)
+    .collection('phase_outputs').doc('agency-brief').get();
+  if (!briefDoc.exists) {
+    throw new HttpsError('failed-precondition', 'No structured brief found. Complete P1 first.');
+  }
+
+  const brief = briefDoc.data();
+  const briefText = [
+    `Client: ${brief.clientName || '[TBC]'}`,
+    `Industry: ${brief.clientIndustry || '[TBC]'}`,
+    `Project: ${brief.projectTitle || '[TBC]'}`,
+    `Description: ${brief.projectDescription || '[TBC]'}`,
+    `Budget: ${brief.budget || '[TBC]'}`,
+    `Timings: ${brief.timings || '[TBC]'}`,
+    `Market context: ${brief.marketContext || '[TBC]'}`,
+    `Target audience: ${brief.targetAudience || '[TBC]'}`,
+    `Objectives: ${brief.objectives || '[TBC]'}`,
+    `Deliverables: ${Array.isArray(brief.deliverables) ? brief.deliverables.join(', ') : (brief.deliverables || '[TBC]')}`,
+    `Constraints: ${brief.constraints || '[TBC]'}`,
+  ].join('\n');
+
+  const claude = getClaudeClient();
+
+  const msg = await claude.messages.create({
+    model: CLAUDE_MODEL,
+    max_tokens: 4096,
+    system: P2_SYSTEM,
+    messages: [{
+      role: 'user',
+      content: `Here is the structured agency brief:\n\n${briefText}`,
+    }],
+  });
+
+  const text = msg.content[0]?.text || '';
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    throw new HttpsError('internal', 'Failed to parse Claude response as JSON');
+  }
+
+  await meterUsage(agencyKey, msg.usage.input_tokens, msg.usage.output_tokens, 'questions', callerEmail);
+
+  await db.collection('opportunities').doc(oppId)
+    .collection('phase_outputs').doc('questions').set({
+      questions: parsed.questions || [],
+      generatedBy: callerEmail,
+      updatedBy: callerEmail,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+
+  await logContribution(oppId, {
+    author: callerEmail,
+    phase: 'questions',
+    type: 'claude-generation',
+    summary: `Generated ${(parsed.questions || []).length} decisive questions`,
+  });
+
+  return { ok: true, questions: parsed.questions || [] };
+});
+
+// ── P3: Strategic Positioning ───────────────────────────
+
+export const runPositioning = onCall({ timeoutSeconds: 120 }, async (request) => {
+  const { oppId } = request.data;
+  if (!oppId) throw new HttpsError('invalid-argument', 'oppId required');
+
+  const { callerEmail, agencyKey, opp } = await verifyOppAccess(request, oppId);
+
+  const [briefDoc, questionsDoc] = await Promise.all([
+    db.collection('opportunities').doc(oppId)
+      .collection('phase_outputs').doc('agency-brief').get(),
+    db.collection('opportunities').doc(oppId)
+      .collection('phase_outputs').doc('questions').get(),
+  ]);
+
+  if (!briefDoc.exists) {
+    throw new HttpsError('failed-precondition', 'No structured brief found. Complete P1 first.');
+  }
+
+  const brief = briefDoc.data();
+  const questions = questionsDoc.exists ? (questionsDoc.data().questions || []) : [];
+
+  const answeredQs = questions
+    .filter((q) => q.answer && q.answer.trim())
+    .map((q) => `Q: ${q.text}\nA: ${q.answer}`)
+    .join('\n\n');
+
+  const context = [
+    `CLIENT: ${brief.clientName || '[TBC]'}`,
+    `INDUSTRY: ${brief.clientIndustry || '[TBC]'}`,
+    `PROJECT: ${brief.projectTitle || '[TBC]'}`,
+    `DESCRIPTION: ${brief.projectDescription || '[TBC]'}`,
+    `MARKET CONTEXT: ${brief.marketContext || '[TBC]'}`,
+    `TARGET AUDIENCE: ${brief.targetAudience || '[TBC]'}`,
+    `OBJECTIVES: ${brief.objectives || '[TBC]'}`,
+    `DELIVERABLES: ${Array.isArray(brief.deliverables) ? brief.deliverables.join(', ') : (brief.deliverables || '[TBC]')}`,
+    answeredQs ? `\nKEY INTELLIGENCE (answered questions):\n${answeredQs}` : '',
+  ].join('\n');
+
+  const claude = getClaudeClient();
+
+  const msg = await claude.messages.create({
+    model: CLAUDE_MODEL,
+    max_tokens: 6144,
+    system: P3_SYSTEM,
+    messages: [{
+      role: 'user',
+      content: `Develop positioning territories for this pitch:\n\n${context}`,
+    }],
+  });
+
+  const text = msg.content[0]?.text || '';
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    throw new HttpsError('internal', 'Failed to parse Claude response as JSON');
+  }
+
+  await meterUsage(agencyKey, msg.usage.input_tokens, msg.usage.output_tokens, 'positioning', callerEmail);
+
+  await db.collection('opportunities').doc(oppId)
+    .collection('phase_outputs').doc('positioning').set({
+      rejectedMean: parsed.rejectedMean || null,
+      territories: parsed.territories || [],
+      selectedTerritory: null,
+      selectionRationale: null,
+      generatedBy: callerEmail,
+      updatedBy: callerEmail,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+
+  await logContribution(oppId, {
+    author: callerEmail,
+    phase: 'positioning',
+    type: 'claude-generation',
+    summary: `Generated ${(parsed.territories || []).length} positioning territories (anti-mean applied)`,
+  });
+
+  return { ok: true, positioning: parsed };
+});
+
+// ── Select positioning territory ────────────────────────
+
+export const selectTerritory = onCall(async (request) => {
+  const { oppId, territoryIndex, rationale } = request.data;
+  if (!oppId || territoryIndex === undefined) {
+    throw new HttpsError('invalid-argument', 'oppId and territoryIndex required');
+  }
+
+  const { callerEmail } = await verifyOppAccess(request, oppId);
+
+  const posDoc = await db.collection('opportunities').doc(oppId)
+    .collection('phase_outputs').doc('positioning').get();
+  if (!posDoc.exists) {
+    throw new HttpsError('failed-precondition', 'No positioning output. Run P3 first.');
+  }
+
+  const territories = posDoc.data().territories || [];
+  if (territoryIndex < 0 || territoryIndex >= territories.length) {
+    throw new HttpsError('invalid-argument', 'Invalid territory index');
+  }
+
+  await db.collection('opportunities').doc(oppId)
+    .collection('phase_outputs').doc('positioning').update({
+      selectedTerritory: territoryIndex,
+      selectionRationale: (rationale || '').slice(0, 5000),
+      selectedBy: callerEmail,
+      updatedBy: callerEmail,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+
+  await logContribution(oppId, {
+    author: callerEmail,
+    phase: 'positioning',
+    type: 'territory-selection',
+    summary: `Selected territory: ${territories[territoryIndex]?.name || territoryIndex}`,
+  });
+
+  return { ok: true };
+});
+
+// ── Save question answer ────────────────────────────────
+
+export const saveQuestionAnswer = onCall(async (request) => {
+  const { oppId, questionIndex, answer } = request.data;
+  if (!oppId || questionIndex === undefined) {
+    throw new HttpsError('invalid-argument', 'oppId and questionIndex required');
+  }
+
+  const { callerEmail } = await verifyOppAccess(request, oppId);
+
+  const qDoc = await db.collection('opportunities').doc(oppId)
+    .collection('phase_outputs').doc('questions').get();
+  if (!qDoc.exists) {
+    throw new HttpsError('failed-precondition', 'No questions output. Run P2 first.');
+  }
+
+  const questions = qDoc.data().questions || [];
+  if (questionIndex < 0 || questionIndex >= questions.length) {
+    throw new HttpsError('invalid-argument', 'Invalid question index');
+  }
+
+  questions[questionIndex].answer = (answer || '').slice(0, 5000);
+  questions[questionIndex].answeredBy = callerEmail;
+
+  await db.collection('opportunities').doc(oppId)
+    .collection('phase_outputs').doc('questions').update({
+      questions,
+      updatedBy: callerEmail,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+
+  await logContribution(oppId, {
+    author: callerEmail,
+    phase: 'questions',
+    type: 'answer',
+    summary: `Answered question ${questionIndex + 1}`,
+  });
 
   return { ok: true };
 });

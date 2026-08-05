@@ -1,6 +1,6 @@
 /* =============================================
    MIROMA AI HUB — New Business Hub
-   Opportunity list, create, P0 intake workspace
+   Opportunity list, create, P0–P3 workspaces
    ============================================= */
 
 (function initNewBusiness() {
@@ -259,71 +259,80 @@
     }
   }
 
-  // ── Render: phase content (P0 intake for M0) ────────────
+  // ── Shared: advance phase helper ─────────────────────────
+
+  async function advancePhase(oppId, nextPhase) {
+    const fn = firebase.functions();
+    await fn.httpsCallable('updateOpportunity')({
+      oppId,
+      updates: { phase: nextPhase },
+    });
+    const container = document.getElementById('nbContent');
+    if (container) renderWorkspace(container, oppId);
+  }
+
+  // ── Render: phase content (P0–P3 + future placeholder) ──
 
   function renderPhaseContent(opp, oppId) {
     const phaseEl = document.getElementById('nbPhaseContent');
     if (!phaseEl) return;
 
-    if (opp.phase === 'intake') {
-      renderIntakePhase(phaseEl, opp, oppId);
+    var renderers = {
+      'intake':       renderIntakePhase,
+      'agency-brief': renderAgencyBriefPhase,
+      'questions':    renderQuestionsPhase,
+      'positioning':  renderPositioningPhase,
+    };
+
+    var renderer = renderers[opp.phase];
+    if (renderer) {
+      renderer(phaseEl, opp, oppId);
     } else {
-      phaseEl.innerHTML = `
-        <div class="nb-workspace">
-          <p class="nb-workspace__title">Phase: ${esc(opp.phase)}</p>
-          <p class="nb-workspace__desc">This phase will be available in a future milestone. The agentic engine (M1) will power phases P1–P3, with knowledge and creative phases following in M2.</p>
-        </div>`;
+      phaseEl.innerHTML = '<div class="nb-workspace">' +
+        '<p class="nb-workspace__title">Phase: ' + esc(opp.phase) + '</p>' +
+        '<p class="nb-workspace__desc">This phase will be available in a future milestone. Creative and knowledge phases are coming in M2, deck export in M3.</p>' +
+        '</div>';
     }
+
+    renderContributions(phaseEl, oppId);
   }
 
-  function renderIntakePhase(phaseEl, opp, oppId) {
-    const existingBrief = opp.rawBrief || '';
-    const phaseOutput = opp.phaseOutputs?.intake;
+  // ── P0: Intake ──────────────────────────────────────────
 
-    phaseEl.innerHTML = `
-      <div class="nb-workspace">
-        <p class="nb-workspace__title">P0 — Intake</p>
-        <p class="nb-workspace__desc">Paste or type the raw client brief below. This is the starting point — the agent will help refine it into a structured agency brief in the next phase.</p>
-        <textarea class="nb-workspace__textarea" id="nbBriefText" placeholder="Paste the client brief here…">${esc(existingBrief)}</textarea>
-        <div class="nb-workspace__actions">
-          <button class="nb-workspace__save" id="nbSaveBrief">Save brief</button>
-          ${existingBrief ? '<button class="nb-workspace__save" id="nbAdvancePhase" style="background:var(--c-stone)">Advance to P1 →</button>' : ''}
-        </div>
-        <p class="nb-workspace__status" id="nbBriefStatus"></p>
-      </div>`;
+  function renderIntakePhase(phaseEl, opp, oppId) {
+    var existingBrief = opp.rawBrief || '';
+
+    phaseEl.innerHTML =
+      '<div class="nb-workspace">' +
+        '<p class="nb-workspace__title">P0 — Intake</p>' +
+        '<p class="nb-workspace__desc">Paste or type the raw client brief below. This is the starting point — the agent will refine it into a structured agency brief in P1.</p>' +
+        '<textarea class="nb-workspace__textarea" id="nbBriefText" placeholder="Paste the client brief here…">' + esc(existingBrief) + '</textarea>' +
+        '<div class="nb-workspace__actions">' +
+          '<button class="nb-workspace__save" id="nbSaveBrief">Save brief</button>' +
+          (existingBrief ? '<button class="nb-workspace__advance" id="nbAdvancePhase">Advance to P1 →</button>' : '') +
+        '</div>' +
+        '<p class="nb-workspace__status" id="nbBriefStatus"></p>' +
+      '</div>';
 
     document.getElementById('nbSaveBrief').addEventListener('click', async function() {
-      const text = document.getElementById('nbBriefText').value.trim();
-      const status = document.getElementById('nbBriefStatus');
-      if (!text) {
-        status.textContent = 'Please enter the client brief.';
-        return;
-      }
+      var text = document.getElementById('nbBriefText').value.trim();
+      var status = document.getElementById('nbBriefStatus');
+      if (!text) { status.textContent = 'Please enter the client brief.'; return; }
       status.textContent = 'Saving…';
       try {
-        const fn = firebase.functions();
-        await fn.httpsCallable('updateOpportunity')({
-          oppId,
-          updates: { rawBrief: text },
-        });
-        await fn.httpsCallable('savePhaseOutput')({
-          oppId,
-          phase: 'intake',
-          output: { rawBrief: text, completedAt: new Date().toISOString() },
-        });
+        var fn = firebase.functions();
+        await fn.httpsCallable('updateOpportunity')({ oppId, updates: { rawBrief: text } });
+        await fn.httpsCallable('savePhaseOutput')({ oppId, phase: 'intake', output: { rawBrief: text, completedAt: new Date().toISOString() } });
         status.textContent = 'Brief saved.';
-
-        // Show the advance button if it wasn't there before
         if (!document.getElementById('nbAdvancePhase')) {
-          const actions = phaseEl.querySelector('.nb-workspace__actions');
+          var actions = phaseEl.querySelector('.nb-workspace__actions');
           if (actions) {
-            const advBtn = document.createElement('button');
+            var advBtn = document.createElement('button');
             advBtn.id = 'nbAdvancePhase';
-            advBtn.className = 'nb-workspace__save';
-            advBtn.style.background = 'var(--c-stone)';
+            advBtn.className = 'nb-workspace__advance';
             advBtn.textContent = 'Advance to P1 →';
             actions.appendChild(advBtn);
-            wireAdvanceBtn(oppId);
+            advBtn.addEventListener('click', function() { advancePhase(oppId, 'agency-brief'); });
           }
         }
       } catch (err) {
@@ -331,27 +340,513 @@
       }
     });
 
-    wireAdvanceBtn(oppId);
+    var advBtn = document.getElementById('nbAdvancePhase');
+    if (advBtn) advBtn.addEventListener('click', function() { advancePhase(oppId, 'agency-brief'); });
   }
 
-  function wireAdvanceBtn(oppId) {
-    const advBtn = document.getElementById('nbAdvancePhase');
-    if (!advBtn) return;
-    advBtn.addEventListener('click', async function() {
-      const status = document.getElementById('nbBriefStatus');
-      if (status) status.textContent = 'Advancing…';
+  // ── P1: Agency Brief ───────────────────────────────────
+
+  function renderAgencyBriefPhase(phaseEl, opp, oppId) {
+    var output = opp.phaseOutputs?.['agency-brief'];
+    var hasOutput = output && output.clientName;
+
+    var rawBriefPreview = opp.rawBrief
+      ? '<details class="nb-ref-brief"><summary>View raw brief from P0</summary><pre class="nb-ref-brief__text">' + esc(opp.rawBrief) + '</pre></details>'
+      : '';
+
+    if (!hasOutput) {
+      phaseEl.innerHTML =
+        '<div class="nb-workspace">' +
+          '<p class="nb-workspace__title">P1 — Agency Brief</p>' +
+          '<p class="nb-workspace__desc">Generate a structured agency brief from the raw client brief. The AI will extract key details into an editable format.</p>' +
+          rawBriefPreview +
+          '<div class="nb-workspace__actions">' +
+            '<button class="nb-workspace__generate" id="nbGenBrief">' +
+              '<span class="nb-workspace__generate-icon">✦</span> Generate structured brief' +
+            '</button>' +
+          '</div>' +
+          '<p class="nb-workspace__status" id="nbP1Status"></p>' +
+        '</div>';
+
+      document.getElementById('nbGenBrief').addEventListener('click', async function() {
+        var btn = document.getElementById('nbGenBrief');
+        var status = document.getElementById('nbP1Status');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="nb-spinner"></span> Generating brief…';
+        status.textContent = '';
+        try {
+          var fn = firebase.functions();
+          var result = await fn.httpsCallable('runAgencyBrief')({ oppId });
+          var container = document.getElementById('nbContent');
+          if (container) renderWorkspace(container, oppId);
+        } catch (err) {
+          status.textContent = 'Generation failed. ' + (err.message || '');
+          btn.disabled = false;
+          btn.innerHTML = '<span class="nb-workspace__generate-icon">✦</span> Generate structured brief';
+        }
+      });
+      return;
+    }
+
+    var fields = [
+      { key: 'clientName', label: 'Client name' },
+      { key: 'clientIndustry', label: 'Industry' },
+      { key: 'projectTitle', label: 'Project title' },
+      { key: 'projectDescription', label: 'Description' },
+      { key: 'budget', label: 'Budget' },
+      { key: 'timings', label: 'Timings' },
+      { key: 'contacts', label: 'Contacts' },
+      { key: 'marketContext', label: 'Market context' },
+      { key: 'targetAudience', label: 'Target audience' },
+      { key: 'objectives', label: 'Objectives' },
+      { key: 'constraints', label: 'Constraints' },
+      { key: 'additionalNotes', label: 'Additional notes' },
+    ];
+
+    var fieldsHtml = fields.map(function(f) {
+      var val = output[f.key] || '';
+      return '<div class="nb-brief-field">' +
+        '<label class="nb-brief-field__label">' + esc(f.label) + '</label>' +
+        '<textarea class="nb-brief-field__input" data-field="' + f.key + '" rows="2">' + esc(val) + '</textarea>' +
+      '</div>';
+    }).join('');
+
+    var deliverables = Array.isArray(output.deliverables) ? output.deliverables : [];
+    var deliverablesHtml =
+      '<div class="nb-brief-field">' +
+        '<label class="nb-brief-field__label">Deliverables</label>' +
+        '<div class="nb-deliverables" id="nbDeliverables">' +
+          deliverables.map(function(d, i) {
+            return '<div class="nb-deliverable-item">' +
+              '<input type="text" class="nb-deliverable-item__input" value="' + esc(d) + '" data-idx="' + i + '">' +
+              '<button class="nb-deliverable-item__remove" data-idx="' + i + '">×</button>' +
+            '</div>';
+          }).join('') +
+          '<button class="nb-deliverable-add" id="nbAddDeliverable">+ Add deliverable</button>' +
+        '</div>' +
+      '</div>';
+
+    phaseEl.innerHTML =
+      '<div class="nb-workspace">' +
+        '<p class="nb-workspace__title">P1 — Agency Brief</p>' +
+        '<p class="nb-workspace__desc">Review and edit the structured brief below. All fields are editable — click into any field to refine it.</p>' +
+        rawBriefPreview +
+        '<div class="nb-brief-form">' + fieldsHtml + deliverablesHtml + '</div>' +
+        '<div class="nb-workspace__actions">' +
+          '<button class="nb-workspace__save" id="nbSaveBriefFields">Save changes</button>' +
+          '<button class="nb-workspace__generate nb-workspace__generate--secondary" id="nbRegenBrief">' +
+            '<span class="nb-workspace__generate-icon">✦</span> Regenerate' +
+          '</button>' +
+          '<button class="nb-workspace__advance" id="nbAdvanceP1">Confirm brief &amp; advance to P2 →</button>' +
+        '</div>' +
+        '<p class="nb-workspace__status" id="nbP1Status"></p>' +
+      '</div>';
+
+    // Save field edits
+    document.getElementById('nbSaveBriefFields').addEventListener('click', async function() {
+      var status = document.getElementById('nbP1Status');
+      status.textContent = 'Saving…';
       try {
-        const fn = firebase.functions();
-        await fn.httpsCallable('updateOpportunity')({
-          oppId,
-          updates: { phase: 'agency-brief' },
-        });
-        if (status) status.textContent = 'Advanced to P1. Reloading…';
-        const container = document.getElementById('nbContent');
+        var fn = firebase.functions();
+        var textareas = phaseEl.querySelectorAll('.nb-brief-field__input');
+        for (var i = 0; i < textareas.length; i++) {
+          var ta = textareas[i];
+          var field = ta.dataset.field;
+          if (field && ta.value !== (output[field] || '')) {
+            await fn.httpsCallable('editPhaseField')({ oppId, phase: 'agency-brief', field: field, value: ta.value });
+          }
+        }
+        var delInputs = phaseEl.querySelectorAll('.nb-deliverable-item__input');
+        var newDeliverables = [];
+        delInputs.forEach(function(inp) { if (inp.value.trim()) newDeliverables.push(inp.value.trim()); });
+        await fn.httpsCallable('editPhaseField')({ oppId, phase: 'agency-brief', field: 'deliverables', value: newDeliverables });
+        status.textContent = 'Changes saved.';
+      } catch (err) {
+        status.textContent = 'Save failed. ' + (err.message || '');
+      }
+    });
+
+    // Add deliverable
+    document.getElementById('nbAddDeliverable').addEventListener('click', function() {
+      var container = document.getElementById('nbDeliverables');
+      var addBtn = document.getElementById('nbAddDeliverable');
+      var idx = container.querySelectorAll('.nb-deliverable-item').length;
+      var item = document.createElement('div');
+      item.className = 'nb-deliverable-item';
+      item.innerHTML = '<input type="text" class="nb-deliverable-item__input" value="" data-idx="' + idx + '" placeholder="New deliverable">' +
+        '<button class="nb-deliverable-item__remove" data-idx="' + idx + '">×</button>';
+      container.insertBefore(item, addBtn);
+      item.querySelector('input').focus();
+    });
+
+    // Remove deliverable
+    phaseEl.addEventListener('click', function(e) {
+      if (e.target.classList.contains('nb-deliverable-item__remove')) {
+        e.target.closest('.nb-deliverable-item').remove();
+      }
+    });
+
+    // Regenerate
+    document.getElementById('nbRegenBrief').addEventListener('click', async function() {
+      var btn = document.getElementById('nbRegenBrief');
+      var status = document.getElementById('nbP1Status');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="nb-spinner"></span> Regenerating…';
+      try {
+        var fn = firebase.functions();
+        await fn.httpsCallable('runAgencyBrief')({ oppId });
+        var container = document.getElementById('nbContent');
         if (container) renderWorkspace(container, oppId);
       } catch (err) {
-        if (status) status.textContent = 'Failed to advance. ' + (err.message || '');
+        status.textContent = 'Regeneration failed. ' + (err.message || '');
+        btn.disabled = false;
+        btn.innerHTML = '<span class="nb-workspace__generate-icon">✦</span> Regenerate';
       }
+    });
+
+    // Advance
+    document.getElementById('nbAdvanceP1').addEventListener('click', function() {
+      advancePhase(oppId, 'questions');
+    });
+  }
+
+  // ── P2: Questions ──────────────────────────────────────
+
+  function renderQuestionsPhase(phaseEl, opp, oppId) {
+    var output = opp.phaseOutputs?.questions;
+    var questions = output?.questions || [];
+
+    if (!questions.length) {
+      phaseEl.innerHTML =
+        '<div class="nb-workspace">' +
+          '<p class="nb-workspace__title">P2 — Question List</p>' +
+          '<p class="nb-workspace__desc">Generate decisive questions — strategic and commercial — that will sharpen the pitch. Questions that, if answered, would materially change the strategy.</p>' +
+          '<div class="nb-workspace__actions">' +
+            '<button class="nb-workspace__generate" id="nbGenQuestions">' +
+              '<span class="nb-workspace__generate-icon">✦</span> Generate questions' +
+            '</button>' +
+          '</div>' +
+          '<p class="nb-workspace__status" id="nbP2Status"></p>' +
+        '</div>';
+
+      document.getElementById('nbGenQuestions').addEventListener('click', async function() {
+        var btn = document.getElementById('nbGenQuestions');
+        var status = document.getElementById('nbP2Status');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="nb-spinner"></span> Generating questions…';
+        try {
+          var fn = firebase.functions();
+          await fn.httpsCallable('runQuestions')({ oppId });
+          var container = document.getElementById('nbContent');
+          if (container) renderWorkspace(container, oppId);
+        } catch (err) {
+          status.textContent = 'Generation failed. ' + (err.message || '');
+          btn.disabled = false;
+          btn.innerHTML = '<span class="nb-workspace__generate-icon">✦</span> Generate questions';
+        }
+      });
+      return;
+    }
+
+    var categoryIcon = { strategic: '◆', commercial: '●', creative: '▲', technical: '■' };
+    var priorityClass = { high: 'nb-q--high', medium: 'nb-q--medium', low: 'nb-q--low' };
+
+    var qListHtml = questions.map(function(q, i) {
+      var icon = categoryIcon[q.category] || '○';
+      var cls = priorityClass[q.priority] || '';
+      var answered = q.answer && q.answer.trim();
+      return '<div class="nb-q ' + cls + (answered ? ' nb-q--answered' : '') + '" data-idx="' + i + '">' +
+        '<div class="nb-q__header">' +
+          '<span class="nb-q__icon" title="' + esc(q.category) + '">' + icon + '</span>' +
+          '<span class="nb-q__priority">' + esc(q.priority) + '</span>' +
+          '<span class="nb-q__category">' + esc(q.category) + '</span>' +
+          (answered ? '<span class="nb-q__check">✓</span>' : '') +
+        '</div>' +
+        '<p class="nb-q__text">' + esc(q.text) + '</p>' +
+        '<p class="nb-q__reasoning">' + esc(q.reasoning) + '</p>' +
+        '<div class="nb-q__answer-wrap">' +
+          '<textarea class="nb-q__answer" rows="2" placeholder="Capture the answer here…" data-qi="' + i + '">' + esc(q.answer || '') + '</textarea>' +
+          '<button class="nb-q__save-answer" data-qi="' + i + '">Save</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    var answeredCount = questions.filter(function(q) { return q.answer && q.answer.trim(); }).length;
+
+    phaseEl.innerHTML =
+      '<div class="nb-workspace">' +
+        '<p class="nb-workspace__title">P2 — Question List</p>' +
+        '<p class="nb-workspace__desc">Review the questions below. Capture answers from the client or your own intelligence — answered questions feed into P3 positioning.</p>' +
+        '<div class="nb-q-summary">' +
+          '<span>' + questions.length + ' questions</span>' +
+          '<span class="nb-q-summary__answered">' + answeredCount + ' answered</span>' +
+        '</div>' +
+        '<div class="nb-q-list">' + qListHtml + '</div>' +
+        '<div class="nb-workspace__actions">' +
+          '<button class="nb-workspace__generate nb-workspace__generate--secondary" id="nbRegenQuestions">' +
+            '<span class="nb-workspace__generate-icon">✦</span> Regenerate' +
+          '</button>' +
+          '<button class="nb-workspace__advance" id="nbAdvanceP2">Advance to P3 →</button>' +
+        '</div>' +
+        '<p class="nb-workspace__status" id="nbP2Status"></p>' +
+      '</div>';
+
+    // Save answer
+    phaseEl.addEventListener('click', function(e) {
+      var saveBtn = e.target.closest('.nb-q__save-answer');
+      if (!saveBtn) return;
+      var qi = parseInt(saveBtn.dataset.qi, 10);
+      var textarea = phaseEl.querySelector('.nb-q__answer[data-qi="' + qi + '"]');
+      if (!textarea) return;
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving…';
+      var fn = firebase.functions();
+      fn.httpsCallable('saveQuestionAnswer')({ oppId: oppId, questionIndex: qi, answer: textarea.value.trim() })
+        .then(function() {
+          saveBtn.textContent = 'Saved ✓';
+          var qCard = saveBtn.closest('.nb-q');
+          if (textarea.value.trim()) qCard.classList.add('nb-q--answered');
+          setTimeout(function() { saveBtn.textContent = 'Save'; saveBtn.disabled = false; }, 1500);
+        })
+        .catch(function(err) {
+          saveBtn.textContent = 'Failed';
+          setTimeout(function() { saveBtn.textContent = 'Save'; saveBtn.disabled = false; }, 1500);
+        });
+    });
+
+    // Regenerate
+    document.getElementById('nbRegenQuestions').addEventListener('click', async function() {
+      var btn = document.getElementById('nbRegenQuestions');
+      var status = document.getElementById('nbP2Status');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="nb-spinner"></span> Regenerating…';
+      try {
+        var fn = firebase.functions();
+        await fn.httpsCallable('runQuestions')({ oppId });
+        var container = document.getElementById('nbContent');
+        if (container) renderWorkspace(container, oppId);
+      } catch (err) {
+        status.textContent = 'Regeneration failed. ' + (err.message || '');
+        btn.disabled = false;
+        btn.innerHTML = '<span class="nb-workspace__generate-icon">✦</span> Regenerate';
+      }
+    });
+
+    // Advance
+    document.getElementById('nbAdvanceP2').addEventListener('click', function() {
+      advancePhase(oppId, 'positioning');
+    });
+  }
+
+  // ── P3: Positioning ────────────────────────────────────
+
+  function renderPositioningPhase(phaseEl, opp, oppId) {
+    var output = opp.phaseOutputs?.positioning;
+    var territories = output?.territories || [];
+
+    if (!territories.length) {
+      phaseEl.innerHTML =
+        '<div class="nb-workspace">' +
+          '<p class="nb-workspace__title">P3 — Strategic Positioning</p>' +
+          '<p class="nb-workspace__desc">Generate genuinely distinctive positioning territories. The engine rejects the category average first, then develops divergent positions grounded in this brand\'s specific truth.</p>' +
+          '<div class="nb-workspace__actions">' +
+            '<button class="nb-workspace__generate" id="nbGenPos">' +
+              '<span class="nb-workspace__generate-icon">✦</span> Generate territories' +
+            '</button>' +
+          '</div>' +
+          '<p class="nb-workspace__status" id="nbP3Status"></p>' +
+        '</div>';
+
+      document.getElementById('nbGenPos').addEventListener('click', async function() {
+        var btn = document.getElementById('nbGenPos');
+        var status = document.getElementById('nbP3Status');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="nb-spinner"></span> Generating territories…';
+        try {
+          var fn = firebase.functions();
+          await fn.httpsCallable('runPositioning')({ oppId });
+          var container = document.getElementById('nbContent');
+          if (container) renderWorkspace(container, oppId);
+        } catch (err) {
+          status.textContent = 'Generation failed. ' + (err.message || '');
+          btn.disabled = false;
+          btn.innerHTML = '<span class="nb-workspace__generate-icon">✦</span> Generate territories';
+        }
+      });
+      return;
+    }
+
+    var rejectedMean = output.rejectedMean;
+    var selectedIdx = output.selectedTerritory;
+
+    var rejectedHtml = rejectedMean
+      ? '<div class="nb-rejected-mean">' +
+          '<p class="nb-rejected-mean__label">✗ Rejected: the category-average position</p>' +
+          '<p class="nb-rejected-mean__territory">' + esc(rejectedMean.territory) + '</p>' +
+          '<p class="nb-rejected-mean__reasoning">' + esc(rejectedMean.reasoning) + '</p>' +
+        '</div>'
+      : '';
+
+    var territoriesHtml = territories.map(function(t, i) {
+      var isSelected = selectedIdx === i;
+      return '<div class="nb-territory' + (isSelected ? ' nb-territory--selected' : '') + '" data-idx="' + i + '">' +
+        '<div class="nb-territory__header">' +
+          '<span class="nb-territory__num">Territory ' + (i + 1) + '</span>' +
+          (isSelected ? '<span class="nb-territory__badge">✓ Selected</span>' : '') +
+        '</div>' +
+        '<h3 class="nb-territory__name">' + esc(t.name) + '</h3>' +
+        '<p class="nb-territory__headline">' + esc(t.headline) + '</p>' +
+        '<div class="nb-territory__details">' +
+          '<div class="nb-territory__detail">' +
+            '<span class="nb-territory__detail-label">Insight</span>' +
+            '<p>' + esc(t.insight) + '</p>' +
+          '</div>' +
+          '<div class="nb-territory__detail">' +
+            '<span class="nb-territory__detail-label">Expression</span>' +
+            '<p>' + esc(t.expression) + '</p>' +
+          '</div>' +
+          '<div class="nb-territory__detail">' +
+            '<span class="nb-territory__detail-label">Distinctiveness</span>' +
+            '<p>' + esc(t.distinctiveness) + '</p>' +
+          '</div>' +
+          '<div class="nb-territory__detail">' +
+            '<span class="nb-territory__detail-label">Rival test</span>' +
+            '<p>' + esc(t.rivalTest) + '</p>' +
+          '</div>' +
+        '</div>' +
+        (!isSelected ? '<button class="nb-territory__select" data-idx="' + i + '">Select this territory</button>' : '') +
+      '</div>';
+    }).join('');
+
+    var rationaleHtml = selectedIdx !== null && selectedIdx !== undefined
+      ? '<div class="nb-rationale">' +
+          '<label class="nb-rationale__label">Selection rationale</label>' +
+          '<textarea class="nb-rationale__input" id="nbRationale" rows="3" placeholder="Why this territory?">' + esc(output.selectionRationale || '') + '</textarea>' +
+          '<button class="nb-workspace__save" id="nbSaveRationale">Save rationale</button>' +
+        '</div>'
+      : '';
+
+    phaseEl.innerHTML =
+      '<div class="nb-workspace">' +
+        '<p class="nb-workspace__title">P3 — Strategic Positioning</p>' +
+        '<p class="nb-workspace__desc">Review the territories below. Each was tested against the "which rival could also pitch this?" filter. Select one to carry forward into creative.</p>' +
+        rejectedHtml +
+        '<div class="nb-territory-grid">' + territoriesHtml + '</div>' +
+        rationaleHtml +
+        '<div class="nb-workspace__actions">' +
+          '<button class="nb-workspace__generate nb-workspace__generate--secondary" id="nbRegenPos">' +
+            '<span class="nb-workspace__generate-icon">✦</span> Regenerate' +
+          '</button>' +
+          (selectedIdx !== null && selectedIdx !== undefined
+            ? '<button class="nb-workspace__advance" id="nbAdvanceP3">Advance to P4 →</button>'
+            : '') +
+        '</div>' +
+        '<p class="nb-workspace__status" id="nbP3Status"></p>' +
+      '</div>';
+
+    // Select territory
+    phaseEl.addEventListener('click', function(e) {
+      var selectBtn = e.target.closest('.nb-territory__select');
+      if (!selectBtn) return;
+      var idx = parseInt(selectBtn.dataset.idx, 10);
+      selectBtn.disabled = true;
+      selectBtn.textContent = 'Selecting…';
+      var fn = firebase.functions();
+      fn.httpsCallable('selectTerritory')({ oppId: oppId, territoryIndex: idx, rationale: '' })
+        .then(function() {
+          var container = document.getElementById('nbContent');
+          if (container) renderWorkspace(container, oppId);
+        })
+        .catch(function(err) {
+          selectBtn.textContent = 'Failed — try again';
+          selectBtn.disabled = false;
+        });
+    });
+
+    // Save rationale
+    var rationaleBtn = document.getElementById('nbSaveRationale');
+    if (rationaleBtn) {
+      rationaleBtn.addEventListener('click', async function() {
+        var status = document.getElementById('nbP3Status');
+        var rationale = document.getElementById('nbRationale').value.trim();
+        rationaleBtn.disabled = true;
+        rationaleBtn.textContent = 'Saving…';
+        try {
+          var fn = firebase.functions();
+          await fn.httpsCallable('selectTerritory')({ oppId: oppId, territoryIndex: selectedIdx, rationale: rationale });
+          rationaleBtn.textContent = 'Saved ✓';
+          setTimeout(function() { rationaleBtn.textContent = 'Save rationale'; rationaleBtn.disabled = false; }, 1500);
+        } catch (err) {
+          status.textContent = 'Save failed. ' + (err.message || '');
+          rationaleBtn.textContent = 'Save rationale';
+          rationaleBtn.disabled = false;
+        }
+      });
+    }
+
+    // Regenerate
+    document.getElementById('nbRegenPos').addEventListener('click', async function() {
+      var btn = document.getElementById('nbRegenPos');
+      var status = document.getElementById('nbP3Status');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="nb-spinner"></span> Regenerating…';
+      try {
+        var fn = firebase.functions();
+        await fn.httpsCallable('runPositioning')({ oppId });
+        var container = document.getElementById('nbContent');
+        if (container) renderWorkspace(container, oppId);
+      } catch (err) {
+        status.textContent = 'Regeneration failed. ' + (err.message || '');
+        btn.disabled = false;
+        btn.innerHTML = '<span class="nb-workspace__generate-icon">✦</span> Regenerate';
+      }
+    });
+
+    // Advance
+    var advP3 = document.getElementById('nbAdvanceP3');
+    if (advP3) advP3.addEventListener('click', function() { advancePhase(oppId, 'creative'); });
+  }
+
+  // ── Contributions timeline ─────────────────────────────
+
+  function renderContributions(phaseEl, oppId) {
+    var wrap = document.createElement('div');
+    wrap.className = 'nb-contributions';
+    wrap.innerHTML = '<details class="nb-contributions__details">' +
+      '<summary class="nb-contributions__toggle">Activity log</summary>' +
+      '<div class="nb-contributions__list" id="nbContribList">Loading…</div>' +
+    '</details>';
+    phaseEl.appendChild(wrap);
+
+    wrap.querySelector('details').addEventListener('toggle', function(e) {
+      if (!e.target.open) return;
+      var list = document.getElementById('nbContribList');
+      if (list.dataset.loaded) return;
+      var fn = firebase.functions();
+      fn.httpsCallable('listContributions')({ oppId: oppId })
+        .then(function(result) {
+          var contribs = result.data.contributions || [];
+          if (!contribs.length) {
+            list.innerHTML = '<p class="nb-contributions__empty">No activity yet.</p>';
+            list.dataset.loaded = '1';
+            return;
+          }
+          list.innerHTML = contribs.map(function(c) {
+            var ts = c.createdAt ? new Date(c.createdAt).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+            var typeIcon = { 'claude-generation': '✦', 'manual-edit': '✎', 'territory-selection': '◆', answer: '→' };
+            return '<div class="nb-contrib">' +
+              '<span class="nb-contrib__icon">' + (typeIcon[c.type] || '·') + '</span>' +
+              '<div class="nb-contrib__body">' +
+                '<p class="nb-contrib__summary">' + esc(c.summary) + '</p>' +
+                '<p class="nb-contrib__meta">' + esc(c.author || '') + (ts ? ' · ' + ts : '') + '</p>' +
+              '</div>' +
+            '</div>';
+          }).join('');
+          list.dataset.loaded = '1';
+        })
+        .catch(function() {
+          list.innerHTML = '<p class="nb-contributions__empty">Failed to load activity.</p>';
+        });
     });
   }
 

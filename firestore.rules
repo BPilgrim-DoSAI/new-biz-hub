@@ -526,6 +526,16 @@ service cloud.firestore {
       }
     }
 
+    // ── New-biz API usage metering ──
+    // Per-agency token/call counters written by Cloud Functions
+    // (meterUsage) via the Admin SDK, which bypasses these rules.
+    // Readable by that agency's admins for the oversight dashboard.
+    // No client writes — all increments go through Functions.
+    match /newbiz_usage/{agencyKey} {
+      allow read: if canAccessAgency(agencyKey);
+      allow write: if false;
+    }
+
     // ── Agency knowledge base ──
     // Persistent agency credentials, brand decks, and templates reused
     // across opportunities. Scoped to the owning agency via agencyKey

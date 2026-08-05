@@ -100,6 +100,48 @@
         "function": {
           "functionId": "savePhaseOutput"
         }
+      },
+      {
+        "source": "/api/runAgencyBrief",
+        "function": {
+          "functionId": "runAgencyBrief"
+        }
+      },
+      {
+        "source": "/api/runQuestions",
+        "function": {
+          "functionId": "runQuestions"
+        }
+      },
+      {
+        "source": "/api/runPositioning",
+        "function": {
+          "functionId": "runPositioning"
+        }
+      },
+      {
+        "source": "/api/selectTerritory",
+        "function": {
+          "functionId": "selectTerritory"
+        }
+      },
+      {
+        "source": "/api/saveQuestionAnswer",
+        "function": {
+          "functionId": "saveQuestionAnswer"
+        }
+      },
+      {
+        "source": "/api/listContributions",
+        "function": {
+          "functionId": "listContributions"
+        }
+      },
+      {
+        "source": "/api/editPhaseField",
+        "function": {
+          "functionId": "editPhaseField"
+        }
       }
     ],
     "headers": [
