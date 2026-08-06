@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
-import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import {
   onCall,
@@ -95,7 +95,16 @@ async function callerCanAccessAgency(callerEmail, agencyKey) {
 // Tracks per-agency token usage for new-biz Claude API calls.
 // Increments atomically so concurrent calls don't lose counts.
 
-async function meterUsage(agencyKey, inputTokens, outputTokens, phase, callerEmail) {
+// Approximate Claude Sonnet 4 list pricing, USD per million tokens. Used only
+// to give the pitch-economics dashboard a directional AI-cost figure — not an
+// invoice reconciliation, so a fixed rate is fine even as list pricing drifts.
+const CLAUDE_INPUT_USD_PER_MTOK = 3;
+const CLAUDE_OUTPUT_USD_PER_MTOK = 15;
+
+async function meterUsage(agencyKey, inputTokens, outputTokens, phase, callerEmail, oppId) {
+  const costUsd = (inputTokens / 1e6) * CLAUDE_INPUT_USD_PER_MTOK
+    + (outputTokens / 1e6) * CLAUDE_OUTPUT_USD_PER_MTOK;
+
   const ref = db.collection('newbiz_usage').doc(agencyKey);
   await db.runTransaction(async (t) => {
     const doc = await t.get(ref);
@@ -103,12 +112,32 @@ async function meterUsage(agencyKey, inputTokens, outputTokens, phase, callerEma
     t.set(ref, {
       inputTokens: (data.inputTokens || 0) + inputTokens,
       outputTokens: (data.outputTokens || 0) + outputTokens,
+      costUsd: (data.costUsd || 0) + costUsd,
       calls: (data.calls || 0) + 1,
       lastCallAt: FieldValue.serverTimestamp(),
       lastPhase: phase,
       lastCaller: callerEmail,
     }, { merge: true });
   });
+
+  // Also roll the same usage up onto the opportunity itself, so the pitch
+  // economics dashboard can attribute AI cost per-pitch, not just per-agency.
+  if (oppId) {
+    const oppRef = db.collection('opportunities').doc(oppId);
+    await db.runTransaction(async (t) => {
+      const doc = await t.get(oppRef);
+      if (!doc.exists) return;
+      const data = doc.data().claudeUsage || {};
+      t.update(oppRef, {
+        claudeUsage: {
+          inputTokens: (data.inputTokens || 0) + inputTokens,
+          outputTokens: (data.outputTokens || 0) + outputTokens,
+          costUsd: (data.costUsd || 0) + costUsd,
+          calls: (data.calls || 0) + 1,
+        },
+      });
+    });
+  }
 }
 
 // ── Newbiz access check (shared by all phase functions) ──
@@ -134,6 +163,21 @@ async function verifyNewBizAccess(request) {
   }
 
   return { callerEmail, agencyKey };
+}
+
+// Gates finance-sensitive endpoints (pitch cost entry, cross-agency
+// analytics) to the two full-access admin tiers — AI team ('all') and
+// 'finance'. Same tiers isFullAccessAdmin() covers in firestore.rules.
+async function verifyFullAccessAdmin(request) {
+  const callerEmail = request.auth?.token?.email?.toLowerCase();
+  if (!callerEmail) throw new HttpsError('unauthenticated', 'Sign in required');
+
+  const adminDoc = await db.collection('admins').doc(callerEmail).get();
+  const access = adminDoc.exists ? adminDoc.data().access : null;
+  if (!['all', 'finance'].includes(access)) {
+    throw new HttpsError('permission-denied', 'Requires full-access admin (AI team or finance)');
+  }
+  return { callerEmail };
 }
 
 async function verifyOppAccess(request, oppId) {
@@ -289,6 +333,11 @@ export const checkNewBizAccess = onCall(async (request) => {
 
 const VALID_PHASES = ['intake', 'agency-brief', 'questions', 'positioning', 'creative', 'ltx-prompts', 'knowledge', 'deck'];
 
+// Pitch pipeline stage, distinct from `phase` (which tracks progress through
+// the P0–P7 workflow). Set by the new-biz team from the opportunity list and
+// consumed by the New Business Analytics dashboard for the funnel/win rate.
+const PITCH_STATUSES = ['due', 'responding', 'pitched', 'procurement', 'won', 'lost'];
+
 export const createOpportunity = onCall(async (request) => {
   const callerEmail = request.auth?.token?.email?.toLowerCase();
   if (!callerEmail) throw new HttpsError('unauthenticated', 'Sign in required');
@@ -320,7 +369,8 @@ export const createOpportunity = onCall(async (request) => {
     clientName: (clientName || '').slice(0, 200),
     agencyKey,
     phase: 'intake',
-    status: 'active',
+    status: 'due',
+    statusHistory: [{ status: 'due', at: Timestamp.now(), by: callerEmail }],
     createdBy: callerEmail,
     createdAt: FieldValue.serverTimestamp(),
     updatedAt: FieldValue.serverTimestamp(),
@@ -423,7 +473,8 @@ export const updateOpportunity = onCall(async (request) => {
   if (updates.title && typeof updates.title === 'string') allowed.title = updates.title.slice(0, 200);
   if (updates.clientName && typeof updates.clientName === 'string') allowed.clientName = updates.clientName.slice(0, 200);
   if (updates.phase && VALID_PHASES.includes(updates.phase)) allowed.phase = updates.phase;
-  if (updates.status && ['active', 'won', 'lost', 'archived'].includes(updates.status)) allowed.status = updates.status;
+  // Pitch status changes go through setOpportunityStatus (below) — it also
+  // appends to statusHistory, which this generic endpoint doesn't do.
   if (updates.rawBrief && typeof updates.rawBrief === 'string') allowed.rawBrief = updates.rawBrief.slice(0, 50000);
 
   allowed.updatedAt = FieldValue.serverTimestamp();
@@ -432,6 +483,161 @@ export const updateOpportunity = onCall(async (request) => {
   await db.collection('opportunities').doc(oppId).update(allowed);
 
   return { ok: true };
+});
+
+// ── Pitch status ────────────────────────────────────────
+// The pitch pipeline stage (due → responding → pitched → procurement →
+// won/lost), set by the new-biz team from the opportunity list. Distinct
+// from `phase`, which tracks P0–P7 workflow progress. Appends to
+// statusHistory so the analytics dashboard can compute win rate and
+// cycle time (days between creation and won/lost).
+
+export const setOpportunityStatus = onCall(async (request) => {
+  const { oppId, status } = request.data;
+  if (!oppId || !status) throw new HttpsError('invalid-argument', 'oppId and status required');
+  if (!PITCH_STATUSES.includes(status)) throw new HttpsError('invalid-argument', 'Invalid status');
+
+  const { callerEmail, opp } = await verifyOppAccess(request, oppId);
+
+  if (opp.status === status) return { ok: true };
+
+  await db.collection('opportunities').doc(oppId).update({
+    status,
+    statusHistory: FieldValue.arrayUnion({ status, at: Timestamp.now(), by: callerEmail }),
+    updatedAt: FieldValue.serverTimestamp(),
+    updatedBy: callerEmail,
+  });
+
+  await logContribution(oppId, {
+    author: callerEmail,
+    phase: opp.phase,
+    type: 'status-change',
+    summary: `Status changed to "${status}"`,
+  });
+
+  return { ok: true };
+});
+
+// ── Pitch economics ─────────────────────────────────────
+// Manually entered cost data (team time + hard costs) feeding the burn-rate
+// and CAC figures on the New Business Analytics dashboard. Restricted to
+// full-access admins (AI team / finance) — this is group financial data,
+// not something individual agencies self-report, so it's edited from the
+// admin dashboard rather than the opportunity workspace.
+
+export const saveOpportunityEconomics = onCall(async (request) => {
+  const { oppId, teamCostGBP, hardCostsGBP } = request.data;
+  if (!oppId) throw new HttpsError('invalid-argument', 'oppId required');
+
+  const { callerEmail } = await verifyFullAccessAdmin(request);
+
+  const doc = await db.collection('opportunities').doc(oppId).get();
+  if (!doc.exists) throw new HttpsError('not-found', 'Opportunity not found');
+
+  const clean = (n) => (typeof n === 'number' && Number.isFinite(n) && n >= 0 ? n : 0);
+
+  await db.collection('opportunities').doc(oppId).update({
+    economics: {
+      teamCostGBP: clean(teamCostGBP),
+      hardCostsGBP: clean(hardCostsGBP),
+      updatedBy: callerEmail,
+      updatedAt: FieldValue.serverTimestamp(),
+    },
+  });
+
+  await logContribution(oppId, {
+    author: callerEmail,
+    phase: doc.data().phase,
+    type: 'manual-edit',
+    summary: 'Updated pitch cost estimate',
+  });
+
+  return { ok: true };
+});
+
+// ── New Business Analytics ──────────────────────────────
+// Cross-agency aggregate view for the admin dashboard: pipeline volume,
+// win rate, burn rate per pitch, and CAC. Full-access admins only — this
+// reads every agency's opportunities, which no single-agency admin should
+// see in aggregate.
+
+// Approximate USD→GBP rate used only to blend AI cost (metered in USD) into
+// the GBP totals alongside manually entered team/hard costs. Directional
+// estimate, not an FX-accurate conversion.
+const USD_TO_GBP = 0.79;
+
+export const getNewBizAnalytics = onCall(async (request) => {
+  await verifyFullAccessAdmin(request);
+
+  const snap = await db.collection('opportunities').get();
+
+  const byStatus = {};
+  PITCH_STATUSES.forEach((s) => { byStatus[s] = 0; });
+
+  let totalBurnGBP = 0;
+  let wonCount = 0;
+  let lostCount = 0;
+  let wonBurnGBP = 0;
+  let cycleDaysSum = 0;
+  let cycleDaysCount = 0;
+  const pitches = [];
+
+  snap.docs.forEach((d) => {
+    const o = d.data();
+    const status = PITCH_STATUSES.includes(o.status) ? o.status : 'due';
+    byStatus[status] += 1;
+
+    const teamCostGBP = o.economics?.teamCostGBP || 0;
+    const hardCostsGBP = o.economics?.hardCostsGBP || 0;
+    const aiCostGBP = (o.claudeUsage?.costUsd || 0) * USD_TO_GBP;
+    const totalCostGBP = teamCostGBP + hardCostsGBP + aiCostGBP;
+    totalBurnGBP += totalCostGBP;
+
+    let cycleDays = null;
+    const createdAt = o.createdAt?.toDate?.();
+    const closedEntry = (o.statusHistory || []).find((h) => h.status === 'won' || h.status === 'lost');
+    const closedAt = closedEntry?.at?.toDate?.();
+    if (createdAt && closedAt) {
+      cycleDays = Math.max(0, Math.round((closedAt - createdAt) / 86400000));
+      cycleDaysSum += cycleDays;
+      cycleDaysCount += 1;
+    }
+
+    if (status === 'won') {
+      wonCount += 1;
+      wonBurnGBP += totalCostGBP;
+    } else if (status === 'lost') {
+      lostCount += 1;
+    }
+
+    pitches.push({
+      id: d.id,
+      title: o.title || '(untitled)',
+      clientName: o.clientName || '',
+      agencyKey: o.agencyKey || '',
+      status,
+      teamCostGBP: Math.round(teamCostGBP * 100) / 100,
+      hardCostsGBP: Math.round(hardCostsGBP * 100) / 100,
+      aiCostGBP: Math.round(aiCostGBP * 100) / 100,
+      totalCostGBP: Math.round(totalCostGBP * 100) / 100,
+      cycleDays,
+    });
+  });
+
+  const closedTotal = wonCount + lostCount;
+
+  return {
+    totalOpportunities: snap.size,
+    byStatus,
+    winRate: closedTotal > 0 ? wonCount / closedTotal : null,
+    wonCount,
+    lostCount,
+    cac: wonCount > 0 ? Math.round((wonBurnGBP / wonCount) * 100) / 100 : null,
+    avgBurnPerPitchGBP: snap.size > 0 ? Math.round((totalBurnGBP / snap.size) * 100) / 100 : 0,
+    totalBurnGBP: Math.round(totalBurnGBP * 100) / 100,
+    avgCycleDays: cycleDaysCount > 0 ? Math.round(cycleDaysSum / cycleDaysCount) : null,
+    pitches: pitches.sort((a, b) => b.totalCostGBP - a.totalCostGBP),
+  };
 });
 
 // Save a phase output for an opportunity
@@ -711,7 +917,7 @@ export const parseClientBrief = onCall({ timeoutSeconds: 180 }, async (request) 
 
   const cleanedText = msg.content[0]?.text || rawText;
 
-  await meterUsage(agencyKey, msg.usage.input_tokens, msg.usage.output_tokens, 'intake-parse', callerEmail);
+  await meterUsage(agencyKey, msg.usage.input_tokens, msg.usage.output_tokens, 'intake-parse', callerEmail, oppId);
 
   await logContribution(oppId, {
     author: callerEmail,
@@ -755,7 +961,7 @@ export const runAgencyBrief = onCall({ timeoutSeconds: 120 }, async (request) =>
     throw new HttpsError('internal', 'Failed to parse Claude response as JSON');
   }
 
-  await meterUsage(agencyKey, msg.usage.input_tokens, msg.usage.output_tokens, 'agency-brief', callerEmail);
+  await meterUsage(agencyKey, msg.usage.input_tokens, msg.usage.output_tokens, 'agency-brief', callerEmail, oppId);
 
   await db.collection('opportunities').doc(oppId)
     .collection('phase_outputs').doc('agency-brief').set({
@@ -824,7 +1030,7 @@ export const runQuestions = onCall({ timeoutSeconds: 120 }, async (request) => {
     throw new HttpsError('internal', 'Failed to parse Claude response as JSON');
   }
 
-  await meterUsage(agencyKey, msg.usage.input_tokens, msg.usage.output_tokens, 'questions', callerEmail);
+  await meterUsage(agencyKey, msg.usage.input_tokens, msg.usage.output_tokens, 'questions', callerEmail, oppId);
 
   await db.collection('opportunities').doc(oppId)
     .collection('phase_outputs').doc('questions').set({
@@ -903,7 +1109,7 @@ export const runPositioning = onCall({ timeoutSeconds: 120 }, async (request) =>
     throw new HttpsError('internal', 'Failed to parse Claude response as JSON');
   }
 
-  await meterUsage(agencyKey, msg.usage.input_tokens, msg.usage.output_tokens, 'positioning', callerEmail);
+  await meterUsage(agencyKey, msg.usage.input_tokens, msg.usage.output_tokens, 'positioning', callerEmail, oppId);
 
   await db.collection('opportunities').doc(oppId)
     .collection('phase_outputs').doc('positioning').set({

@@ -17,6 +17,52 @@
     { key: 'deck',         label: 'Deck',           num: '7' },
   ];
 
+  // Pitch pipeline stage — distinct from PHASES (P0–P7 workflow progress).
+  // Set by the new-biz team from the opportunity list; feeds the win rate /
+  // funnel figures on the New Business Analytics admin dashboard.
+  const PITCH_STATUSES = [
+    { key: 'due',         label: 'Due' },
+    { key: 'responding',  label: 'Responding' },
+    { key: 'pitched',     label: 'Pitched' },
+    { key: 'procurement', label: 'Procurement' },
+    { key: 'won',         label: 'Won' },
+    { key: 'lost',        label: 'Lost' },
+  ];
+
+  function statusSelectHtml(oppId, status) {
+    var current = status || 'due';
+    var options = PITCH_STATUSES.map(function(s) {
+      return '<option value="' + s.key + '"' + (s.key === current ? ' selected' : '') + '>' + s.label + '</option>';
+    }).join('');
+    return '<select class="nb-status-select nb-status-select--' + esc(current) + '" data-opp-id="' + esc(oppId) + '">' + options + '</select>';
+  }
+
+  // Delegated handler for any .nb-status-select on the page. Stops the
+  // event reaching a parent click handler (e.g. the card's "open workspace"
+  // listener) and swaps the select's colour class to match the new status.
+  function wireStatusSelects(root) {
+    root.querySelectorAll('.nb-status-select').forEach(function(sel) {
+      sel.addEventListener('click', function(e) { e.stopPropagation(); });
+      sel.addEventListener('change', function(e) {
+        e.stopPropagation();
+        var oppId = sel.dataset.oppId;
+        var newStatus = sel.value;
+        sel.disabled = true;
+        var fn = firebase.functions();
+        fn.httpsCallable('setOpportunityStatus')({ oppId: oppId, status: newStatus })
+          .then(function() {
+            PITCH_STATUSES.forEach(function(s) { sel.classList.remove('nb-status-select--' + s.key); });
+            sel.classList.add('nb-status-select--' + newStatus);
+            sel.disabled = false;
+          })
+          .catch(function(err) {
+            console.warn('setOpportunityStatus error:', err);
+            sel.disabled = false;
+          });
+      });
+    });
+  }
+
   function esc(str) {
     const d = document.createElement('div');
     d.textContent = str || '';
@@ -100,7 +146,7 @@
             <p class="nb-opp-card__client">${esc(opp.clientName || 'No client set')}</p>
             <div class="nb-opp-card__meta">
               <span class="nb-opp-card__phase">${esc(phaseLabel(opp.phase))}</span>
-              <span class="nb-opp-card__status nb-opp-card__status--${esc(opp.status || 'active')}">${esc((opp.status || 'active').charAt(0).toUpperCase() + (opp.status || 'active').slice(1))}</span>
+              ${statusSelectHtml(opp.id, opp.status)}
               ${opp.updatedAt ? '<span>' + esc(formatDate(opp.updatedAt)) + '</span>' : ''}
             </div>
           </div>`;
@@ -114,13 +160,15 @@
         <div class="nb-opp-grid">${cardsHtml}</div>`;
 
       container.querySelectorAll('.nb-opp-card').forEach(function(card) {
-        card.addEventListener('click', function() {
+        card.addEventListener('click', function(e) {
+          if (e.target.closest('.nb-status-select')) return;
           const oppId = card.dataset.oppId;
           window.history.pushState({}, '', 'new-business.html?opp=' + encodeURIComponent(oppId));
           renderWorkspace(container, oppId);
         });
       });
 
+      wireStatusSelects(container);
       wireCreateBtn();
     } catch (err) {
       console.warn('renderList error:', err);
@@ -236,12 +284,13 @@
         ${backLink}
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
           <h2 style="font-size:22px;font-weight:700">${esc(opp.title)}</h2>
-          <span class="nb-opp-card__status nb-opp-card__status--${esc(opp.status || 'active')}" style="font-size:12px">${esc((opp.status || 'active').charAt(0).toUpperCase() + (opp.status || 'active').slice(1))}</span>
+          ${statusSelectHtml(oppId, opp.status)}
         </div>
         <p style="font-size:14px;color:var(--c-stone);margin-bottom:24px">${esc(opp.clientName || 'No client set')} · Created by ${esc(opp.createdBy || '—')}</p>
         <div class="nb-phase-stepper">${stepperHtml}</div>
         <div id="nbPhaseContent"></div>`;
 
+      wireStatusSelects(container);
       renderPhaseContent(opp, oppId);
 
       // Wire back link to avoid full page reload

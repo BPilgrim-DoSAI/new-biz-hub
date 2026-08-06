@@ -330,6 +330,11 @@
     document.getElementById('adminSectionActivity').style.display  = section === 'activity'       ? '' : 'none';
     const goEl = document.getElementById('adminSectionGroupOverview');
     if (goEl) goEl.style.display = section === 'group-overview' ? '' : 'none';
+    const nbaEl = document.getElementById('adminSectionNewBizAnalytics');
+    if (nbaEl) {
+      nbaEl.style.display = section === 'newbiz-analytics' ? '' : 'none';
+      if (section === 'newbiz-analytics') renderNewBizAnalyticsSection();
+    }
     const roiEl = document.getElementById('adminSectionROI');
     if (roiEl) {
       roiEl.style.display = section === 'roi-stories' ? '' : 'none';
@@ -1408,6 +1413,7 @@
         ${user.access !== 'finance' ? '<button class="admin-section-btn" data-section="meeting-log">Meeting Log</button>' : ''}
         <!-- Remaining sections. -->
         ${(user.access === 'all' || user.access === 'finance') ? '<button class="admin-section-btn" data-section="group-overview">Group Spend</button>' : ''}
+        ${(user.access === 'all' || user.access === 'finance') ? '<button class="admin-section-btn" data-section="newbiz-analytics">New Business Analytics</button>' : ''}
         ${user.access === 'all' ? '<button class="admin-section-btn" data-section="activity">AI Hub Engagement</button>' : ''}
         ${user.access !== 'finance' ? '<button class="admin-section-btn" data-section="roi-stories">AI Impact Stories</button>' : ''}
         ${user.access !== 'finance' ? '<button class="admin-section-btn" data-section="newbiz-users">New Biz Users</button>' : ''}
@@ -1423,6 +1429,7 @@
       <div id="adminSectionGroupProgress" style="display:none"></div>
       <div id="adminSectionROI" style="display:none"></div>
       <div id="adminSectionGroupOverview" style="display:none"></div>
+      <div id="adminSectionNewBizAnalytics" style="display:none"></div>
       <div id="adminSectionUsageReports" style="display:none"></div>
       <div id="adminSectionMeetingLog" style="display:none"></div>
       <div id="adminSectionNewBizUsers" style="display:none"></div>
@@ -1914,6 +1921,47 @@
         '<p style="font-size:11px;color:var(--c-stone);margin-top:8px;font-style:italic">Jan 2026–Jan 2027 · month 6 of 12 · marker = expected 50% pace · green = on/above pace · amber = under pace</p>' +
         groupPacingBar +
       '</div>';
+  }
+
+  // ── New Business Analytics ────────────────────────────
+  // Cross-agency pitch economics: volume by status, win rate, burn rate
+  // per pitch, CAC. Rendered by js/newbiz-analytics.js (window.
+  // renderNewBizAnalytics), which must load before this file. Full-access
+  // admins (AI team / finance) only — matches the getNewBizAnalytics
+  // Cloud Function's own server-side gate.
+
+  async function renderNewBizAnalyticsSection() {
+    const section = document.getElementById('adminSectionNewBizAnalytics');
+    if (!section) return;
+    section.innerHTML = '<p class="admin-view__loading">Loading pitch economics…</p>';
+
+    const email = getAdminEmail();
+    const user = getUser(email);
+    if (!user || (user.access !== 'all' && user.access !== 'finance')) return;
+
+    try {
+      const fn = firebase.functions();
+      const result = await fn.httpsCallable('getNewBizAnalytics')({});
+      if (typeof window.renderNewBizAnalytics !== 'function') {
+        section.innerHTML = '<p class="admin-view__loading">Analytics view failed to load.</p>';
+        return;
+      }
+      window.renderNewBizAnalytics(section, result.data, {
+        onSaveEconomics: async function (oppId, economics) {
+          await fn.httpsCallable('saveOpportunityEconomics')({
+            oppId: oppId,
+            teamCostGBP: economics.teamCostGBP,
+            hardCostsGBP: economics.hardCostsGBP,
+          });
+          // Re-fetch so totals/CAC/burn-rate KPIs reflect the edit — the
+          // renderer itself doesn't recompute derived figures client-side.
+          renderNewBizAnalyticsSection();
+        },
+      });
+    } catch (err) {
+      console.warn('getNewBizAnalytics error:', err);
+      section.innerHTML = '<p class="admin-view__loading">Could not load pitch economics. Please try again or contact the AI team.</p>';
+    }
   }
 
   // ── Agency content ────────────────────────────────────

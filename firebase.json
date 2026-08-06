@@ -96,6 +96,24 @@
         }
       },
       {
+        "source": "/api/setOpportunityStatus",
+        "function": {
+          "functionId": "setOpportunityStatus"
+        }
+      },
+      {
+        "source": "/api/saveOpportunityEconomics",
+        "function": {
+          "functionId": "saveOpportunityEconomics"
+        }
+      },
+      {
+        "source": "/api/getNewBizAnalytics",
+        "function": {
+          "functionId": "getNewBizAnalytics"
+        }
+      },
+      {
         "source": "/api/savePhaseOutput",
         "function": {
           "functionId": "savePhaseOutput"

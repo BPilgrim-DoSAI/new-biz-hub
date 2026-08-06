@@ -109,7 +109,11 @@
        claude-usage.js (uses window.levelFor) and before admin-panel.js,
        which calls it when the Group AI Progress tab opens. -->
   <script src="js/group-report.js?v=2"></script>
-  <script src="js/admin-panel.js?v=25"></script>
+  <!-- New Business Analytics dashboard renderer (window.renderNewBizAnalytics).
+       Must load before admin-panel.js, which calls it when the New Business
+       Analytics tab opens. Reuses the .gr- CSS classes from group-report.css. -->
+  <script src="js/newbiz-analytics.js?v=1"></script>
+  <script src="js/admin-panel.js?v=26"></script>
   <!-- Site Content editors: news-data.js / use-cases-data.js provide the
        static arrays used by the one-click imports; admin-content.js and
        admin-use-cases.js are the editor UIs. -->
